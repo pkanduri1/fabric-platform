@@ -10,11 +10,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.io.TempDir;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -44,8 +46,24 @@ class YamlGenerationIntegrationTest {
     private final YamlGenerationService yamlGenerationService = new YamlGenerationService();
     private final ObjectMapper yamlMapper = new ObjectMapper(new YAMLFactory());
 
-    @TempDir
-    Path tempDir;
+    private static final String TEMP_YAML_DIR = "generated-yamls";
+    private Path tempDirPath;
+
+    @BeforeEach
+    void setUp() throws IOException {
+        // Create a directory within the test resources folder
+        tempDirPath = Path.of("target", "test-classes", TEMP_YAML_DIR);
+        Files.createDirectories(tempDirPath);
+    }
+
+    @AfterEach
+    void tearDown() throws IOException {
+        // Clean up the directory
+        Files.walk(tempDirPath)
+            .sorted(Comparator.reverseOrder())
+            .map(Path::toFile)
+            .forEach(File::delete);
+    }
 
     @Test
     @DisplayName("End-to-end: Config → YAML Generation → GenericProcessor Compatibility")
@@ -238,22 +256,20 @@ class YamlGenerationIntegrationTest {
     }
 
     private Path saveYamlToTempFile(String yamlContent, FieldMappingConfig config) throws IOException {
-        Path yamlFile = tempDir.resolve(config.getJobName() + ".yml");
+        Path yamlFile = tempDirPath.resolve(config.getJobName() + ".yml");
         Files.write(yamlFile, yamlContent.getBytes());
         return yamlFile;
     }
 
     private Path saveMultiDocYamlToTempFile(String yamlContent) throws IOException {
-        Path yamlFile = tempDir.resolve("multi-doc-test.yml");
+        Path yamlFile = tempDirPath.resolve("multi-doc-test.yml");
         Files.write(yamlFile, yamlContent.getBytes());
         return yamlFile;
     }
 
     private String getRelativePathForYamlMappingService(Path yamlFile) {
         // YamlMappingService expects classpath-relative paths
-        // For testing, we'll copy to a temp location that can be accessed
-        // In real implementation, files would be in src/main/resources
-        return yamlFile.toAbsolutePath().toString();
+        return TEMP_YAML_DIR + "/" + yamlFile.getFileName().toString();
     }
 
     private void validateYamlMappingStructure(YamlMapping mapping, FieldMappingConfig originalConfig) {
