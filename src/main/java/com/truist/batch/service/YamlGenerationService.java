@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
+import com.truist.batch.model.Condition;
 import com.truist.batch.model.FieldMapping;
 import com.truist.batch.model.FieldMappingConfig;
 import com.truist.batch.model.ValidationResult;
@@ -142,16 +143,96 @@ public class YamlGenerationService {
      * Converts FieldMapping list to FieldMapping map.
      * The input FieldMappingConfig uses a List<FieldMapping>, but YamlMapping expects Map<String, FieldMapping>.
      */
-    private Map<String, FieldMapping> convertFieldMappings(List<FieldMapping> fieldMappings) {
+    private Map<String, FieldMapping> convertFieldMappings(List<FieldMapping> frontendMappings) {
+        log.debug("🔄 Converting {} field mappings from frontend to backend format", frontendMappings.size());
+        
         Map<String, FieldMapping> backendFields = new LinkedHashMap<>();
         
-        for (FieldMapping field : fieldMappings) {
-            // Use lowercase fieldName as key to match existing YAML structure
-            String key = field.getFieldName().toLowerCase().replace("_", "-");
-            backendFields.put(key, field);
+        for (FieldMapping frontendMapping : frontendMappings) {
+            try {
+                String fieldName = getFieldNameFromMapping(frontendMapping);
+                
+                if (fieldName == null || fieldName.trim().isEmpty()) {
+                    log.warn("⚠️ Skipping field mapping with null/empty field name: {}", frontendMapping);
+                    continue;
+                }
+                
+                // Create backend FieldMapping with proper field name
+                FieldMapping backendMapping = createBackendFieldMapping(frontendMapping, fieldName);
+                
+                // Use lowercase field name as key (consistent with existing YAML files)
+                String mapKey = fieldName.toLowerCase().replace("-", "_");
+                backendFields.put(mapKey, backendMapping);
+                
+                log.debug("✅ Converted field mapping: {} -> {}", fieldName, mapKey);
+                
+            } catch (Exception e) {
+                log.error("❌ Failed to convert field mapping: {}", frontendMapping, e);
+                throw new RuntimeException("Failed to convert field mapping: " + frontendMapping, e);
+            }
         }
         
+        log.debug("✅ Successfully converted {} field mappings", backendFields.size());
         return backendFields;
+    }
+    
+    /**
+	 * Determines the field name to use for the backend mapping.
+	 * Uses fieldName if available, otherwise falls back to targetField.
+	 */
+    private String getFieldNameFromMapping(FieldMapping mapping) {
+        // Try fieldName first (backend property)
+        if (mapping.getFieldName() != null && !mapping.getFieldName().trim().isEmpty()) {
+            return mapping.getFieldName();
+        }
+        
+        // Try targetField (frontend property)  
+        if (mapping.getTargetField() != null && !mapping.getTargetField().trim().isEmpty()) {
+            return mapping.getTargetField();
+        }
+        
+        return null;
+    }
+    
+    private FieldMapping createBackendFieldMapping(FieldMapping frontendMapping, String fieldName) {
+        FieldMapping backendMapping = new FieldMapping();
+        
+        // Set field identifiers
+        backendMapping.setFieldName(fieldName);
+        backendMapping.setTargetField(fieldName); // Ensure both are set
+        backendMapping.setSourceField(frontendMapping.getSourceField());
+        backendMapping.setFrom(frontendMapping.getFrom());
+        
+        // Set position and formatting (NOTE: these are int, not Integer)
+        backendMapping.setTargetPosition(frontendMapping.getTargetPosition());
+        backendMapping.setLength(frontendMapping.getLength());
+        backendMapping.setDataType(frontendMapping.getDataType());
+        backendMapping.setFormat(frontendMapping.getFormat());
+        backendMapping.setSourceFormat(frontendMapping.getSourceFormat());
+        backendMapping.setTargetFormat(frontendMapping.getTargetFormat());
+        
+        // Set transformation
+        backendMapping.setTransformationType(frontendMapping.getTransformationType());
+        backendMapping.setValue(frontendMapping.getValue());
+        backendMapping.setDefaultValue(frontendMapping.getDefaultValue());
+        backendMapping.setTransform(frontendMapping.getTransform());
+        
+        // Set padding
+        backendMapping.setPad(frontendMapping.getPad());
+        backendMapping.setPadChar(frontendMapping.getPadChar());
+        
+        // Set conditional logic (NOTE: this is List<Condition>, not Object)
+        backendMapping.setConditions(frontendMapping.getConditions());
+        
+        // Set composite properties (NOTE: these exist in your model)
+        backendMapping.setComposite(frontendMapping.isComposite());
+        backendMapping.setSources(frontendMapping.getSources());
+        backendMapping.setDelimiter(frontendMapping.getDelimiter());
+        
+        // Set DSL expression
+        backendMapping.setExpression(frontendMapping.getExpression());
+        
+        return backendMapping;
     }
 
     /**
@@ -181,7 +262,7 @@ public class YamlGenerationService {
         
         // Field-level validation
         if (config.getFieldMappings() != null) {
-            validateFieldMappings(config.getFieldMappings(), result);
+        	validateFieldMapping(config.getFieldMappings(), result);
         }
         
         log.debug("✅ Validation complete: {} errors, {} warnings", 
@@ -189,74 +270,236 @@ public class YamlGenerationService {
         
         return result;
     }
+    
 
     /**
      * Validates individual field mappings for YAML generation compatibility.
      */
-    private void validateFieldMappings(List<FieldMapping> fields, ValidationResult result) {
-        Set<Integer> usedPositions = new HashSet<>();
-        Set<String> usedTargetFields = new HashSet<>();
-        
-        for (FieldMapping field : fields) {
-            // Check for duplicate positions
-            if (usedPositions.contains(field.getTargetPosition())) {
-                result.addError("Duplicate target position: " + field.getTargetPosition());
-                result.getDuplicatePositions().add(String.valueOf(field.getTargetPosition()));
-            }
-            usedPositions.add(field.getTargetPosition());
-            
-            // Check for duplicate target fields
-            if (usedTargetFields.contains(field.getTargetField())) {
-                result.addError("Duplicate target field: " + field.getTargetField());
-                result.getDuplicateFieldNames().add(field.getTargetField());
-            }
-            usedTargetFields.add(field.getTargetField());
-            
-            // Validate transformation-specific requirements
-            validateTransformationType(field, result);
-        }
-    }
-
-    /**
-     * Validates transformation-specific requirements for each field.
-     */
-    private void validateTransformationType(FieldMapping field, ValidationResult result) {
-        String fieldName = field.getFieldName();
-        String transformationType = field.getTransformationType();
-        
-        if (transformationType == null) {
-            result.addError("Transformation type is required for field: " + fieldName);
-            result.getMissingRequiredFields().add(fieldName + " (transformationType)");
+    private void validateFieldMapping(List<FieldMapping> mappings, ValidationResult result) {
+        if (mappings == null || mappings.isEmpty()) {
+            result.addError("Field mappings list is empty");
             return;
         }
         
-        switch (transformationType) {
-            case "source":
-                if (field.getSourceField() == null || field.getSourceField().trim().isEmpty()) {
-                    result.addError("Source field required for field: " + fieldName);
-                    result.getMissingRequiredFields().add(fieldName + " (sourceField)");
-                }
-                break;
+        log.debug("🔍 Validating {} field mappings", mappings.size());
+        
+        // Track target positions to check for duplicates
+        Set<Integer> usedPositions = new HashSet<>();
+        
+        for (int i = 0; i < mappings.size(); i++) {
+            FieldMapping mapping = mappings.get(i);
+            
+            try {
+                // Validate individual field mapping
+                validateSingleFieldMapping(mapping, i, result);
                 
+                // Check for duplicate target positions
+                if (mapping.getTargetPosition() != 0) {
+                    if (usedPositions.contains(mapping.getTargetPosition())) {
+                        result.addError("Duplicate target position " + mapping.getTargetPosition() + 
+                                       " found in field mapping " + i);
+                    } else {
+                        usedPositions.add(mapping.getTargetPosition());
+                    }
+                }
+                
+            } catch (Exception e) {
+                result.addError("Error validating field mapping " + i + ": " + e.getMessage());
+                log.warn("⚠️ Error validating field mapping {}: {}", i, e.getMessage());
+            }
+        }
+        
+        log.debug("✅ Field mapping validation complete");
+    }
+    /**
+	 * Validates a single field mapping for YAML generation compatibility.
+	 */
+    private void validateSingleFieldMapping(FieldMapping mapping, int index, ValidationResult result) {
+        String fieldName = getFieldNameFromMapping(mapping);
+        String fieldContext = fieldName != null ? fieldName : ("field " + index);
+        
+        // Validate field name
+        if (fieldName == null || fieldName.trim().isEmpty()) {
+            result.addError("Field name is required for field mapping " + index);
+            return; // Can't validate further without field name
+        }
+        
+        // Validate target position (NOTE: int, so check for <= 0, not null)
+        if (mapping.getTargetPosition() <= 0) {
+            result.addError("Target position must be greater than 0 for field: " + fieldContext);
+        }
+        
+        // Validate length (NOTE: int, so check for <= 0, not null)
+        if (mapping.getLength() <= 0) {
+            result.addError("Length must be greater than 0 for field: " + fieldContext);
+        }
+        
+        // Validate transformation type
+        if (mapping.getTransformationType() == null || mapping.getTransformationType().trim().isEmpty()) {
+            result.addError("Transformation type is required for field: " + fieldContext);
+            return;
+        }
+        
+        // Validate transformation-specific requirements
+        switch (mapping.getTransformationType().toLowerCase()) {
             case "constant":
-                if (field.getValue() == null && field.getDefaultValue() == null) {
-                    result.addWarning("No value specified for constant field: " + fieldName);
+                if (mapping.getValue() == null || mapping.getValue().trim().isEmpty()) {
+                    result.addError("Value is required for constant transformation: " + fieldContext);
                 }
                 break;
                 
-            case "composite":
-                if (field.getSources() == null || field.getSources().isEmpty()) {
-                    result.addError("Sources required for composite field: " + fieldName);
-                    result.getMissingRequiredFields().add(fieldName + " (sources)");
+            case "source":
+                if (mapping.getSourceField() == null || mapping.getSourceField().trim().isEmpty()) {
+                    result.addError("Source field is required for source transformation: " + fieldContext);
                 }
                 break;
                 
             case "conditional":
-                if (field.getConditions() == null || field.getConditions().isEmpty()) {
-                    result.addError("Conditions required for conditional field: " + fieldName);
-                    result.getMissingRequiredFields().add(fieldName + " (conditions)");
+                // FIXED: Check List<Condition>, not Object
+                if (mapping.getConditions() == null || mapping.getConditions().isEmpty()) {
+                    result.addError("Conditions required for conditional field: " + fieldContext);
+                } else {
+                    validateConditions(mapping.getConditions(), fieldContext, result);
                 }
                 break;
+                
+            case "composite":
+                // FIXED: Use actual composite properties
+                if (!mapping.isComposite()) {
+                    result.addWarning("Field marked as composite transformation but composite flag is false: " + fieldContext);
+                }
+                if (mapping.getSources() == null || mapping.getSources().isEmpty()) {
+                    result.addError("Sources are required for composite transformation: " + fieldContext);
+                }
+                break;
+                
+            default:
+                result.addWarning("Unknown transformation type: " + mapping.getTransformationType() + 
+                                 " for field: " + fieldContext);
+                break;
+        }
+        
+        // Validate data type
+        if (mapping.getDataType() != null) {
+            validateDataType(mapping.getDataType(), fieldContext, result);
+        }
+        
+        // Validate padding configuration
+        if (mapping.getPad() != null && !mapping.getPad().matches("left|right")) {
+            result.addError("Pad must be 'left' or 'right' for field: " + fieldContext);
+        }
+        
+        // Validate pad character
+        if (mapping.getPadChar() != null && mapping.getPadChar().length() != 1) {
+            result.addError("Pad character must be exactly 1 character for field: " + fieldContext);
+        }
+        
+        // Validate DSL expression if present
+        if (mapping.hasDSLExpression()) {
+            validateDSLExpression(mapping.getExpression(), fieldContext, result);
+        }
+    }
+    
+    /**	 * Validates conditions within a field mapping.
+     * 	* This method checks that conditions are not null, have valid 'if' expressions,
+     * @param conditions
+     * @param fieldContext
+     * @param result
+     */	
+    private void validateConditions(List<Condition> conditions, String fieldContext, ValidationResult result) {
+        if (conditions == null || conditions.isEmpty()) {
+            result.addError("Conditions list is empty for field: " + fieldContext);
+            return;
+        }
+        
+        for (int i = 0; i < conditions.size(); i++) {
+            Condition condition = conditions.get(i);
+            validateSingleCondition(condition, fieldContext, i, result);
+        }
+    }
+    
+    /**
+	 * Validates a single condition within a field mapping.
+	 * 
+	 * @param condition The condition to validate
+	 * @param fieldContext Contextual information about the field
+	 * @param conditionIndex Index of the condition in the list
+	 * @param result Validation result object to collect errors/warnings
+	 */
+    private void validateSingleCondition(Condition condition, String fieldContext, int conditionIndex, ValidationResult result) {
+        if (condition == null) {
+            result.addError("Condition " + conditionIndex + " is null for field: " + fieldContext);
+            return;
+        }
+        
+        String conditionContext = fieldContext + " condition " + conditionIndex;
+        
+        // Validate 'if' expression
+        if (condition.getIfExpr() == null || condition.getIfExpr().trim().isEmpty()) {
+            result.addError("'ifExpr' is required for " + conditionContext);
+        }
+        
+        // Validate 'then' value
+        if (condition.getThen() == null || condition.getThen().trim().isEmpty()) {
+            result.addError("'then' value is required for " + conditionContext);
+        }
+        
+        // Validate else-if conditions if present
+        if (condition.getElseIfExprs() != null && !condition.getElseIfExprs().isEmpty()) {
+            for (int i = 0; i < condition.getElseIfExprs().size(); i++) {
+                Condition elseIfCondition = condition.getElseIfExprs().get(i);
+                validateSingleCondition(elseIfCondition, fieldContext, i, result);
+            }
+        }
+        
+        log.debug("✅ Condition validation passed for: {}", conditionContext);
+    }
+    
+    /**
+	 * Validates DSL expressions for field mappings.
+	 * 
+	 * @param expression The DSL expression to validate
+	 * @param fieldContext Contextual information about the field
+	 * @param result Validation result object to collect errors/warnings
+	 */
+    private void validateDSLExpression(String expression, String fieldContext, ValidationResult result) {
+        if (expression == null || expression.trim().isEmpty()) {
+            result.addError("DSL expression is empty for field: " + fieldContext);
+            return;
+        }
+        
+        // Basic DSL validation - you can enhance this based on your DSL syntax
+        if (expression.length() > 1000) {
+            result.addWarning("DSL expression is very long for field: " + fieldContext);
+        }
+        
+        log.debug("✅ DSL expression validation passed for field: {}", fieldContext);
+    }
+    
+
+    /**
+     * Validates data type values
+     * * @param dataType The data type to validate
+     */
+    private void validateDataType(String dataType, String fieldContext, ValidationResult result) {
+        if (dataType == null || dataType.trim().isEmpty()) {
+            result.addError("Data type cannot be empty for field: " + fieldContext);
+            return;
+        }
+        
+        String[] validDataTypes = {"String", "Numeric", "Date", "Boolean"};
+        boolean isValid = false;
+        
+        for (String validType : validDataTypes) {
+            if (validType.equalsIgnoreCase(dataType.trim())) {
+                isValid = true;
+                break;
+            }
+        }
+        
+        if (!isValid) {
+            result.addWarning("Unknown data type '" + dataType + "' for field: " + fieldContext + 
+                             ". Valid types: " + String.join(", ", validDataTypes));
         }
     }
 }

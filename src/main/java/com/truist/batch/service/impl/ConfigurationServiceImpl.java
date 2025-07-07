@@ -361,7 +361,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
         audit.setChangedBy(userId);
         audit.setChangeDate(LocalDateTime.now());
 
-        auditRepository.save(audit);
+       // auditRepository.save(audit);
     }
 
     private String generateConfigId(FieldMappingConfig config) {

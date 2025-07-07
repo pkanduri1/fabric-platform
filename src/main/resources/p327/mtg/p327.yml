@@ -1,5 +1,5 @@
 fileType: p327
-transactionType: 900
+transactionType: default
 fields:
   location_code:
     fieldName: LOCATION_CODE
@@ -45,31 +45,9 @@ fields:
     dataType: String
     defaultValue: null
     expression: null
-  net_pay:
-    fieldName: NET_PAY
-    value: null
-    sourceField: net_pay
-    targetField: NET_PAY
-    from: null
-    length: 13
-    pad: left
-    padChar: 0
-    composite: false
-    sources: null
-    transform: null
-    delimiter: null
-    format: 9(12)
-    sourceFormat: null
-    targetFormat: null
-    transformationType: source
-    conditions: null
-    targetPosition: 3
-    dataType: Numeric
-    defaultValue: null
-    expression: null
   transaction_type:
     fieldName: TRANSACTION_TYPE
-    value: 900
+    value: 200
     sourceField: null
     targetField: TRANSACTION_TYPE
     from: null
@@ -85,7 +63,7 @@ fields:
     targetFormat: null
     transformationType: constant
     conditions: null
-    targetPosition: 4
+    targetPosition: 3
     dataType: String
     defaultValue: null
     expression: null
