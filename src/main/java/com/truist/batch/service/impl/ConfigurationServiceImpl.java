@@ -452,4 +452,59 @@ public class ConfigurationServiceImpl implements ConfigurationService {
         
         return sampleRow;
     }
+    
+    
+    @Override
+    public List<FieldMappingConfig> getAllTransactionTypesForJob(String sourceSystem, String jobName) {
+        log.info("📋 Loading all transaction types for {}/{}", sourceSystem, jobName);
+        
+        try {
+            // Query database for all configurations matching source system and job name
+            List<BatchConfigurationEntity> entities = configRepository.findBySourceSystemAndJobName(sourceSystem, jobName);
+            
+            if (entities.isEmpty()) {
+                log.warn("⚠️ No configurations found in database for {}/{}", sourceSystem, jobName);
+                return List.of();
+            }
+            
+            // Convert entities to FieldMappingConfig objects
+            List<FieldMappingConfig> configs = entities.stream()
+                .map(this::convertEntityToConfig)
+                .collect(Collectors.toList());
+            
+            log.info("✅ Found {} transaction types for {}/{}: {}", 
+                    configs.size(), sourceSystem, jobName,
+                    configs.stream().map(FieldMappingConfig::getTransactionType).collect(Collectors.toList()));
+            
+            return configs;
+            
+        } catch (Exception e) {
+            log.error("❌ Failed to load transaction types for {}/{}: {}", sourceSystem, jobName, e.getMessage(), e);
+            throw new RuntimeException("Failed to load transaction types", e);
+        }
+    }
+
+    /**
+     * Converts BatchConfigurationEntity to FieldMappingConfig.
+     */
+    private FieldMappingConfig convertEntityToConfig(BatchConfigurationEntity entity) {
+        try {
+            // Parse JSON configuration from entity
+            FieldMappingConfig config = objectMapper.readValue(entity.getConfigurationJson(), FieldMappingConfig.class);
+            
+            // Set metadata from entity
+            config.setId(entity.getId());
+            config.setSourceSystem(entity.getSourceSystem());
+            config.setJobName(entity.getJobName());
+            config.setTransactionType(entity.getTransactionType());
+            config.setCreatedDate(entity.getCreatedDate());
+            config.setLastModified(entity.getModifiedDate());
+            
+            return config;
+            
+        } catch (Exception e) {
+            log.error("❌ Failed to convert entity to config for ID {}: {}", entity.getId(), e.getMessage());
+            throw new RuntimeException("Failed to convert entity to configuration", e);
+        }
+    }
 }

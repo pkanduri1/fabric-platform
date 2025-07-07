@@ -19,4 +19,8 @@ public class FieldMappingConfig {
     private LocalDateTime lastModified;
     private String modifiedBy;
     private int version;
+	public String id;
+	private LocalDateTime createdDate;
+	
+    
 }

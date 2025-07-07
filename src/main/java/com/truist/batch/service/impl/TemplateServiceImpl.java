@@ -114,9 +114,9 @@ public class TemplateServiceImpl implements TemplateService {
 			mappings.add(mapping);
 		}
 
-		return new FieldMappingConfig(sourceSystem, jobName, transactionType,
-				"Generated from " + fileType + "/" + transactionType + " template", mappings, LocalDateTime.now(),
-				createdBy, 1);
+		return new FieldMappingConfig(sourceSystem, jobName, 
+				"Generated from " + fileType + "/" + transactionType + " template", createdBy, mappings, LocalDateTime.now(),
+				createdBy, 1, transactionType,LocalDateTime.now());
 	}
 
 	@Override
@@ -135,7 +135,6 @@ public class TemplateServiceImpl implements TemplateService {
 				warnings.addAll(fieldResult.getWarnings());
 			}
 		}
-
 		return new ValidationResult(errors.isEmpty(), errors);
 	}
 

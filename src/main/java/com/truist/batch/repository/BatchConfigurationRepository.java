@@ -13,7 +13,6 @@ import com.truist.batch.entity.BatchConfigurationEntity;
 @Repository
 public interface BatchConfigurationRepository extends JpaRepository<BatchConfigurationEntity, String> {
     
-    List<BatchConfigurationEntity> findBySourceSystemAndJobName(String sourceSystem, String jobName);
     
     Optional<BatchConfigurationEntity> findBySourceSystemAndJobNameAndTransactionType(
         String sourceSystem, String jobName, String transactionType);
@@ -25,4 +24,8 @@ public interface BatchConfigurationRepository extends JpaRepository<BatchConfigu
     
     @Query("SELECT COUNT(c) FROM BatchConfigurationEntity c WHERE c.sourceSystem = :sourceSystem")
     long countBySourceSystem(@Param("sourceSystem") String sourceSystem);
+    
+    @Query("SELECT b FROM BatchConfigurationEntity b WHERE b.sourceSystem = :sourceSystem AND b.jobName = :jobName ORDER BY b.transactionType")
+    List<BatchConfigurationEntity> findBySourceSystemAndJobName(@Param("sourceSystem") String sourceSystem, 
+                                                               @Param("jobName") String jobName);
 }

@@ -1,23 +1,48 @@
 package com.truist.batch.controller;
 
-import com.truist.batch.service.ConfigurationService;
-import com.truist.batch.service.YamlGenerationService;
-import com.truist.batch.model.*;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.tags.Tag;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
+import com.truist.batch.model.FieldMappingConfig;
+import com.truist.batch.model.JobConfig;
+import com.truist.batch.model.SourceField;
+import com.truist.batch.model.SourceSystem;
+import com.truist.batch.model.TestResult;
+import com.truist.batch.model.ValidationResult;
+import com.truist.batch.service.ConfigurationService;
+import com.truist.batch.service.YamlFileService;
+import com.truist.batch.service.YamlGenerationService;
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Enhanced REST controller for batch configuration management with YAML generation.
@@ -36,6 +61,8 @@ public class ConfigurationController {
 
     private final ConfigurationService configurationService;
     private final YamlGenerationService yamlGenerationService;
+    @Autowired
+    private YamlFileService yamlFileService;
 
     // ==================== SOURCE SYSTEMS ENDPOINTS ====================
 
@@ -346,5 +373,208 @@ public class ConfigurationController {
             "timestamp", java.time.LocalDateTime.now().toString(),
             "path", request.getRequestURI()
         ));
+    }
+    
+    
+    @PostMapping("/mappings/save-files/{system}/{job}")
+    @Operation(summary = "Save configuration to database AND generate YAML files", 
+               description = "Hybrid approach: saves to database with audit trail and generates YAML files for GenericProcessor")
+    public ResponseEntity<Map<String, Object>> saveConfigurationFiles(
+            @PathVariable String system,
+            @PathVariable String job,
+            @RequestBody List<FieldMappingConfig> configs) {
+        
+        log.info("💾 API Request: Save configuration files for {}/{} with {} transaction types", 
+                system, job, configs.size());
+        
+        try {
+            Map<String, Object> result = new LinkedHashMap<>();
+            
+            // ==================== STEP 1: Validate All Configurations ====================
+            for (FieldMappingConfig config : configs) {
+                ValidationResult validation = configurationService.validateConfiguration(config);
+                if (!validation.isValid()) {
+                    log.warn("⚠️ Configuration validation failed for {}: {}", 
+                            config.getTransactionType(), validation.getErrors());
+                    return ResponseEntity.badRequest().body(Map.of(
+                        "success", false,
+                        "message", "Configuration validation failed",
+                        "transactionType", config.getTransactionType(),
+                        "errors", validation.getErrors()
+                    ));
+                }
+            }
+            
+            // ==================== STEP 2: Save to Database with Audit Trail ====================
+            List<String> savedConfigs = new ArrayList<>();
+            for (FieldMappingConfig config : configs) {
+                try {
+                    configurationService.saveConfiguration(config);
+                    savedConfigs.add(config.getTransactionType() != null ? config.getTransactionType() : "default");
+                    log.debug("✅ Saved to database: {}/{}/{}", system, job, config.getTransactionType());
+                } catch (Exception e) {
+                    log.error("❌ Failed to save configuration to database: {}", e.getMessage(), e);
+                    throw new RuntimeException("Database save failed for " + config.getTransactionType(), e);
+                }
+            }
+            
+            // ==================== STEP 3: Generate and Save YAML Files ====================
+            Map<String, String> savedFiles;
+            try {
+                savedFiles = yamlFileService.saveConfigurationFiles(system, job, configs);
+                log.info("✅ Generated YAML files: {}", savedFiles);
+            } catch (Exception e) {
+                log.error("❌ Failed to generate YAML files: {}", e.getMessage(), e);
+                throw new RuntimeException("YAML file generation failed", e);
+            }
+            
+            // ==================== STEP 4: Validate Generated Files ====================
+            boolean filesValid = yamlFileService.validateGeneratedFiles(system, job);
+            if (!filesValid) {
+                log.error("❌ Generated files failed validation for {}/{}", system, job);
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
+                    "success", false,
+                    "message", "Generated files failed validation"
+                ));
+            }
+            
+            // ==================== STEP 5: Build Success Response ====================
+            result.put("success", true);
+            result.put("message", "Configuration saved successfully to database and files");
+            result.put("sourceSystem", system);
+            result.put("jobName", job);
+            result.put("transactionTypes", savedConfigs);
+            result.put("savedFiles", savedFiles);
+            result.put("timestamp", LocalDateTime.now().toString());
+            result.put("filesValidated", true);
+            
+            log.info("🎉 Successfully saved configuration files for {}/{}: database + {} files", 
+                    system, job, savedFiles.size());
+            
+            return ResponseEntity.ok(result);
+            
+        } catch (Exception e) {
+            log.error("❌ Failed to save configuration files for {}/{}: {}", system, job, e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
+                "success", false,
+                "message", "Failed to save configuration files: " + e.getMessage(),
+                "timestamp", LocalDateTime.now().toString()
+            ));
+        }
+    }
+    
+    @GetMapping("/mappings/{system}/{job}/all-types")
+    @Operation(summary = "Get all transaction types for a job")
+    public ResponseEntity<List<FieldMappingConfig>> getAllTransactionTypes(
+            @PathVariable String system,
+            @PathVariable String job) {
+        
+        log.info("📋 API Request: Get all transaction types for {}/{}", system, job);
+        
+        try {
+            // Get all configurations for this source system and job
+            List<FieldMappingConfig> configs = configurationService.getAllTransactionTypesForJob(system, job);
+            
+            if (configs.isEmpty()) {
+                log.warn("⚠️ No configurations found for {}/{}", system, job);
+                return ResponseEntity.notFound().build();
+            }
+            
+            log.info("✅ Found {} transaction types for {}/{}", configs.size(), system, job);
+            return ResponseEntity.ok(configs);
+            
+        } catch (Exception e) {
+            log.error("❌ Failed to get all transaction types for {}/{}: {}", system, job, e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+    
+    @PostMapping("/mappings/validate-files/{system}/{job}")
+    @Operation(summary = "Validate generated YAML files")
+    public ResponseEntity<Map<String, Object>> validateGeneratedFiles(
+            @PathVariable String system,
+            @PathVariable String job) {
+        
+        log.info("🔍 API Request: Validate generated files for {}/{}", system, job);
+        
+        try {
+            boolean isValid = yamlFileService.validateGeneratedFiles(system, job);
+            
+            Map<String, Object> result = new LinkedHashMap<>();
+            result.put("valid", isValid);
+            result.put("sourceSystem", system);
+            result.put("jobName", job);
+            result.put("timestamp", LocalDateTime.now().toString());
+            
+            if (isValid) {
+                result.put("message", "Generated files are valid and ready for batch processing");
+                log.info("✅ File validation passed for {}/{}", system, job);
+            } else {
+                result.put("message", "Generated files failed validation");
+                log.warn("❌ File validation failed for {}/{}", system, job);
+            }
+            
+            return ResponseEntity.ok(result);
+            
+        } catch (Exception e) {
+            log.error("❌ Failed to validate files for {}/{}: {}", system, job, e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
+                "valid", false,
+                "message", "Validation failed: " + e.getMessage(),
+                "timestamp", LocalDateTime.now().toString()
+            ));
+        }
+    }
+    
+    @GetMapping("/file-structure/{system}")
+    @Operation(summary = "Get current file structure for source system")
+    public ResponseEntity<Map<String, Object>> getFileStructure(@PathVariable String system) {
+        log.info("📁 API Request: Get file structure for {}", system);
+        
+        try {
+            Map<String, Object> structure = new LinkedHashMap<>();
+            
+            // Check batch-props file
+            Path batchPropsPath = Paths.get("src/main/resources/batch-sources", system + "-batch-props.yml");
+            structure.put("batchPropsFile", Map.of(
+                "path", system + "-batch-props.yml",
+                "exists", Files.exists(batchPropsPath),
+                "lastModified", Files.exists(batchPropsPath) ? 
+                    Files.getLastModifiedTime(batchPropsPath).toString() : null
+            ));
+            
+            // Check mappings directory
+            Path mappingsDir = Paths.get("src/main/resources/batch-sources/mappings");
+            if (Files.exists(mappingsDir)) {
+                List<Map<String, ? extends Object>> mappingFiles = Files.walk(mappingsDir)
+                    .filter(Files::isRegularFile)
+                    .filter(path -> path.toString().contains("/" + system + "/"))
+                    .map(path -> {
+                        try {
+                            String relativePath = mappingsDir.relativize(path).toString();
+                            return Map.of(
+                                "path", relativePath,
+                                "exists", true,
+                                "lastModified", Files.getLastModifiedTime(path).toString()
+                            );
+                        } catch (IOException e) {
+                            return Map.of("path", path.toString(), "error", e.getMessage());
+                        }
+                    })
+                    .collect(Collectors.toList());
+                
+                structure.put("mappingFiles", mappingFiles);
+            } else {
+                structure.put("mappingFiles", List.of());
+            }
+            
+            return ResponseEntity.ok(structure);
+            
+        } catch (Exception e) {
+            log.error("❌ Failed to get file structure for {}: {}", system, e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
+                "error", "Failed to get file structure: " + e.getMessage()
+            ));
+        }
     }
 }
