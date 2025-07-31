@@ -17,6 +17,8 @@ public class FieldValidationResult {
     private String errorMessage;
     private String warningMessage;
     private String transformedValue;  // If rule transforms the value
+    private String validationType;    // Type of validation performed
+    private com.truist.batch.entity.ValidationRuleEntity.Severity severity; // Severity level
     
     public FieldValidationResult(String fieldName, String fieldValue, boolean valid) {
         this.fieldName = fieldName;

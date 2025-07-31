@@ -30,47 +30,76 @@ public class SqlLoaderConfig {
     
     // SQL*Loader options
     private String userid;  // Will be encrypted/secure
+    @Builder.Default
     private String loadMethod = "INSERT";  // INSERT, APPEND, REPLACE, TRUNCATE
+    @Builder.Default
     private Boolean directPath = true;
+    @Builder.Default
     private Integer errors = 1000;
+    @Builder.Default
     private Integer skip = 1;  // Skip header rows
+    @Builder.Default
     private Integer rows = 64;  // Rows per commit for conventional path
+    @Builder.Default
     private Integer bindSize = 256000;  // Bind array size
+    @Builder.Default
     private Integer readSize = 1048576;  // Read buffer size
+    @Builder.Default
     private Boolean parallel = false;
+    @Builder.Default
     private String characterSet = "UTF8";
+    @Builder.Default
     private String dateFormat = "YYYY-MM-DD HH24:MI:SS";
+    @Builder.Default
     private String timestampFormat = "YYYY-MM-DD HH24:MI:SS.FF";
     
     // File format configuration
+    @Builder.Default
     private String fieldDelimiter = "|";
+    @Builder.Default
     private String recordDelimiter = "\n";
+    @Builder.Default
     private String stringDelimiter = "\"";
+    @Builder.Default
     private Boolean optionalEnclosures = true;
+    @Builder.Default
     private String nullIf = "BLANKS";
+    @Builder.Default
     private Boolean trimWhitespace = true;
+    @Builder.Default
     private String encoding = "UTF-8";
     
     // Field configurations
     private List<FieldConfig> fields;
     
     // Security configuration
+    @Builder.Default
     private Boolean encryptionRequired = false;
+    @Builder.Default
     private String encryptionAlgorithm = "AES256";  // AES256, 3DES
     private String encryptionKeyId;
+    @Builder.Default
     private Boolean auditTrailRequired = true;
     
     // Performance configuration
+    @Builder.Default
     private Integer parallelDegree = 1;
+    @Builder.Default
     private String streamSize = "256000";
+    @Builder.Default
     private Boolean resumable = true;
+    @Builder.Default
     private String resumableTimeout = "7200";  // 2 hours
     private String resumableName;
     
     // Error handling configuration
+    @Builder.Default
     private Integer maxErrors = 1000;
+    @Builder.Default
     private Boolean continueLoad = false;  // Continue on errors
+    @Builder.Default
     private Boolean silentMode = false;
+    @Builder.Default
     private String errorLogging = "TABLE";  // TABLE, FILE, BOTH
     
     // Advanced options
@@ -79,8 +108,11 @@ public class SqlLoaderConfig {
     private List<String> postExecutionSql;
     
     // Validation configuration
+    @Builder.Default
     private Boolean validateOnly = false;
+    @Builder.Default
     private Boolean dataValidation = true;
+    @Builder.Default
     private Boolean referentialIntegrityCheck = true;
     
     // Monitoring and logging

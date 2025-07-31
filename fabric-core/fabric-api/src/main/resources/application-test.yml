@@ -1,0 +1,125 @@
+# ======================================
+# FABRIC PLATFORM - TEST PROFILE
+# ======================================
+# Testing environment configuration
+# Uses H2 in-memory database for unit tests and Oracle for integration tests
+
+spring:
+  profiles:
+    active: test
+  
+  # Database Configuration - H2 for unit tests
+  datasource:
+    url: ${DB_URL:jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE}
+    username: ${DB_USERNAME:sa}
+    password: ${DB_PASSWORD:}
+    driver-class-name: org.h2.Driver
+    
+    # Connection Pool Settings (Testing)
+    hikari:
+      connection-timeout: 5000
+      maximum-pool-size: 5
+      minimum-idle: 1
+      pool-name: FabricTestPool
+
+  # JPA/Hibernate Configuration
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: create-drop
+      naming:
+        physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: false
+        jdbc:
+          batch_size: 20
+
+  # H2 Console (for debugging)
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+
+  # Redis Configuration (Embedded for testing)
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      database: 1  # Separate database for testing
+      timeout: 1000ms
+
+# Fabric Platform Configuration
+fabric:
+  # Security Configuration
+  security:
+    jwt:
+      secret: fabric-test-jwt-secret-key-minimum-256-bits-required-for-hmac-sha-testing-environment
+      access-token-expiration: 300   # 5 minutes for faster testing
+      refresh-token-expiration: 1800  # 30 minutes for testing
+      issuer: fabric-platform-test
+      audience: fabric-users-test
+    cors:
+      allowed-origins: http://localhost:3000
+    csrf:
+      enabled: false  # Disabled for testing
+
+  # Data Loading Configuration
+  data-loader:
+    batch-size: 100  # Smaller batches for testing
+    chunk-size: 10
+    max-threads: 2
+    error-threshold: 0.1  # 10% error threshold for testing
+    temp-directory: ${java.io.tmpdir}/fabric-test
+    
+  # File Processing
+  file-processing:
+    input-directory: ./src/test/resources/data/input
+    output-directory: ./target/test-output
+    archive-directory: ./target/test-archive
+    error-directory: ./target/test-error
+
+# Logging Configuration
+logging:
+  level:
+    com.truist.batch: INFO
+    org.springframework.security: WARN
+    org.springframework.batch: WARN
+    org.hibernate: WARN
+    org.springframework.test: INFO
+  pattern:
+    console: "%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+
+# Management/Actuator Configuration
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: when-authorized
+
+# Server Configuration
+server:
+  port: 0  # Random port for testing
+
+---
+# Oracle Integration Test Profile
+spring:
+  config:
+    activate:
+      on-profile: test,oracle-integration
+  
+  # Oracle Database for Integration Tests
+  datasource:
+    url: ${DB_URL:jdbc:oracle:thin:@localhost:1521:XE}
+    username: ${DB_USERNAME:fabric_test}
+    password: ${DB_PASSWORD:fabric_test_pass}
+    driver-class-name: oracle.jdbc.OracleDriver
+  
+  jpa:
+    database-platform: org.hibernate.dialect.OracleDialect
+    hibernate:
+      ddl-auto: validate

@@ -62,6 +62,9 @@ public class ValidationRuleEntity {
     @Column(name = "pattern", length = 500)
     private String pattern;
     
+    @Column(name = "format", length = 200)
+    private String format;
+    
     @Column(name = "required_field", length = 1)
     private String requiredField = "N";
     

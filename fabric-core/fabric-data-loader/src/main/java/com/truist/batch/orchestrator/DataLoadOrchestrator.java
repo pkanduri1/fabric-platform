@@ -289,13 +289,19 @@ public class DataLoadOrchestrator {
         try {
             log.info("Executing SQL*Loader for config: {}", config.getConfigId());
             
+            // Extract filename from path
+            String fileName = java.nio.file.Paths.get(filePath).getFileName().toString();
+            
             // Execute SQL*Loader
-            result = sqlLoaderExecutor.executeLoad(config, filePath, correlationId);
+            com.truist.batch.sqlloader.SqlLoaderResult sqlLoaderResult = sqlLoaderExecutor.executeLoad(config, fileName, filePath);
+            
+            // Convert to local result format
+            result = convertSqlLoaderResult(sqlLoaderResult);
             
             // Audit SQL*Loader execution
-            auditTrailManager.auditSqlLoaderExecution(correlationId, result.getControlFilePath(),
-                result.getReturnCode(), result.getTotalRecords(), result.getSuccessfulRecords(),
-                result.getRejectedRecords(), result.getErrorMessage());
+            auditTrailManager.auditSqlLoaderExecution(correlationId, sqlLoaderResult.getControlFilePath(),
+                sqlLoaderResult.getReturnCode(), sqlLoaderResult.getTotalRecords(), sqlLoaderResult.getSuccessfulRecords(),
+                sqlLoaderResult.getRejectedRecords(), sqlLoaderResult.getErrorDetails());
             
         } catch (Exception e) {
             log.error("SQL*Loader execution failed: {}", e.getMessage());
@@ -468,6 +474,24 @@ public class DataLoadOrchestrator {
         }
     }
     
+    /**
+     * Convert SqlLoaderResult from sqlloader package to local format.
+     */
+    private SqlLoaderResult convertSqlLoaderResult(com.truist.batch.sqlloader.SqlLoaderResult sqlResult) {
+        SqlLoaderResult result = new SqlLoaderResult();
+        result.setSuccess(sqlResult.isSuccessful());
+        result.setReturnCode(sqlResult.getReturnCode());
+        result.setTotalRecords(sqlResult.getTotalRecords() != null ? sqlResult.getTotalRecords() : 0L);
+        result.setSuccessfulRecords(sqlResult.getSuccessfulRecords() != null ? sqlResult.getSuccessfulRecords() : 0L);
+        result.setRejectedRecords(sqlResult.getRejectedRecords() != null ? sqlResult.getRejectedRecords() : 0L);
+        result.setControlFilePath(sqlResult.getControlFilePath());
+        result.setLogFilePath(sqlResult.getLogFilePath());
+        result.setBadFilePath(sqlResult.getBadFilePath());
+        result.setErrorMessage(sqlResult.getErrorDetails());
+        result.setExecutionTimeMs(sqlResult.getDurationMs() != null ? sqlResult.getDurationMs() : 0L);
+        return result;
+    }
+
     /**
      * SQL*Loader result placeholder.
      */

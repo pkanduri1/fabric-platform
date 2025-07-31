@@ -1,0 +1,234 @@
+# ======================================
+# FABRIC PLATFORM - PRODUCTION PROFILE
+# ======================================
+# Production environment configuration
+# Uses Oracle Enterprise with maximum security and performance settings
+
+spring:
+  profiles:
+    active: prod
+  
+  # Database Configuration - Oracle Enterprise
+  datasource:
+    url: ${DB_URL}  # Required encrypted environment variable
+    username: ${DB_USERNAME}  # Required encrypted environment variable
+    password: ${DB_PASSWORD}  # Required encrypted environment variable
+    driver-class-name: oracle.jdbc.OracleDriver
+    
+    # Connection Pool Settings (Production)
+    hikari:
+      connection-timeout: 30000
+      maximum-pool-size: 50
+      minimum-idle: 10
+      idle-timeout: 600000
+      max-lifetime: 1800000
+      leak-detection-threshold: 30000
+      pool-name: FabricProductionPool
+      data-source-properties:
+        cachePrepStmts: true
+        prepStmtCacheSize: 500
+        prepStmtCacheSqlLimit: 2048
+        useServerPrepStmts: true
+        rewriteBatchedStatements: true
+        maintainTimeStats: false
+
+  # JPA/Hibernate Configuration
+  jpa:
+    database-platform: org.hibernate.dialect.OracleDialect
+    hibernate:
+      ddl-auto: validate  # Never create/update in production
+      naming:
+        physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: false
+        jdbc:
+          batch_size: 100
+        order_inserts: true
+        order_updates: true
+        cache:
+          use_second_level_cache: true
+          region:
+            factory_class: org.hibernate.cache.ehcache.EhCacheRegionFactory
+        query:
+          plan_cache_max_size: 2048
+
+  # Redis Configuration (AWS ElastiCache Cluster)
+  data:
+    redis:
+      cluster:
+        nodes: ${REDIS_CLUSTER_NODES}  # Required environment variable
+      password: ${REDIS_PASSWORD}  # Required encrypted environment variable
+      database: 0
+      timeout: 5000ms
+      ssl: true
+      lettuce:
+        pool:
+          max-active: 50
+          max-idle: 20
+          min-idle: 10
+        cluster:
+          refresh:
+            adaptive: true
+            period: 30s
+
+# Fabric Platform Configuration
+fabric:
+  # Security Configuration
+  security:
+    jwt:
+      secret: ${JWT_SECRET}  # Required encrypted environment variable (512-bit minimum)
+      access-token-expiration: 900   # 15 minutes
+      refresh-token-expiration: 28800  # 8 hours
+      issuer: fabric-platform-production
+      audience: fabric-users-production
+    cors:
+      allowed-origins: ${CORS_ALLOWED_ORIGINS}  # Required environment variable
+    csrf:
+      enabled: true  # Always enabled in production
+    rate-limiting:
+      requests-per-minute: 100
+      burst-capacity: 200
+
+  # LDAP Configuration (Production AD)
+  ldap:
+    urls: ${LDAP_URLS}  # Required environment variable
+    base-dn: ${LDAP_BASE_DN}  # Required environment variable
+    user-search-base: ${LDAP_USER_SEARCH_BASE}
+    user-search-filter: ${LDAP_USER_SEARCH_FILTER:(sAMAccountName={0})}
+    group-search-base: ${LDAP_GROUP_SEARCH_BASE}
+    group-search-filter: ${LDAP_GROUP_SEARCH_FILTER:(member={0})}
+    bind-dn: ${LDAP_BIND_DN}  # Required encrypted environment variable
+    bind-password: ${LDAP_BIND_PASSWORD}  # Required encrypted environment variable
+    connection-pooling: true
+    pool-size: 20
+
+  # Data Loading Configuration
+  data-loader:
+    batch-size: 10000
+    chunk-size: 1000
+    max-threads: 16
+    error-threshold: 0.001  # 0.1% error threshold
+    temp-directory: ${TEMP_DIR:/app/temp}
+    
+  # SQL*Loader Configuration
+  sql-loader:
+    oracle-home: ${ORACLE_HOME}  # Required environment variable
+    control-file-template: pipe-delimited-control-template.ctl
+    parallel-degree: 8
+    direct-path: true
+    
+  # File Processing
+  file-processing:
+    input-directory: ${INPUT_DIR}  # Required environment variable
+    output-directory: ${OUTPUT_DIR}  # Required environment variable
+    archive-directory: ${ARCHIVE_DIR}  # Required environment variable
+    error-directory: ${ERROR_DIR}  # Required environment variable
+    
+  # Audit Configuration
+  audit:
+    enabled: true
+    retention-days: 2555  # 7 years for compliance
+    encryption-enabled: true
+    tamper-detection: true
+
+  # AWS Configuration
+  aws:
+    region: ${AWS_REGION}  # Required environment variable
+    s3:
+      bucket-name: ${AWS_S3_BUCKET}  # Required environment variable
+      input-prefix: production/input/
+      archive-prefix: production/archive/
+      encryption: AES256
+    sns:
+      topic-arn: ${AWS_SNS_TOPIC_ARN}  # Required environment variable
+    cloudwatch:
+      namespace: fabric-platform-production
+      enabled: true
+
+# Logging Configuration
+logging:
+  level:
+    com.truist.batch: INFO
+    org.springframework.security: WARN
+    org.springframework.batch: WARN
+    org.hibernate: WARN
+    org.springframework.cloud.aws: WARN
+    root: WARN
+  pattern:
+    file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level [%X{correlationId:-}] %logger{50} - %msg%n"
+  file:
+    name: /app/logs/fabric-production.log
+    max-file-size: 500MB
+    max-history: 90
+  logback:
+    rollingpolicy:
+      max-file-size: 500MB
+      total-size-cap: 10GB
+
+# Management/Actuator Configuration
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: never  # Security - never expose details in production
+      group:
+        readiness:
+          include: db,redis,diskSpace
+        liveness:
+          include: ping
+      probes:
+        enabled: true
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+      cloudwatch:
+        enabled: true
+        namespace: fabric-platform-production
+        step: 1m
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+      sla:
+        http.server.requests: 50ms,100ms,200ms,500ms
+
+# Server Configuration
+server:
+  port: ${SERVER_PORT:8443}
+  servlet:
+    context-path: /api
+  compression:
+    enabled: true
+    mime-types: text/html,text/xml,text/plain,text/css,text/javascript,application/javascript,application/json
+    min-response-size: 1024
+  http2:
+    enabled: true
+  ssl:
+    enabled: true
+    key-store: ${SSL_KEYSTORE_PATH}  # Required environment variable
+    key-store-password: ${SSL_KEYSTORE_PASSWORD}  # Required encrypted environment variable
+    key-store-type: PKCS12
+    protocol: TLS
+    enabled-protocols: TLSv1.2,TLSv1.3
+  tomcat:
+    threads:
+      max: 200
+      min-spare: 10
+    max-connections: 8192
+    accept-count: 100
+    connection-timeout: 20s
+    
+# Security Headers
+security:
+  headers:
+    frame-options: DENY
+    content-type-options: nosniff
+    xss-protection: 1; mode=block
+    referrer-policy: strict-origin-when-cross-origin
+    content-security-policy: "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'"

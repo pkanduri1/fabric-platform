@@ -66,7 +66,7 @@ public class ValidationEngine {
             if (validationRules.isEmpty()) {
                 log.warn("No validation rules found for config: {}", config.getConfigId());
                 result.setValidationStatus(ValidationResult.ValidationStatus.SKIPPED);
-                result.addWarning("No validation rules configured");
+                result.addWarning("VALIDATION_CONFIG", "No validation rules configured");
                 return result;
             }
             

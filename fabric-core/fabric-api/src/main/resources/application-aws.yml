@@ -1,0 +1,294 @@
+# ======================================
+# FABRIC PLATFORM - AWS PROFILE
+# ======================================
+# AWS RDS and services configuration
+# Supports PostgreSQL, MySQL, SQL Server, and Oracle on AWS
+
+spring:
+  profiles:
+    active: aws
+  
+  # Default AWS RDS PostgreSQL Configuration
+  datasource:
+    url: ${AWS_RDS_URL}  # Required: AWS RDS endpoint
+    username: ${AWS_RDS_USERNAME}  # Required: RDS username
+    password: ${AWS_RDS_PASSWORD}  # Required: RDS password
+    driver-class-name: org.postgresql.Driver
+    
+    # Connection Pool Settings (AWS RDS optimized)
+    hikari:
+      connection-timeout: 30000
+      maximum-pool-size: 20
+      minimum-idle: 5
+      idle-timeout: 600000
+      max-lifetime: 1800000
+      leak-detection-threshold: 60000
+      pool-name: FabricAWSPool
+      data-source-properties:
+        cachePrepStmts: true
+        prepStmtCacheSize: 250
+        prepStmtCacheSqlLimit: 2048
+        useServerPrepStmts: true
+        rewriteBatchedStatements: true
+
+  # JPA/Hibernate Configuration for PostgreSQL
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: validate
+      naming:
+        physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: false
+        jdbc:
+          batch_size: 50
+        order_inserts: true
+        order_updates: true
+
+  # AWS ElastiCache Redis
+  data:
+    redis:
+      host: ${AWS_ELASTICACHE_HOST}  # Required: ElastiCache endpoint
+      port: ${AWS_ELASTICACHE_PORT:6379}
+      password: ${AWS_ELASTICACHE_PASSWORD:}
+      ssl: ${AWS_ELASTICACHE_SSL:true}
+      timeout: 5000ms
+      lettuce:
+        pool:
+          max-active: 20
+          max-idle: 10
+          min-idle: 5
+
+# AWS Configuration
+cloud:
+  aws:
+    region:
+      static: ${AWS_REGION:us-east-1}
+      auto: ${AWS_REGION_AUTO:true}
+    stack:
+      auto: ${AWS_STACK_AUTO:false}
+    credentials:
+      access-key: ${AWS_ACCESS_KEY_ID:}  # Use IAM roles when possible
+      secret-key: ${AWS_SECRET_ACCESS_KEY:}  # Use IAM roles when possible
+      instance-profile: ${AWS_USE_INSTANCE_PROFILE:true}
+      
+    # S3 Configuration
+    s3:
+      bucket: ${AWS_S3_BUCKET}  # Required: S3 bucket for file storage
+      region: ${AWS_S3_REGION:us-east-1}
+      path-style-access: false
+      
+    # SQS Configuration
+    sqs:
+      region: ${AWS_SQS_REGION:us-east-1}
+      
+    # SNS Configuration
+    sns:
+      region: ${AWS_SNS_REGION:us-east-1}
+      topic-arn: ${AWS_SNS_TOPIC_ARN:}
+      
+    # CloudWatch Configuration
+    cloudwatch:
+      region: ${AWS_CLOUDWATCH_REGION:us-east-1}
+      namespace: ${AWS_CLOUDWATCH_NAMESPACE:fabric-platform}
+
+# Fabric Platform Configuration
+fabric:
+  # Security Configuration
+  security:
+    jwt:
+      secret: ${JWT_SECRET}  # Required environment variable
+      access-token-expiration: 900   # 15 minutes
+      refresh-token-expiration: 28800  # 8 hours
+      issuer: fabric-platform-aws
+      audience: fabric-users-aws
+    cors:
+      allowed-origins: ${CORS_ALLOWED_ORIGINS}
+
+  # AWS-specific Configuration
+  aws:
+    # S3 File Processing
+    s3:
+      input-bucket: ${AWS_S3_INPUT_BUCKET:${AWS_S3_BUCKET}}
+      output-bucket: ${AWS_S3_OUTPUT_BUCKET:${AWS_S3_BUCKET}}
+      archive-bucket: ${AWS_S3_ARCHIVE_BUCKET:${AWS_S3_BUCKET}}
+      input-prefix: ${AWS_S3_INPUT_PREFIX:input/}
+      output-prefix: ${AWS_S3_OUTPUT_PREFIX:output/}
+      archive-prefix: ${AWS_S3_ARCHIVE_PREFIX:archive/}
+      temp-prefix: ${AWS_S3_TEMP_PREFIX:temp/}
+      
+      # S3 Transfer Configuration
+      multipart-threshold: 16777216  # 16MB
+      multipart-copy-threshold: 5368709120  # 5GB
+      transfer-acceleration: ${AWS_S3_TRANSFER_ACCELERATION:false}
+      
+    # SQS Message Processing
+    sqs:
+      job-queue: ${AWS_SQS_JOB_QUEUE:fabric-jobs}
+      notification-queue: ${AWS_SQS_NOTIFICATION_QUEUE:fabric-notifications}
+      dead-letter-queue: ${AWS_SQS_DLQ:fabric-dlq}
+      max-messages: 10
+      wait-time: 20
+      visibility-timeout: 300
+      
+    # SNS Notifications
+    sns:
+      job-completion-topic: ${AWS_SNS_JOB_TOPIC:fabric-job-completion}
+      error-notification-topic: ${AWS_SNS_ERROR_TOPIC:fabric-errors}
+      
+    # CloudWatch Metrics
+    cloudwatch:
+      enabled: true
+      step: 60s
+      batch-size: 20
+
+  # Data Loading Configuration (AWS optimized)
+  data-loader:
+    batch-size: 5000
+    chunk-size: 500
+    max-threads: 12
+    error-threshold: 0.02  # 2% error threshold
+    temp-directory: ${TEMP_DIR:/tmp/fabric-aws}
+    
+    # AWS-specific settings
+    s3-processing:
+      enabled: true
+      parallel-uploads: 4
+      retry-attempts: 3
+
+# Logging Configuration
+logging:
+  level:
+    com.amazonaws: INFO
+    org.springframework.cloud.aws: INFO
+    com.truist.batch: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level [%X{correlationId:-}] %logger{50} - %msg%n"
+  file:
+    name: /app/logs/fabric-aws.log
+
+# Management/Actuator Configuration
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus,awshealth
+  endpoint:
+    health:
+      show-details: when-authorized
+      group:
+        readiness:
+          include: db,redis,s3,diskSpace
+        liveness:
+          include: ping
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+      cloudwatch:
+        enabled: true
+        namespace: ${AWS_CLOUDWATCH_NAMESPACE:fabric-platform}
+        step: 1m
+
+# Server Configuration
+server:
+  port: ${SERVER_PORT:8080}
+  servlet:
+    context-path: /api
+
+---
+# AWS RDS MySQL Configuration
+spring:
+  config:
+    activate:
+      on-profile: aws,mysql
+      
+  datasource:
+    url: ${AWS_RDS_MYSQL_URL}  # Required: MySQL RDS endpoint
+    username: ${AWS_RDS_MYSQL_USERNAME}
+    password: ${AWS_RDS_MYSQL_PASSWORD}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    
+  jpa:
+    database-platform: org.hibernate.dialect.MySQLDialect
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQL8Dialect
+
+---
+# AWS RDS SQL Server Configuration
+spring:
+  config:
+    activate:
+      on-profile: aws,sqlserver
+      
+  datasource:
+    url: ${AWS_RDS_SQLSERVER_URL}  # Required: SQL Server RDS endpoint
+    username: ${AWS_RDS_SQLSERVER_USERNAME}
+    password: ${AWS_RDS_SQLSERVER_PASSWORD}
+    driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
+    
+  jpa:
+    database-platform: org.hibernate.dialect.SQLServerDialect
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.SQLServer2012Dialect
+
+---
+# AWS RDS Oracle Configuration
+spring:
+  config:
+    activate:
+      on-profile: aws,oracle
+      
+  datasource:
+    url: ${AWS_RDS_ORACLE_URL}  # Required: Oracle RDS endpoint
+    username: ${AWS_RDS_ORACLE_USERNAME}
+    password: ${AWS_RDS_ORACLE_PASSWORD}
+    driver-class-name: oracle.jdbc.OracleDriver
+    
+  jpa:
+    database-platform: org.hibernate.dialect.OracleDialect
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.Oracle12cDialect
+
+---
+# AWS Aurora PostgreSQL Configuration
+spring:
+  config:
+    activate:
+      on-profile: aws,aurora-postgresql
+      
+  datasource:
+    url: ${AWS_AURORA_POSTGRESQL_URL}  # Required: Aurora cluster endpoint
+    username: ${AWS_AURORA_POSTGRESQL_USERNAME}
+    password: ${AWS_AURORA_POSTGRESQL_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+    
+    hikari:
+      maximum-pool-size: 30  # Aurora can handle more connections
+      
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+
+---
+# AWS Aurora MySQL Configuration
+spring:
+  config:
+    activate:
+      on-profile: aws,aurora-mysql
+      
+  datasource:
+    url: ${AWS_AURORA_MYSQL_URL}  # Required: Aurora cluster endpoint
+    username: ${AWS_AURORA_MYSQL_USERNAME}
+    password: ${AWS_AURORA_MYSQL_PASSWORD}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    
+    hikari:
+      maximum-pool-size: 30  # Aurora can handle more connections
+      
+  jpa:
+    database-platform: org.hibernate.dialect.MySQLDialect

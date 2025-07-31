@@ -1,0 +1,187 @@
+# ======================================
+# FABRIC PLATFORM - MONGODB PROFILE
+# ======================================
+# MongoDB configuration for document-based storage
+# Alternative to Oracle for configuration management and audit data
+
+spring:
+  profiles:
+    active: mongodb
+  
+  # MongoDB Configuration
+  data:
+    mongodb:
+      uri: ${MONGODB_URI:mongodb://localhost:27017/fabric_platform}
+      database: ${MONGODB_DATABASE:fabric_platform}
+      
+      # Connection Pool Settings
+      options:
+        connections-per-host: 100
+        threads-allowed-to-block-for-connection-multiplier: 5
+        max-wait-time: 120000
+        connect-timeout: 10000
+        socket-timeout: 0
+        socket-keep-alive: true
+        ssl-enabled: ${MONGODB_SSL:false}
+        ssl-invalid-hostname-allowed: false
+        
+      # Authentication (if required)
+      username: ${MONGODB_USERNAME:}
+      password: ${MONGODB_PASSWORD:}
+      authentication-database: ${MONGODB_AUTH_DB:admin}
+      
+      # Replica Set Configuration
+      replica-set-name: ${MONGODB_REPLICA_SET:}
+      
+      # GridFS Configuration for large files
+      gridfs:
+        database: ${MONGODB_GRIDFS_DB:fabric_files}
+        bucket: ${MONGODB_GRIDFS_BUCKET:fs}
+
+  # Redis Configuration (Still needed for session management)
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      database: 0
+      timeout: 2000ms
+
+# Fabric Platform Configuration
+fabric:
+  # Security Configuration
+  security:
+    jwt:
+      secret: ${JWT_SECRET:fabric-mongodb-jwt-secret-key-minimum-256-bits-required-for-hmac-sha}
+      access-token-expiration: 900   # 15 minutes
+      refresh-token-expiration: 28800  # 8 hours
+      issuer: fabric-platform-mongodb
+      audience: fabric-users-mongodb
+    cors:
+      allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000}
+    csrf:
+      enabled: false
+
+  # MongoDB-specific Configuration
+  mongodb:
+    # Collection Names
+    collections:
+      configurations: fabric_configurations
+      templates: fabric_templates
+      jobs: fabric_jobs
+      audit: fabric_audit
+      users: fabric_users
+      sessions: fabric_sessions
+      
+    # Indexing Strategy
+    indexes:
+      auto-create: true
+      text-search-enabled: true
+      
+    # Document Validation
+    validation:
+      enabled: true
+      strict-mode: false
+      
+    # Change Streams for Real-time Updates
+    change-streams:
+      enabled: true
+      resume-tokens: true
+
+  # Data Loading Configuration (MongoDB-adapted)
+  data-loader:
+    batch-size: 1000
+    chunk-size: 100
+    max-threads: 8
+    error-threshold: 0.05  # 5% error threshold
+    temp-directory: ${TEMP_DIR:/tmp/fabric-mongodb}
+    
+    # MongoDB-specific settings
+    bulk-operations:
+      ordered: false
+      write-concern: MAJORITY
+      
+  # File Processing with GridFS
+  file-processing:
+    input-directory: ${INPUT_DIR:./data/input}
+    output-directory: ${OUTPUT_DIR:./data/output}
+    archive-directory: ${ARCHIVE_DIR:./data/archive}
+    error-directory: ${ERROR_DIR:./data/error}
+    
+    # GridFS Configuration
+    gridfs:
+      chunk-size: 261120  # 255KB chunks
+      metadata-collection: fs.files
+      chunks-collection: fs.chunks
+
+  # Aggregation Pipeline Configuration
+  aggregation:
+    pipeline-cache-size: 100
+    max-pipeline-stages: 100
+    allow-disk-use: true
+
+# Logging Configuration
+logging:
+  level:
+    org.springframework.data.mongodb: DEBUG
+    com.mongodb: INFO
+    com.truist.batch: DEBUG
+  pattern:
+    console: "%d{HH:mm:ss.SSS} [%thread] %-5level [%X{correlationId:-}] %logger{36} - %msg%n"
+
+# Management/Actuator Configuration
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus,mongodbhealth
+  endpoint:
+    health:
+      show-details: always
+  health:
+    mongo:
+      enabled: true
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+
+# Server Configuration
+server:
+  port: ${SERVER_PORT:8080}
+  servlet:
+    context-path: /api
+
+---
+# MongoDB Atlas Configuration (Cloud)
+spring:
+  config:
+    activate:
+      on-profile: mongodb,atlas
+      
+  data:
+    mongodb:
+      uri: ${MONGODB_ATLAS_URI}  # Required for Atlas
+      # Connection options for Atlas
+      options:
+        retry-writes: true
+        w: majority
+        read-preference: primaryPreferred
+        ssl-enabled: true
+        ssl-invalid-hostname-allowed: false
+        
+---
+# MongoDB Replica Set Configuration
+spring:
+  config:
+    activate:
+      on-profile: mongodb,replica-set
+      
+  data:
+    mongodb:
+      uri: ${MONGODB_REPLICA_URI}  # Required for replica set
+      options:
+        replica-set-name: ${MONGODB_REPLICA_SET:rs0}
+        read-preference: primaryPreferred
+        write-concern: majority
+        read-concern: majority

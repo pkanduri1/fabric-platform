@@ -46,6 +46,43 @@ public class SqlLoaderExecutor {
     private static final Pattern LOAD_COUNT_PATTERN = Pattern.compile("Total logical records read:\\s*(\\d+)");
     
     /**
+     * Execute data loading with configuration, file name, and file path.
+     * 
+     * @param config Data loading configuration entity
+     * @param fileName Name of the file to load
+     * @param filePath Path to the file to load
+     * @return SQL*Loader execution result
+     */
+    public SqlLoaderResult executeLoad(com.truist.batch.entity.DataLoadConfigEntity config, String fileName, String filePath) {
+        log.info("Starting data load execution for config: {}, file: {}", config.getConfigId(), fileName);
+        
+        // Convert DataLoadConfigEntity to SqlLoaderConfig
+        SqlLoaderConfig sqlConfig = convertToSqlLoaderConfig(config, fileName, filePath);
+        
+        // Create a temporary processing job for tracking
+        ProcessingJobEntity processingJob = new ProcessingJobEntity();
+        processingJob.setJobExecutionId(java.util.UUID.randomUUID().toString());
+        processingJob.setConfigId(config.getConfigId());
+        processingJob.setFileName(fileName);
+        
+        return executeSqlLoader(sqlConfig, processingJob);
+    }
+    
+    /**
+     * Convert DataLoadConfigEntity to SqlLoaderConfig.
+     */
+    private SqlLoaderConfig convertToSqlLoaderConfig(com.truist.batch.entity.DataLoadConfigEntity config, String fileName, String filePath) {
+        return SqlLoaderConfig.builder()
+                .jobName(config.getJobName())
+                .correlationId(java.util.UUID.randomUUID().toString())
+                .dataFileName(filePath)
+                .targetTable(config.getTargetTable())
+                .fieldDelimiter(config.getFieldDelimiter())
+                .characterSet("UTF8")
+                .build();
+    }
+
+    /**
      * Execute SQL*Loader with the provided configuration.
      * 
      * @param config SQL*Loader configuration
