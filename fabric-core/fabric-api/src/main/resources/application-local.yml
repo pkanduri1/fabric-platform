@@ -1,0 +1,87 @@
+# Local development configuration
+# Disables AWS and Redis to get basic app running
+
+spring:
+  # Allow circular references temporarily for local development
+  main:
+    allow-circular-references: true
+  
+  # Disable AWS Auto Configuration and Security for local development
+  autoconfigure:
+    exclude:
+      - io.awspring.cloud.autoconfigure.config.parameterstore.ParameterStoreConfigDataLocationResolver
+      - io.awspring.cloud.autoconfigure.config.parameterstore.ParameterStorePropertySourceLocator
+      - org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
+      - org.springframework.cloud.aws.autoconfigure.context.ContextStackAutoConfiguration
+      - org.springframework.cloud.aws.autoconfigure.context.ContextRegionProviderAutoConfiguration
+      - org.springframework.cloud.aws.autoconfigure.context.ContextResourceLoaderAutoConfiguration
+      - org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration
+      - org.springframework.boot.autoconfigure.ldap.LdapAutoConfiguration
+      - org.springframework.boot.actuate.autoconfigure.security.servlet.ManagementWebSecurityAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.mongo.MongoAutoConfiguration
+      - org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration
+  
+  # Override config import to skip AWS
+  config:
+    import: []
+    
+  # Use Oracle database configuration
+  datasource:
+    url: jdbc:oracle:thin:@localhost:1521/ORCLPDB1
+    username: cm3int
+    password: MySecurePass123
+    driver-class-name: oracle.jdbc.OracleDriver
+    
+  # JPA settings for Oracle
+  jpa:
+    database-platform: org.hibernate.dialect.OracleDialect
+    hibernate:
+      ddl-auto: none
+    show-sql: true
+    
+  # Disable Redis for local development  
+  data:
+    redis:
+      repositories:
+        enabled: false
+        
+  # CORS Configuration for local development
+  web:
+    cors:
+      allowed-origins: 
+        - "http://localhost:3000"
+        - "https://localhost:3000"
+      allowed-methods: 
+        - GET
+        - POST
+        - PUT
+        - DELETE
+        - OPTIONS
+        - PATCH
+      allowed-headers: "*"
+      allow-credentials: true
+      max-age: 3600
+
+# Swagger/OpenAPI Configuration
+springdoc:
+  api-docs:
+    enabled: true
+    path: /v3/api-docs
+  swagger-ui:
+    enabled: true
+    path: /swagger-ui.html
+    operations-sorter: alpha
+    tags-sorter: alpha
+    doc-expansion: none
+    filter: true
+    display-request-duration: true
+  show-actuator: true
+
+# CORS Configuration for local development
+
+# Logging for debugging
+logging:
+  level:
+    com.truist.batch: DEBUG
+    org.springframework.security: DEBUG
+    org.springframework.web: DEBUG
