@@ -33,8 +33,8 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @RestController
-@RequestMapping("/api/admin/templates")
-@CrossOrigin(origins = "*")
+@RequestMapping("/admin/templates")
+@CrossOrigin(origins = {"http://localhost:3000", "https://localhost:3000"})
 public class TemplateController {
 
     @Autowired
