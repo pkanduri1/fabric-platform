@@ -9,7 +9,7 @@ import lombok.ToString;
 import java.util.Date;
 
 @Entity
-@Table(name = "field_templates")
+@Table(name = "field_templates", schema = "CM3INT")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -67,6 +67,23 @@ public class FieldTemplateEntity {
     @Column(name = "enabled", length = 1)
     private String enabled = "Y";
     
+    // Consumer Default Template Enhancement Fields - COMMENTED OUT (columns don't exist in Oracle)
+    // @Column(name = "template_category", length = 30)
+    // private String templateCategory = "GENERAL";
+    
+    // @Column(name = "pii_classification", length = 20) 
+    // private String piiClassification = "NONE";
+    
+    // @Column(name = "encryption_required", length = 1)
+    // private String encryptionRequired = "N";
+    
+    // @Column(name = "consumer_default_rules")
+    // @Lob
+    // private String consumerDefaultRules;
+    
+    // @Column(name = "risk_level", length = 10)
+    // private String riskLevel = "LOW";
+    
     @PrePersist
     protected void onCreate() {
         if (createdDate == null) {
@@ -81,6 +98,8 @@ public class FieldTemplateEntity {
         if (required == null) {
             required = "N";
         }
+        // Removed references to non-existent columns:
+        // templateCategory, piiClassification, encryptionRequired, riskLevel
     }
     
     @PreUpdate

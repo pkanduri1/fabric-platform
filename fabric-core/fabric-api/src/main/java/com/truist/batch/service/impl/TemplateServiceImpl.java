@@ -24,6 +24,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 //Spring transaction support
 import org.springframework.transaction.annotation.Transactional;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.truist.batch.entity.FieldTemplateEntity;
@@ -55,6 +58,23 @@ public class TemplateServiceImpl implements TemplateService {
 
 	@Autowired
 	private AuditService auditService;
+	
+	@PersistenceContext
+	private EntityManager entityManager;
+	
+	@Autowired
+	private JdbcTemplate jdbcTemplate;
+	
+	// Constructor to verify injection
+	public TemplateServiceImpl(FieldTemplateRepository fieldTemplateRepository, 
+	                         FileTypeTemplateRepository fileTypeTemplateRepository,
+	                         AuditService auditService) {
+	    this.fieldTemplateRepository = fieldTemplateRepository;
+	    this.fileTypeTemplateRepository = fileTypeTemplateRepository;
+	    this.auditService = auditService;
+	    log.info("TemplateServiceImpl initialized with repositories: field={}, fileType={}", 
+	             fieldTemplateRepository != null, fileTypeTemplateRepository != null);
+	}
 
 	@Override
 	public List<FileTypeTemplate> getAllFileTypes() {
@@ -155,15 +175,63 @@ public class TemplateServiceImpl implements TemplateService {
 	// TODO: Implement remaining CRUD operations
 	@Override
 	public FileTypeTemplate createFileTypeTemplate(FileTypeTemplate template, String createdBy) {
-		log.info("Creating file type template: {}", template.getFileType());
-		FileTypeTemplateEntity entity = new FileTypeTemplateEntity();
-		BeanUtils.copyProperties(template, entity);
-		entity.setCreatedBy(createdBy);
-		entity.setCreatedDate(LocalDateTime.now());
-
-		FileTypeTemplateEntity saved = fileTypeTemplateRepository.save(entity);
-		//auditService.logCreate(saved.getFileType(), template, createdBy, "File type template created");
-		return convertToFileTypeTemplate(saved);
+		log.info("Creating file type template: {} by {}", template.getFileType(), createdBy);
+		
+		try {
+			// Check if template already exists
+			Optional<FileTypeTemplateEntity> existing = fileTypeTemplateRepository.findById(template.getFileType());
+			if (existing.isPresent()) {
+				throw new RuntimeException("File type template already exists: " + template.getFileType());
+			}
+			
+			FileTypeTemplateEntity entity = new FileTypeTemplateEntity();
+			BeanUtils.copyProperties(template, entity);
+			entity.setCreatedBy(createdBy);
+			entity.setCreatedDate(LocalDateTime.now());
+			entity.setEnabled("Y");
+			entity.setVersion(1);
+			
+			log.info("Saving entity with JdbcTemplate: {}", entity);
+			
+			// Use direct JDBC insert to bypass broken JPA transaction management
+			String insertSql = """
+				INSERT INTO CM3INT.FILE_TYPE_TEMPLATES 
+				(FILE_TYPE, DESCRIPTION, TOTAL_FIELDS, RECORD_LENGTH, CREATED_BY, CREATED_DATE, VERSION, ENABLED)
+				VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+			""";
+			
+			int rowsInserted = jdbcTemplate.update(insertSql,
+				entity.getFileType(),
+				entity.getDescription(),
+				entity.getTotalFields(),
+				entity.getRecordLength(),
+				entity.getCreatedBy(),
+				java.sql.Timestamp.valueOf(entity.getCreatedDate()),
+				entity.getVersion(),
+				entity.getEnabled()
+			);
+			
+			log.info("JDBC insert completed: {} rows inserted for file type: {}", rowsInserted, entity.getFileType());
+			
+			if (rowsInserted > 0) {
+				log.info("✅ Successfully saved file type template: {} using JDBC", entity.getFileType());
+				
+				// Create a FileTypeTemplate to return
+				FileTypeTemplate result = new FileTypeTemplate();
+				result.setFileType(entity.getFileType());
+				result.setDescription(entity.getDescription());
+				result.setTotalFields(entity.getTotalFields());
+				result.setRecordLength(entity.getRecordLength());
+				result.setEnabled(entity.getEnabled());
+				
+				return result;
+			} else {
+				throw new RuntimeException("Failed to save file type template - no rows inserted");
+			}
+		} catch (Exception e) {
+			log.error("Failed to create file type template: {}", template.getFileType(), e);
+			throw new RuntimeException("Failed to create file type template: " + e.getMessage(), e);
+		}
 	}
 
 	@Override
@@ -206,41 +274,103 @@ public class TemplateServiceImpl implements TemplateService {
 
 	@Override
 	public FieldTemplate createFieldTemplate(FieldTemplate template, String createdBy) {
-		log.info("Creating field template: {}/{}/{}", template.getFileType(), template.getTransactionType(),
+		log.info("Creating field template: {}/{}/{} using JdbcTemplate", template.getFileType(), template.getTransactionType(),
 				template.getFieldName());
-		FieldTemplateEntity entity = new FieldTemplateEntity();
-		BeanUtils.copyProperties(template, entity);
-		entity.setCreatedBy(createdBy);
-		entity.setCreatedDate(new Date());
-
-		FieldTemplateEntity saved = fieldTemplateRepository.save(entity);
-		String auditKey = template.getFileType() + "/" + template.getTransactionType() + "/" + template.getFieldName();
-		auditService.logCreate(auditKey, template, createdBy, "Field template created");
-		return convertToFieldTemplate(saved);
+		
+		try {
+			// Use direct JDBC insert to bypass broken JPA transaction management
+			String insertSql = """
+				INSERT INTO CM3INT.FIELD_TEMPLATES 
+				(FILE_TYPE, TRANSACTION_TYPE, FIELD_NAME, TARGET_POSITION, LENGTH, DATA_TYPE, FORMAT, REQUIRED, DESCRIPTION, CREATED_BY, CREATED_DATE, VERSION, ENABLED)
+				VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+			""";
+			
+			Date now = new Date();
+			int rowsInserted = jdbcTemplate.update(insertSql,
+				template.getFileType(),
+				template.getTransactionType(),
+				template.getFieldName(),
+				template.getTargetPosition(),
+				template.getLength(),
+				template.getDataType(),
+				template.getFormat(),
+				template.getRequired() != null ? template.getRequired() : "N",
+				template.getDescription(),
+				createdBy,
+				new java.sql.Timestamp(now.getTime()),
+				1, // version
+				template.getEnabled() != null ? template.getEnabled() : "Y"
+			);
+			
+			if (rowsInserted > 0) {
+				log.info("Successfully created field template: {}/{}/{} using JDBC", template.getFileType(), template.getTransactionType(), template.getFieldName());
+				String auditKey = template.getFileType() + "/" + template.getTransactionType() + "/" + template.getFieldName();
+				auditService.logCreate(auditKey, template, createdBy, "Field template created");
+				return template; // Return the original template since JDBC insert succeeded
+			} else {
+				throw new RuntimeException("Failed to create field template - no rows inserted");
+			}
+		} catch (Exception e) {
+			log.error("Failed to create field template: {}/{}/{}", template.getFileType(), template.getTransactionType(), template.getFieldName(), e);
+			throw new RuntimeException("Failed to create field template: " + e.getMessage(), e);
+		}
 	}
 
 	@Override
 	public FieldTemplate updateFieldTemplate(FieldTemplate template, String modifiedBy) {
-		log.info("Updating field template: {}/{}/{}", template.getFileType(), template.getTransactionType(),
+		log.info("Updating field template: {}/{}/{} using JdbcTemplate", template.getFileType(), template.getTransactionType(),
 				template.getFieldName());
-		Optional<FieldTemplateEntity> existing = fieldTemplateRepository.findByFileTypeAndTransactionTypeAndFieldName(
+		
+		try {
+			// First check if the field template exists
+			String selectSql = """
+				SELECT COUNT(*) FROM CM3INT.FIELD_TEMPLATES 
+				WHERE FILE_TYPE = ? AND TRANSACTION_TYPE = ? AND FIELD_NAME = ?
+			""";
+			
+			Integer count = jdbcTemplate.queryForObject(selectSql, Integer.class,
 				template.getFileType(), template.getTransactionType(), template.getFieldName());
-
-		if (existing.isPresent()) {
-			FieldTemplateEntity entity = existing.get();
-			FieldTemplate oldTemplate = convertToFieldTemplate(entity);
-
-			BeanUtils.copyProperties(template, entity);
-			entity.setModifiedBy(modifiedBy);
-			entity.setModifiedDate(new Date());
-
-			FieldTemplateEntity saved = fieldTemplateRepository.save(entity);
-			String auditKey = template.getFileType() + "/" + template.getTransactionType() + "/"
-					+ template.getFieldName();
-			auditService.logUpdate(auditKey, oldTemplate, template, modifiedBy, "Field template updated");
-			return convertToFieldTemplate(saved);
+			
+			if (count == null || count == 0) {
+				throw new RuntimeException("Field template not found");
+			}
+			
+			// Use direct JDBC update to bypass broken JPA transaction management
+			String updateSql = """
+				UPDATE CM3INT.FIELD_TEMPLATES 
+				SET TARGET_POSITION = ?, LENGTH = ?, DATA_TYPE = ?, FORMAT = ?, REQUIRED = ?, 
+				    DESCRIPTION = ?, MODIFIED_BY = ?, MODIFIED_DATE = ?, VERSION = VERSION + 1, ENABLED = ?
+				WHERE FILE_TYPE = ? AND TRANSACTION_TYPE = ? AND FIELD_NAME = ?
+			""";
+			
+			Date now = new Date();
+			int rowsUpdated = jdbcTemplate.update(updateSql,
+				template.getTargetPosition(),
+				template.getLength(),
+				template.getDataType(),
+				template.getFormat(),
+				template.getRequired() != null ? template.getRequired() : "N",
+				template.getDescription(),
+				modifiedBy,
+				new java.sql.Timestamp(now.getTime()),
+				template.getEnabled() != null ? template.getEnabled() : "Y",
+				template.getFileType(),
+				template.getTransactionType(),
+				template.getFieldName()
+			);
+			
+			if (rowsUpdated > 0) {
+				log.info("Successfully updated field template: {}/{}/{} using JDBC", template.getFileType(), template.getTransactionType(), template.getFieldName());
+				String auditKey = template.getFileType() + "/" + template.getTransactionType() + "/" + template.getFieldName();
+				auditService.logUpdate(auditKey, template, template, modifiedBy, "Field template updated");
+				return template; // Return the updated template since JDBC update succeeded
+			} else {
+				throw new RuntimeException("Failed to update field template - no rows updated");
+			}
+		} catch (Exception e) {
+			log.error("Failed to update field template: {}/{}/{}", template.getFileType(), template.getTransactionType(), template.getFieldName(), e);
+			throw new RuntimeException("Failed to update field template: " + e.getMessage(), e);
 		}
-		throw new RuntimeException("Field template not found");
 	}
 
 
@@ -648,39 +778,50 @@ public class TemplateServiceImpl implements TemplateService {
 	@Transactional
 	private int saveImportedFields(List<FieldTemplate> fields, String fileType, String createdBy) {
 		try {
-			// Optional: Clear existing fields for this file type and transaction type
-			// Uncomment if you want to replace existing templates
-			// Note: This would need to be done per transaction type
-			// Set<String> transactionTypes = fields.stream()
-			// .map(FieldTemplate::getTransactionType)
-			// .collect(Collectors.toSet());
-			//
-			// for (String txnType : transactionTypes) {
-			// fields.stream()
-			// .filter(f -> f.getTransactionType().equals(txnType))
-			// .forEach(field -> {
-			// FieldTemplateId id = new FieldTemplateId(fileType, txnType,
-			// field.getFieldName());
-			// fieldTemplateRepository.deleteById(id);
-			// });
-			// }
-
+			log.info("Saving {} field templates using JdbcTemplate approach", fields.size());
+			
+			// Use direct JDBC insert to bypass broken JPA transaction management
+			String insertSql = """
+				INSERT INTO CM3INT.FIELD_TEMPLATES 
+				(FILE_TYPE, TRANSACTION_TYPE, FIELD_NAME, TARGET_POSITION, LENGTH, DATA_TYPE, FORMAT, REQUIRED, DESCRIPTION, CREATED_BY, CREATED_DATE, VERSION, ENABLED)
+				VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+			""";
+			
 			int savedCount = 0;
-			LocalDateTime now = LocalDateTime.now();
-
+			Date now = new Date();
+			
 			for (FieldTemplate field : fields) {
-				// Convert FieldTemplate DTO to FieldTemplateEntity
-				FieldTemplateEntity entity = convertToFieldTemplateEntity(field, createdBy, now);
-
-				// Save entity using repository
-				fieldTemplateRepository.save(entity);
-				savedCount++;
-
-				log.debug("Saved field template: {}/{}/{}", fileType, field.getTransactionType(), field.getFieldName());
+				try {
+					int rowsInserted = jdbcTemplate.update(insertSql,
+						field.getFileType(),
+						field.getTransactionType(),
+						field.getFieldName(),
+						field.getTargetPosition(),
+						field.getLength(),
+						field.getDataType(),
+						field.getFormat(),
+						field.getRequired() != null ? field.getRequired() : "N",
+						field.getDescription(),
+						createdBy,
+						new java.sql.Timestamp(now.getTime()),
+						1, // version
+						field.getEnabled() != null ? field.getEnabled() : "Y"
+					);
+					
+					if (rowsInserted > 0) {
+						savedCount++;
+						log.debug("Saved field template: {}/{}/{}", field.getFileType(), field.getTransactionType(), field.getFieldName());
+					} else {
+						log.warn("Failed to insert field template: {}/{}/{}", field.getFileType(), field.getTransactionType(), field.getFieldName());
+					}
+				} catch (Exception e) {
+					log.error("Failed to save individual field template: {}/{}/{}", field.getFileType(), field.getTransactionType(), field.getFieldName(), e);
+					throw new RuntimeException("Failed to save field: " + field.getFieldName() + " - " + e.getMessage(), e);
+				}
 			}
-
-			log.info("Successfully saved {} field templates for file type: {}", savedCount, fileType);
-
+			
+			log.info("Successfully saved {} field templates for file type: {} using JDBC", savedCount, fileType);
+			
 			// Create audit entry
 			/*
 			 * createAuditEntry("TEMPLATE_IMPORT", fileType, createdBy,

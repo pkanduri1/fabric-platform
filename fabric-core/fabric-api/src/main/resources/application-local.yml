@@ -2,11 +2,13 @@
 # Disables AWS and Redis to get basic app running
 
 spring:
-  # Allow circular references temporarily for local development
+  # Allow bean definition overriding and circular references for local development
   main:
+    allow-bean-definition-overriding: true
     allow-circular-references: true
   
   # Disable AWS Auto Configuration and Security for local development
+  # IMPORTANT: Do NOT exclude JPA, Transaction, or DataSource auto-configurations
   autoconfigure:
     exclude:
       - io.awspring.cloud.autoconfigure.config.parameterstore.ParameterStoreConfigDataLocationResolver
@@ -25,19 +27,64 @@ spring:
   config:
     import: []
     
-  # Use Oracle database configuration
+  # Use Oracle database configuration with connection pooling
   datasource:
     url: jdbc:oracle:thin:@localhost:1521/ORCLPDB1
     username: cm3int
     password: MySecurePass123
     driver-class-name: oracle.jdbc.OracleDriver
+    # HikariCP connection pool settings for transaction management
+    hikari:
+      # Connection pool settings
+      maximum-pool-size: 10
+      minimum-idle: 5
+      connection-timeout: 20000
+      idle-timeout: 300000
+      max-lifetime: 1200000
+      # Transaction-related settings
+      auto-commit: false
+      # Connection test settings
+      connection-test-query: SELECT 1 FROM DUAL
+      validation-timeout: 5000
+      # Pool name for debugging
+      pool-name: OracleHikariPool
     
-  # JPA settings for Oracle
+  # JPA settings for Oracle with transaction management
   jpa:
     database-platform: org.hibernate.dialect.OracleDialect
     hibernate:
       ddl-auto: none
+      # Enable transaction management
+      use-new-id-generator-mappings: true
     show-sql: true
+    properties:
+      hibernate:
+        # Disable autocommit - let Spring manage transactions
+        connection:
+          autocommit: false
+          provider_disables_autocommit: false
+        # Use Spring transaction management instead of thread
+        current_session_context_class: org.springframework.orm.hibernate5.SpringSessionContext
+        # Enable batch processing for better performance
+        jdbc:
+          batch_size: 25
+          order_inserts: true
+          order_updates: true
+        # Oracle-specific optimizations
+        dialect:
+          oracle:
+            use_legacy_limit_handler: false
+        # Enable SQL comments for debugging
+        use_sql_comments: true
+        format_sql: true
+        
+  # Transaction Configuration - Spring Boot transaction management
+  transaction:
+    default-timeout: 30
+    rollback-on-commit-failure: true
+    # Enable transaction management
+    management:
+      enabled: true
     
   # Disable Redis for local development  
   data:
@@ -85,3 +132,10 @@ logging:
     com.truist.batch: DEBUG
     org.springframework.security: DEBUG
     org.springframework.web: DEBUG
+    # Transaction management debugging
+    org.springframework.transaction: DEBUG
+    org.springframework.orm.jpa: DEBUG
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+    # Connection pool debugging
+    com.zaxxer.hikari: DEBUG

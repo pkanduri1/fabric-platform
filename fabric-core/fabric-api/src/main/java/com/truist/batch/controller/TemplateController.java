@@ -30,6 +30,7 @@ import com.truist.batch.model.ValidationResult;
 import com.truist.batch.service.TemplateService;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @RestController
@@ -237,6 +238,52 @@ public class TemplateController {
         } catch (Exception e) {
             log.error("Error deleting file type template: {}", fileType, e);
             return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    /**
+     * Create a new file type without fields - simplified version
+     * Frontend expects: POST /api/admin/templates/file-types/simple
+     */
+    @PostMapping("/file-types/simple")
+    public ResponseEntity<Map<String, Object>> createSimpleFileType(
+            @RequestBody Map<String, Object> request,
+            @RequestParam(defaultValue = "system") String createdBy) {
+        try {
+            String fileType = (String) request.get("fileType");
+            String description = (String) request.get("description");
+            
+            if (fileType == null || fileType.trim().isEmpty()) {
+                Map<String, Object> errorResponse = new HashMap<>();
+                errorResponse.put("success", false);
+                errorResponse.put("message", "File type is required");
+                return ResponseEntity.badRequest().body(errorResponse);
+            }
+            
+            // Create a minimal FileTypeTemplate with just the basics
+            FileTypeTemplate template = new FileTypeTemplate();
+            template.setFileType(fileType.trim());
+            template.setDescription(description);
+            template.setTotalFields(0);
+            template.setRecordLength(0);
+            template.setEnabled("Y");
+            
+            FileTypeTemplate created = templateService.createFileTypeTemplate(template, createdBy);
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("fileType", created.getFileType());
+            response.put("description", created.getDescription());
+            response.put("message", "File type created successfully. You can now add fields to this template.");
+            
+            log.info("Created simple file type: {} by {}", fileType, createdBy);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            log.error("Error creating simple file type", e);
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("success", false);
+            errorResponse.put("message", "Failed to create file type: " + e.getMessage());
+            return ResponseEntity.internalServerError().body(errorResponse);
         }
     }
 

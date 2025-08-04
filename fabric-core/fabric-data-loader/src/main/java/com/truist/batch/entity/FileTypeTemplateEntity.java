@@ -13,7 +13,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "file_type_templates")
+@Table(name = "file_type_templates", schema = "CM3INT")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
