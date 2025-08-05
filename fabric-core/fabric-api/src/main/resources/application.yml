@@ -8,11 +8,11 @@ spring:
   # Application Configuration
   application:
     name: fabric-platform
-    version: @project.version@
+    version: ${project.version}
     
   # Default Profile Selection
   profiles:
-    active: ${SPRING_PROFILES_ACTIVE:dev}
+    active: local
     
   # Configuration Import Strategy
   config:
@@ -79,8 +79,8 @@ fabric:
   application:
     name: Fabric Platform
     description: Enterprise Data Loading and Batch Processing Platform
-    version: @project.version@
-    build-timestamp: @maven.build.timestamp@
+    version: ${project.version}
+    build-timestamp: ${maven.build.timestamp}
     
   # Security Base Configuration
   security:
@@ -170,12 +170,12 @@ management:
       enabled: true
     os:
       enabled: true
-  metrics:
-    export:
-      prometheus:
+  prometheus:
+    metrics:
+      export:
         enabled: ${PROMETHEUS_ENABLED:false}
-
-# Base Server Configuration
+        
+        # Base Server Configuration        # Base Server Configuration        # Base Server Configuration        # Base Server Configuration
 server:
   port: ${SERVER_PORT:8080}
   servlet:

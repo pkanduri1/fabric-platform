@@ -532,7 +532,7 @@ public class TemplateServiceImpl implements TemplateService {
 		List<String> errors = new ArrayList<>();
 
 		// Field name validation
-		if (!fieldName.matches("^[a-zA-Z][a-zA-Z0-9_-]*$")) {
+		if (!fieldName.matches("^[a-zA-Z0-9][a-zA-Z0-9_-]*$")) {
 			errors.add(String.format(
 					"Field name '%s' must start with a letter and contain only letters, numbers, and underscores",
 					fieldName));
