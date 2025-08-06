@@ -134,9 +134,30 @@ public class TemplateServiceImpl implements TemplateService {
 			mappings.add(mapping);
 		}
 
-		return new FieldMappingConfig(sourceSystem, jobName, 
-				"Generated from " + fileType + "/" + transactionType + " template", createdBy, mappings, LocalDateTime.now(),
-				createdBy, 1, transactionType,LocalDateTime.now());
+		FieldMappingConfig config = new FieldMappingConfig();
+		config.setSourceSystem(sourceSystem);
+		config.setJobName(jobName);
+		config.setTransactionType("Generated from " + fileType + "/" + transactionType + " template");
+		config.setDescription(createdBy);
+		config.setFieldMappings(mappings);
+		config.setLastModified(LocalDateTime.now());
+		config.setModifiedBy(createdBy);
+		config.setVersion(1);
+		config.setCreatedDate(LocalDateTime.now());
+		config.id = sourceSystem + "_" + jobName + "_" + transactionType + "_" + System.currentTimeMillis();
+		
+		// Create template metadata (optional - can be null for now)
+		// com.truist.batch.model.TemplateMetadata metadata = new com.truist.batch.model.TemplateMetadata();
+		// metadata.setFileType(fileType);
+		// metadata.setTransactionType(transactionType);
+		// metadata.setTemplateVersion(1);
+		// metadata.setFieldsFromTemplate(mappings.size());
+		// metadata.setTotalFields(mappings.size());
+		// metadata.setGeneratedAt(LocalDateTime.now().toString());
+		// metadata.setGeneratedBy(createdBy);
+		// config.setTemplateMetadata(metadata);
+		
+		return config;
 	}
 
 	@Override

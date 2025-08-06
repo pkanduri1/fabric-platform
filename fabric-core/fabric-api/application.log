@@ -1,0 +1,463 @@
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] -----------------------< com.truist:fabric-api >------------------------
+[INFO] Building fabric-api 0.0.1-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] >>> spring-boot:3.4.6:run (default-cli) > test-compile @ fabric-api >>>
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ fabric-api ---
+[INFO] Copying 11 resources from src/main/resources to target/classes
+[INFO] Copying 20 resources from src/main/resources to target/classes
+[INFO] 
+[INFO] --- compiler:3.13.0:compile (default-compile) @ fabric-api ---
+[INFO] Recompiling the module because of changed source code.
+[INFO] Compiling 57 source files with javac [debug parameters release 17] to target/classes
+[WARNING] /Users/pavankanduri/claude-ws/fabric-platform/fabric-core/fabric-api/src/main/java/com/truist/batch/security/config/SecurityConfig.java:[123,17] frameOptions() in org.springframework.security.config.annotation.web.configurers.HeadersConfigurer has been deprecated and marked for removal
+[WARNING] /Users/pavankanduri/claude-ws/fabric-platform/fabric-core/fabric-api/src/main/java/com/truist/batch/security/config/SecurityConfig.java:[124,17] contentTypeOptions() in org.springframework.security.config.annotation.web.configurers.HeadersConfigurer has been deprecated and marked for removal
+[WARNING] /Users/pavankanduri/claude-ws/fabric-platform/fabric-core/fabric-api/src/main/java/com/truist/batch/security/config/SecurityConfig.java:[124,38] and() in org.springframework.security.config.annotation.web.configurers.HeadersConfigurer.ContentTypeOptionsConfig has been deprecated and marked for removal
+[WARNING] /Users/pavankanduri/claude-ws/fabric-platform/fabric-core/fabric-api/src/main/java/com/truist/batch/security/config/SecurityConfig.java:[128,17] referrerPolicy(org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter.ReferrerPolicy) in org.springframework.security.config.annotation.web.configurers.HeadersConfigurer has been deprecated and marked for removal
+[WARNING] /Users/pavankanduri/claude-ws/fabric-platform/fabric-core/fabric-api/src/main/java/com/truist/batch/security/config/SecurityConfig.java:[129,17] and() in org.springframework.security.config.annotation.web.configurers.HeadersConfigurer.ReferrerPolicyConfig has been deprecated and marked for removal
+[INFO] /Users/pavankanduri/claude-ws/fabric-platform/fabric-core/fabric-api/src/main/java/com/truist/batch/security/jwt/JwtTokenService.java: /Users/pavankanduri/claude-ws/fabric-platform/fabric-core/fabric-api/src/main/java/com/truist/batch/security/jwt/JwtTokenService.java uses or overrides a deprecated API.
+[INFO] /Users/pavankanduri/claude-ws/fabric-platform/fabric-core/fabric-api/src/main/java/com/truist/batch/security/jwt/JwtTokenService.java: Recompile with -Xlint:deprecation for details.
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ fabric-api ---
+[INFO] Copying 1 resource from src/test/resources to target/test-classes
+[INFO] 
+[INFO] --- compiler:3.13.0:testCompile (default-testCompile) @ fabric-api ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 16 source files with javac [debug parameters release 17] to target/test-classes
+[INFO] /Users/pavankanduri/claude-ws/fabric-platform/fabric-core/fabric-api/src/test/java/com/truist/batch/adapter/DataSourceAdapterRegistryTest.java: /Users/pavankanduri/claude-ws/fabric-platform/fabric-core/fabric-api/src/test/java/com/truist/batch/adapter/DataSourceAdapterRegistryTest.java uses unchecked or unsafe operations.
+[INFO] /Users/pavankanduri/claude-ws/fabric-platform/fabric-core/fabric-api/src/test/java/com/truist/batch/adapter/DataSourceAdapterRegistryTest.java: Recompile with -Xlint:unchecked for details.
+[INFO] 
+[INFO] <<< spring-boot:3.4.6:run (default-cli) < test-compile @ fabric-api <<<
+[INFO] 
+[INFO] 
+[INFO] --- spring-boot:3.4.6:run (default-cli) @ fabric-api ---
+[INFO] Attaching agents: []
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v3.4.6)
+
+2025-08-05 21:22:29.348 [main] INFO  [] com.truist.batch.InterfaceBatchApplication - Starting InterfaceBatchApplication using Java 17.0.14 with PID 18369 (/Users/pavankanduri/claude-ws/fabric-platform/fabric-core/fabric-api/target/classes started by pavankanduri in /Users/pavankanduri/claude-ws/fabric-platform/fabric-core/fabric-api)
+2025-08-05 21:22:29.349 [main] DEBUG [] com.truist.batch.InterfaceBatchApplication - Running with Spring Boot v3.4.6, Spring v6.2.7
+2025-08-05 21:22:29.349 [main] INFO  [] com.truist.batch.InterfaceBatchApplication - The following 1 profile is active: "local"
+2025-08-05 21:22:29.780 [main] INFO  [] o.s.b.factory.support.DefaultListableBeanFactory - Overriding bean definition for bean 'transactionManager' with a different definition: replacing [Root bean: class=null; scope=; abstract=false; lazyInit=null; autowireMode=3; dependencyCheck=0; autowireCandidate=true; primary=false; fallback=false; factoryBeanName=localTransactionConfig; factoryMethodName=transactionManager; initMethodNames=null; destroyMethodNames=[(inferred)]; defined in class path resource [com/truist/batch/config/LocalTransactionConfig.class]] with [Root bean: class=null; scope=; abstract=false; lazyInit=null; autowireMode=3; dependencyCheck=0; autowireCandidate=true; primary=true; fallback=false; factoryBeanName=databaseConfig; factoryMethodName=transactionManager; initMethodNames=null; destroyMethodNames=[(inferred)]; defined in class path resource [com/truist/batch/config/DatabaseConfig.class]]
+2025-08-05 21:22:29.789 [main] INFO  [] o.s.d.r.config.RepositoryConfigurationDelegate - Multiple Spring Data modules found, entering strict repository configuration mode
+2025-08-05 21:22:29.789 [main] INFO  [] o.s.d.r.config.RepositoryConfigurationDelegate - Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2025-08-05 21:22:29.893 [main] INFO  [] o.s.d.r.config.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 99 ms. Found 12 JPA repository interfaces.
+2025-08-05 21:22:30.155 [main] INFO  [] o.s.d.r.config.RepositoryConfigurationDelegate - Multiple Spring Data modules found, entering strict repository configuration mode
+2025-08-05 21:22:30.155 [main] INFO  [] o.s.d.r.config.RepositoryConfigurationDelegate - Bootstrapping Spring Data MongoDB repositories in DEFAULT mode.
+2025-08-05 21:22:30.168 [main] INFO  [] o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data MongoDB - Could not safely identify store assignment for repository candidate interface com.truist.batch.repository.SourceSystemRepository; If you want this repository to be a MongoDB repository, consider annotating your entities with one of these annotations: org.springframework.data.mongodb.core.mapping.Document (preferred), or consider extending one of the following types with your repository: org.springframework.data.mongodb.repository.MongoRepository
+2025-08-05 21:22:30.168 [main] INFO  [] o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data MongoDB - Could not safely identify store assignment for repository candidate interface com.truist.batch.repository.TemplateSourceMappingRepository; If you want this repository to be a MongoDB repository, consider annotating your entities with one of these annotations: org.springframework.data.mongodb.core.mapping.Document (preferred), or consider extending one of the following types with your repository: org.springframework.data.mongodb.repository.MongoRepository
+2025-08-05 21:22:30.168 [main] INFO  [] o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data MongoDB - Could not safely identify store assignment for repository candidate interface com.truist.batch.repository.BatchConfigurationRepository; If you want this repository to be a MongoDB repository, consider annotating your entities with one of these annotations: org.springframework.data.mongodb.core.mapping.Document (preferred), or consider extending one of the following types with your repository: org.springframework.data.mongodb.repository.MongoRepository
+2025-08-05 21:22:30.172 [main] INFO  [] o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data MongoDB - Could not safely identify store assignment for repository candidate interface com.truist.batch.repository.ConfigurationAuditRepository; If you want this repository to be a MongoDB repository, consider annotating your entities with one of these annotations: org.springframework.data.mongodb.core.mapping.Document (preferred), or consider extending one of the following types with your repository: org.springframework.data.mongodb.repository.MongoRepository
+2025-08-05 21:22:30.172 [main] INFO  [] o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data MongoDB - Could not safely identify store assignment for repository candidate interface com.truist.batch.repository.DataLoadAuditRepository; If you want this repository to be a MongoDB repository, consider annotating your entities with one of these annotations: org.springframework.data.mongodb.core.mapping.Document (preferred), or consider extending one of the following types with your repository: org.springframework.data.mongodb.repository.MongoRepository
+2025-08-05 21:22:30.172 [main] INFO  [] o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data MongoDB - Could not safely identify store assignment for repository candidate interface com.truist.batch.repository.DataLoadConfigRepository; If you want this repository to be a MongoDB repository, consider annotating your entities with one of these annotations: org.springframework.data.mongodb.core.mapping.Document (preferred), or consider extending one of the following types with your repository: org.springframework.data.mongodb.repository.MongoRepository
+2025-08-05 21:22:30.173 [main] INFO  [] o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data MongoDB - Could not safely identify store assignment for repository candidate interface com.truist.batch.repository.FieldTemplateRepository; If you want this repository to be a MongoDB repository, consider annotating your entities with one of these annotations: org.springframework.data.mongodb.core.mapping.Document (preferred), or consider extending one of the following types with your repository: org.springframework.data.mongodb.repository.MongoRepository
+2025-08-05 21:22:30.173 [main] INFO  [] o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data MongoDB - Could not safely identify store assignment for repository candidate interface com.truist.batch.repository.FileTypeTemplateRepository; If you want this repository to be a MongoDB repository, consider annotating your entities with one of these annotations: org.springframework.data.mongodb.core.mapping.Document (preferred), or consider extending one of the following types with your repository: org.springframework.data.mongodb.repository.MongoRepository
+2025-08-05 21:22:30.173 [main] INFO  [] o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data MongoDB - Could not safely identify store assignment for repository candidate interface com.truist.batch.repository.JobDefinitionRepository; If you want this repository to be a MongoDB repository, consider annotating your entities with one of these annotations: org.springframework.data.mongodb.core.mapping.Document (preferred), or consider extending one of the following types with your repository: org.springframework.data.mongodb.repository.MongoRepository
+2025-08-05 21:22:30.173 [main] INFO  [] o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data MongoDB - Could not safely identify store assignment for repository candidate interface com.truist.batch.repository.JobExecutionLogRepository; If you want this repository to be a MongoDB repository, consider annotating your entities with one of these annotations: org.springframework.data.mongodb.core.mapping.Document (preferred), or consider extending one of the following types with your repository: org.springframework.data.mongodb.repository.MongoRepository
+2025-08-05 21:22:30.173 [main] INFO  [] o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data MongoDB - Could not safely identify store assignment for repository candidate interface com.truist.batch.repository.ProcessingJobRepository; If you want this repository to be a MongoDB repository, consider annotating your entities with one of these annotations: org.springframework.data.mongodb.core.mapping.Document (preferred), or consider extending one of the following types with your repository: org.springframework.data.mongodb.repository.MongoRepository
+2025-08-05 21:22:30.173 [main] INFO  [] o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data MongoDB - Could not safely identify store assignment for repository candidate interface com.truist.batch.repository.ValidationRuleRepository; If you want this repository to be a MongoDB repository, consider annotating your entities with one of these annotations: org.springframework.data.mongodb.core.mapping.Document (preferred), or consider extending one of the following types with your repository: org.springframework.data.mongodb.repository.MongoRepository
+2025-08-05 21:22:30.173 [main] INFO  [] o.s.d.r.config.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 17 ms. Found 0 MongoDB repository interfaces.
+2025-08-05 21:22:30.611 [main] INFO  [] o.s.boot.web.embedded.tomcat.TomcatWebServer - Tomcat initialized with port 8080 (http)
+2025-08-05 21:22:30.619 [main] INFO  [] org.apache.catalina.core.StandardService - Starting service [Tomcat]
+2025-08-05 21:22:30.619 [main] INFO  [] org.apache.catalina.core.StandardEngine - Starting Servlet engine: [Apache Tomcat/10.1.41]
+2025-08-05 21:22:30.649 [main] INFO  [] o.a.c.c.ContainerBase.[Tomcat].[localhost].[/api] - Initializing Spring embedded WebApplicationContext
+2025-08-05 21:22:30.649 [main] INFO  [] o.s.b.w.s.c.ServletWebServerApplicationContext - Root WebApplicationContext: initialization completed in 1278 ms
+2025-08-05 21:22:30.809 [main] DEBUG [] c.t.batch.security.jwt.JwtAuthenticationFilter - Filter 'jwtAuthenticationFilter' configured for use
+2025-08-05 21:22:30.809 [main] DEBUG [] o.s.web.filter.ServerHttpObservationFilter - Filter 'webMvcObservationFilter' configured for use
+2025-08-05 21:22:30.809 [main] DEBUG [] org.springframework.web.filter.CorsFilter - Filter 'corsFilter' configured for use
+2025-08-05 21:22:30.823 [main] DEBUG [] com.zaxxer.hikari.HikariConfig - Driver class oracle.jdbc.OracleDriver found in Thread context class loader jdk.internal.loader.ClassLoaders$AppClassLoader@42110406
+2025-08-05 21:22:30.920 [main] DEBUG [] o.s.orm.jpa.LocalContainerEntityManagerFactoryBean - Building JPA container EntityManagerFactory for persistence unit 'default'
+2025-08-05 21:22:31.108 [main] INFO  [] o.s.o.j.persistenceunit.SpringPersistenceUnitInfo - No LoadTimeWeaver setup: ignoring JPA class transformer
+2025-08-05 21:22:31.123 [main] DEBUG [] com.zaxxer.hikari.HikariConfig - HikariPool-1 - configuration:
+2025-08-05 21:22:31.125 [main] DEBUG [] com.zaxxer.hikari.HikariConfig - allowPoolSuspension.............false
+2025-08-05 21:22:31.126 [main] DEBUG [] com.zaxxer.hikari.HikariConfig - autoCommit......................true
+2025-08-05 21:22:31.126 [main] DEBUG [] com.zaxxer.hikari.HikariConfig - catalog.........................none
+2025-08-05 21:22:31.126 [main] DEBUG [] com.zaxxer.hikari.HikariConfig - connectionInitSql...............none
+2025-08-05 21:22:31.126 [main] DEBUG [] com.zaxxer.hikari.HikariConfig - connectionTestQuery.............none
+2025-08-05 21:22:31.126 [main] DEBUG [] com.zaxxer.hikari.HikariConfig - connectionTimeout...............30000
+2025-08-05 21:22:31.126 [main] DEBUG [] com.zaxxer.hikari.HikariConfig - dataSource......................none
+2025-08-05 21:22:31.126 [main] DEBUG [] com.zaxxer.hikari.HikariConfig - dataSourceClassName.............none
+2025-08-05 21:22:31.126 [main] DEBUG [] com.zaxxer.hikari.HikariConfig - dataSourceJNDI..................none
+2025-08-05 21:22:31.126 [main] DEBUG [] com.zaxxer.hikari.HikariConfig - dataSourceProperties............{password=<masked>}
+2025-08-05 21:22:31.126 [main] DEBUG [] com.zaxxer.hikari.HikariConfig - driverClassName................."oracle.jdbc.OracleDriver"
+2025-08-05 21:22:31.126 [main] DEBUG [] com.zaxxer.hikari.HikariConfig - exceptionOverrideClassName......none
+2025-08-05 21:22:31.126 [main] DEBUG [] com.zaxxer.hikari.HikariConfig - healthCheckProperties...........{}
+2025-08-05 21:22:31.126 [main] DEBUG [] com.zaxxer.hikari.HikariConfig - healthCheckRegistry.............none
+2025-08-05 21:22:31.126 [main] DEBUG [] com.zaxxer.hikari.HikariConfig - idleTimeout.....................600000
+2025-08-05 21:22:31.126 [main] DEBUG [] com.zaxxer.hikari.HikariConfig - initializationFailTimeout.......1
+2025-08-05 21:22:31.126 [main] DEBUG [] com.zaxxer.hikari.HikariConfig - isolateInternalQueries..........false
+2025-08-05 21:22:31.126 [main] DEBUG [] com.zaxxer.hikari.HikariConfig - jdbcUrl.........................jdbc:oracle:thin:@localhost:1521/ORCLPDB1
+2025-08-05 21:22:31.126 [main] DEBUG [] com.zaxxer.hikari.HikariConfig - keepaliveTime...................0
+2025-08-05 21:22:31.126 [main] DEBUG [] com.zaxxer.hikari.HikariConfig - leakDetectionThreshold..........0
+2025-08-05 21:22:31.126 [main] DEBUG [] com.zaxxer.hikari.HikariConfig - maxLifetime.....................1800000
+2025-08-05 21:22:31.126 [main] DEBUG [] com.zaxxer.hikari.HikariConfig - maximumPoolSize.................10
+2025-08-05 21:22:31.126 [main] DEBUG [] com.zaxxer.hikari.HikariConfig - metricRegistry..................none
+2025-08-05 21:22:31.127 [main] DEBUG [] com.zaxxer.hikari.HikariConfig - metricsTrackerFactory...........none
+2025-08-05 21:22:31.127 [main] DEBUG [] com.zaxxer.hikari.HikariConfig - minimumIdle.....................10
+2025-08-05 21:22:31.127 [main] DEBUG [] com.zaxxer.hikari.HikariConfig - password........................<masked>
+2025-08-05 21:22:31.127 [main] DEBUG [] com.zaxxer.hikari.HikariConfig - poolName........................"HikariPool-1"
+2025-08-05 21:22:31.127 [main] DEBUG [] com.zaxxer.hikari.HikariConfig - readOnly........................false
+2025-08-05 21:22:31.127 [main] DEBUG [] com.zaxxer.hikari.HikariConfig - registerMbeans..................false
+2025-08-05 21:22:31.127 [main] DEBUG [] com.zaxxer.hikari.HikariConfig - scheduledExecutor...............none
+2025-08-05 21:22:31.127 [main] DEBUG [] com.zaxxer.hikari.HikariConfig - schema..........................none
+2025-08-05 21:22:31.127 [main] DEBUG [] com.zaxxer.hikari.HikariConfig - threadFactory...................internal
+2025-08-05 21:22:31.127 [main] DEBUG [] com.zaxxer.hikari.HikariConfig - transactionIsolation............default
+2025-08-05 21:22:31.127 [main] DEBUG [] com.zaxxer.hikari.HikariConfig - username........................"cm3int"
+2025-08-05 21:22:31.127 [main] DEBUG [] com.zaxxer.hikari.HikariConfig - validationTimeout...............5000
+2025-08-05 21:22:31.127 [main] INFO  [] com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Starting...
+2025-08-05 21:22:31.462 [main] INFO  [] com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Added connection oracle.jdbc.driver.T4CConnection@66e62e19
+2025-08-05 21:22:31.463 [main] INFO  [] com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Start completed.
+2025-08-05 21:22:31.544 [main] WARN  [] org.hibernate.orm.deprecation - HHH90000025: OracleDialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2025-08-05 21:22:31.568 [HikariPool-1 housekeeper] DEBUG [] com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Pool stats (total=1, active=1, idle=0, waiting=0)
+2025-08-05 21:22:31.610 [HikariPool-1 connection adder] DEBUG [] com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Added connection oracle.jdbc.driver.T4CConnection@4363a120
+2025-08-05 21:22:31.644 [HikariPool-1 connection adder] DEBUG [] com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - After adding stats (total=2, active=0, idle=2, waiting=0)
+2025-08-05 21:22:31.687 [HikariPool-1 connection adder] DEBUG [] com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Added connection oracle.jdbc.driver.T4CConnection@3e632624
+2025-08-05 21:22:31.719 [HikariPool-1 connection adder] DEBUG [] com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - After adding stats (total=3, active=0, idle=3, waiting=0)
+2025-08-05 21:22:31.760 [HikariPool-1 connection adder] DEBUG [] com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Added connection oracle.jdbc.driver.T4CConnection@3d37e802
+2025-08-05 21:22:31.795 [HikariPool-1 connection adder] DEBUG [] com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - After adding stats (total=4, active=0, idle=4, waiting=0)
+2025-08-05 21:22:31.841 [HikariPool-1 connection adder] DEBUG [] com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Added connection oracle.jdbc.driver.T4CConnection@7e599a8
+2025-08-05 21:22:31.875 [HikariPool-1 connection adder] DEBUG [] com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - After adding stats (total=5, active=0, idle=5, waiting=0)
+2025-08-05 21:22:31.916 [HikariPool-1 connection adder] DEBUG [] com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Added connection oracle.jdbc.driver.T4CConnection@53a48913
+2025-08-05 21:22:31.950 [HikariPool-1 connection adder] DEBUG [] com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - After adding stats (total=6, active=0, idle=6, waiting=0)
+2025-08-05 21:22:31.992 [HikariPool-1 connection adder] DEBUG [] com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Added connection oracle.jdbc.driver.T4CConnection@2679c72c
+2025-08-05 21:22:32.022 [HikariPool-1 connection adder] DEBUG [] com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - After adding stats (total=7, active=0, idle=7, waiting=0)
+2025-08-05 21:22:32.057 [HikariPool-1 connection adder] DEBUG [] com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Added connection oracle.jdbc.driver.T4CConnection@acdefa3
+2025-08-05 21:22:32.092 [HikariPool-1 connection adder] DEBUG [] com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - After adding stats (total=8, active=0, idle=8, waiting=0)
+2025-08-05 21:22:32.130 [HikariPool-1 connection adder] DEBUG [] com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Added connection oracle.jdbc.driver.T4CConnection@6b0f1cd6
+2025-08-05 21:22:32.168 [HikariPool-1 connection adder] DEBUG [] com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - After adding stats (total=9, active=0, idle=9, waiting=0)
+2025-08-05 21:22:32.208 [HikariPool-1 connection adder] DEBUG [] com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Added connection oracle.jdbc.driver.T4CConnection@6a86f39d
+2025-08-05 21:22:32.240 [HikariPool-1 connection adder] DEBUG [] com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - After adding stats (total=10, active=0, idle=10, waiting=0)
+2025-08-05 21:22:32.240 [HikariPool-1 connection adder] DEBUG [] com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Connection not added, stats (total=10, active=0, idle=10, waiting=0)
+2025-08-05 21:22:32.306 [main] INFO  [] o.s.orm.jpa.LocalContainerEntityManagerFactoryBean - Initialized JPA EntityManagerFactory for persistence unit 'default'
+2025-08-05 21:22:32.426 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:32.443 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:32.468 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:32.490 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:32.497 [main] INFO  [] o.s.data.jpa.repository.query.QueryEnhancerFactory - Hibernate is in classpath; If applicable, HQL parser will be used.
+2025-08-05 21:22:32.687 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:32.698 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:32.848 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:32.849 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:32.850 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:32.850 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:32.851 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:32.977 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:32.980 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:32.982 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:32.983 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:32.984 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:32.984 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:32.986 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:32.986 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:33.004 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:33.027 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:33.029 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:33.030 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:33.031 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:33.075 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:33.184 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:33.185 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:33.193 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:33.211 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:33.213 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:33.214 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:33.215 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:33.216 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:33.216 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:33.227 [main] INFO  [] com.truist.batch.service.impl.TemplateServiceImpl - TemplateServiceImpl initialized with repositories: field=true, fileType=true
+2025-08-05 21:22:33.240 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:33.244 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:33.245 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:33.246 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:33.247 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:33.249 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:33.250 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:33.251 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:33.251 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:33.252 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:33.252 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:33.308 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:33.369 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:33.491 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:33.497 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:33.498 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:33.499 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:33.499 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:33.500 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:33.500 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:33.500 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:33.502 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:33.503 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:33.505 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:33.505 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:33.506 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:33.506 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:33.506 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:33.507 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:33.507 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:33.509 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:33.510 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:33.510 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:33.511 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:33.511 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:33.512 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:33.513 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:33.516 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:33.516 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:33.517 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:33.520 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:33.520 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:33.523 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:33.536 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:33.607 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:33.630 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:33.631 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:33.632 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:33.633 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:33.633 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:33.634 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:33.634 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:33.659 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:33.673 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:33.675 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:33.676 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:33.676 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:33.677 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:33.677 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:33.678 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:33.678 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:33.679 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:33.679 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:33.679 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:33.680 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:33.681 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:33.681 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:33.684 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:33.685 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:33.694 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:33.695 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:33.695 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:33.696 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:33.698 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:33.709 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:33.709 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:33.710 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:33.711 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:33.711 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:33.712 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:33.712 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:33.713 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:33.713 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:33.713 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:33.714 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:33.714 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:33.737 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:33.738 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:33.739 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:33.739 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:33.740 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:33.740 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:33.741 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:33.741 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:33.742 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:33.743 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:33.824 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:33.824 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:33.839 [main] INFO  [] c.truist.batch.config.DataLoadConfigurationService - Loading JSON fallback configurations from: classpath:config/data-loader-configs.json
+2025-08-05 21:22:33.850 [main] DEBUG [] c.truist.batch.config.DataLoadConfigurationService - Loaded fallback configuration: HR-P327-001
+2025-08-05 21:22:33.850 [main] DEBUG [] c.truist.batch.config.DataLoadConfigurationService - Loaded fallback configuration: FIN-ACCT-002
+2025-08-05 21:22:33.850 [main] ERROR [] c.truist.batch.config.DataLoadConfigurationService - Error loading JSON fallback configurations: null
+2025-08-05 21:22:33.867 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:33.868 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:33.869 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:33.869 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:33.870 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:33.870 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:33.870 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:33.871 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:33.871 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:33.874 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:33.874 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:33.928 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:33.928 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:33.940 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:33.941 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:33.941 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:33.942 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:33.960 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:33.983 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:33.984 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:33.985 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:33.985 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:33.986 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:33.986 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+🚀 FIXED DataSourceAdapterRegistry constructor called with 2 adapters
+2025-08-05 21:22:34.015 [main] INFO  [] c.truist.batch.adapter.DataSourceAdapterRegistry - 🔌 Discovered 2 data source adapters:
+2025-08-05 21:22:34.015 [main] INFO  [] c.truist.batch.adapter.DataSourceAdapterRegistry -   📌 JdbcDataSourceAdapter (priority: 100)
+🔍 FIXED Testing adapter JdbcDataSourceAdapter against 15 formats
+  JdbcDataSourceAdapter supports 'jdbc': true
+  ✅ FIXED Registered JdbcDataSourceAdapter for format 'jdbc'
+  JdbcDataSourceAdapter supports 'database': true
+  ✅ FIXED Registered JdbcDataSourceAdapter for format 'database'
+  JdbcDataSourceAdapter supports 'sql': true
+  ✅ FIXED Registered JdbcDataSourceAdapter for format 'sql'
+  JdbcDataSourceAdapter supports 'rest': false
+  JdbcDataSourceAdapter supports 'api': false
+  JdbcDataSourceAdapter supports 'http': false
+  JdbcDataSourceAdapter supports 'https': false
+  JdbcDataSourceAdapter supports 'kafka': false
+  JdbcDataSourceAdapter supports 'stream': false
+  JdbcDataSourceAdapter supports 's3': false
+  JdbcDataSourceAdapter supports 'aws': false
+  JdbcDataSourceAdapter supports 'csv': false
+  JdbcDataSourceAdapter supports 'excel': false
+  JdbcDataSourceAdapter supports 'json': false
+  JdbcDataSourceAdapter supports 'xml': false
+🎯 FIXED Adapter JdbcDataSourceAdapter registration complete
+2025-08-05 21:22:34.016 [main] INFO  [] c.truist.batch.adapter.DataSourceAdapterRegistry -   📌 RestApiDataSourceAdapter (priority: 50)
+🔍 FIXED Testing adapter RestApiDataSourceAdapter against 15 formats
+  RestApiDataSourceAdapter supports 'jdbc': false
+  RestApiDataSourceAdapter supports 'database': false
+  RestApiDataSourceAdapter supports 'sql': false
+  RestApiDataSourceAdapter supports 'rest': true
+  ✅ FIXED Registered RestApiDataSourceAdapter for format 'rest'
+  RestApiDataSourceAdapter supports 'api': true
+  ✅ FIXED Registered RestApiDataSourceAdapter for format 'api'
+  RestApiDataSourceAdapter supports 'http': true
+  ✅ FIXED Registered RestApiDataSourceAdapter for format 'http'
+  RestApiDataSourceAdapter supports 'https': true
+  ✅ FIXED Registered RestApiDataSourceAdapter for format 'https'
+  RestApiDataSourceAdapter supports 'kafka': false
+  RestApiDataSourceAdapter supports 'stream': false
+  RestApiDataSourceAdapter supports 's3': false
+  RestApiDataSourceAdapter supports 'aws': false
+  RestApiDataSourceAdapter supports 'csv': false
+  RestApiDataSourceAdapter supports 'excel': false
+  RestApiDataSourceAdapter supports 'json': false
+  RestApiDataSourceAdapter supports 'xml': false
+🎯 FIXED Adapter RestApiDataSourceAdapter registration complete
+🎯 FIXED Adapter registry initialized with 7 format mappings: [rest, database, http, jdbc, api, https, sql]
+2025-08-05 21:22:34.016 [main] INFO  [] c.truist.batch.adapter.DataSourceAdapterRegistry - 🎯 Adapter registry initialized with 7 format mappings
+Found batch-source: file:/Users/pavankanduri/claude-ws/fabric-platform/fabric-core/fabric-api/target/classes/batch-sources/hr-batch-props.yml
+Found batch-source: file:/Users/pavankanduri/claude-ws/fabric-platform/fabric-core/fabric-api/target/classes/batch-sources/shaw-batch-props.yml
+2025-08-05 21:22:34.022 [main] INFO  [] com.truist.batch.config.DatabaseConfig - 🕒 Transaction timeout set to 300 seconds (NORMAL MODE)
+2025-08-05 21:22:34.048 [main] DEBUG [] o.s.t.i.NameMatchTransactionAttributeSource - Adding transactional method [*] with attribute [PROPAGATION_REQUIRED,ISOLATION_DEFAULT]
+2025-08-05 21:22:34.052 [main] DEBUG [] o.s.t.i.NameMatchTransactionAttributeSource - Adding transactional method [create*] with attribute [PROPAGATION_REQUIRES_NEW,ISOLATION_SERIALIZABLE]
+2025-08-05 21:22:34.052 [main] DEBUG [] o.s.t.i.NameMatchTransactionAttributeSource - Adding transactional method [getLastJobExecution*] with attribute [PROPAGATION_REQUIRES_NEW,ISOLATION_SERIALIZABLE]
+2025-08-05 21:22:34.067 [main] INFO  [] com.truist.batch.config.TaskExecutorConfig - 🚀 PRODUCTION MODE: Using ThreadPoolTaskExecutor (parallel execution)
+2025-08-05 21:22:34.111 [main] DEBUG [] o.s.t.i.NameMatchTransactionAttributeSource - Adding transactional method [find*] with attribute [PROPAGATION_SUPPORTS,ISOLATION_DEFAULT]
+2025-08-05 21:22:34.111 [main] DEBUG [] o.s.t.i.NameMatchTransactionAttributeSource - Adding transactional method [get*] with attribute [PROPAGATION_SUPPORTS,ISOLATION_DEFAULT]
+2025-08-05 21:22:34.121 [main] DEBUG [] o.s.t.i.NameMatchTransactionAttributeSource - Adding transactional method [stop*] with attribute [PROPAGATION_REQUIRED,ISOLATION_DEFAULT]
+2025-08-05 21:22:34.129 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:34.129 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:34.130 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:34.131 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:34.131 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:34.131 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:34.132 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:34.132 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:34.132 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:34.132 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:34.133 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:34.133 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:34.134 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:34.135 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:34.135 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:34.135 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:34.136 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:34.136 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:34.137 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:34.137 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:34.138 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:34.138 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:34.139 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:34.139 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:34.197 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:34.197 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:34.198 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:34.198 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:34.204 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:34.205 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:34.208 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:34.214 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:34.216 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:34.216 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:34.217 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:34.217 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:34.222 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:34.223 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:34.225 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:34.225 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:34.226 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:34.226 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:34.226 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:34.232 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:34.233 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:34.234 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:34.234 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:34.235 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:34.235 [main] DEBUG [] o.s.o.j.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler - Creating new EntityManager for shared EntityManager invocation
+2025-08-05 21:22:34.454 [main] INFO  [] o.s.b.actuate.endpoint.web.EndpointLinksResolver - Exposing 3 endpoints beneath base path '/actuator'
+2025-08-05 21:22:34.572 [main] DEBUG [] o.s.w.s.m.m.a.RequestMappingHandlerMapping - 72 mappings in 'requestMappingHandlerMapping'
+2025-08-05 21:22:34.617 [main] DEBUG [] o.s.web.servlet.handler.SimpleUrlHandlerMapping - Patterns [/webjars/**, /**, /swagger-ui*/*swagger-initializer.js, /swagger-ui*/**] in 'resourceHandlerMapping'
+2025-08-05 21:22:34.640 [main] DEBUG [] o.s.w.s.m.m.a.RequestMappingHandlerAdapter - ControllerAdvice beans: 0 @ModelAttribute, 0 @InitBinder, 1 RequestBodyAdvice, 1 ResponseBodyAdvice
+2025-08-05 21:22:34.681 [main] DEBUG [] o.s.w.s.m.m.a.ExceptionHandlerExceptionResolver - ControllerAdvice beans: 1 @ExceptionHandler, 1 ResponseBodyAdvice
+2025-08-05 21:22:35.232 [main] INFO  [] o.s.boot.web.embedded.tomcat.TomcatWebServer - Tomcat started on port 8080 (http) with context path '/api'
+2025-08-05 21:22:35.244 [main] INFO  [] com.truist.batch.InterfaceBatchApplication - Started InterfaceBatchApplication in 6.155 seconds (process running for 6.333)
+2025-08-05 21:22:35.247 [main] INFO  [] com.truist.batch.launcher.ManualJobLauncher - No sourceSystem or jobName provided. Skipping job execution.
+2025-08-05 21:22:42.275 [http-nio-8080-exec-1] INFO  [] o.a.c.c.ContainerBase.[Tomcat].[localhost].[/api] - Initializing Spring DispatcherServlet 'dispatcherServlet'
+2025-08-05 21:22:42.275 [http-nio-8080-exec-1] INFO  [] org.springframework.web.servlet.DispatcherServlet - Initializing Servlet 'dispatcherServlet'
+2025-08-05 21:22:42.275 [http-nio-8080-exec-1] DEBUG [] org.springframework.web.servlet.DispatcherServlet - Detected StandardServletMultipartResolver
+2025-08-05 21:22:42.275 [http-nio-8080-exec-1] DEBUG [] org.springframework.web.servlet.DispatcherServlet - Detected AcceptHeaderLocaleResolver
+2025-08-05 21:22:42.275 [http-nio-8080-exec-1] DEBUG [] org.springframework.web.servlet.DispatcherServlet - Detected FixedThemeResolver
+2025-08-05 21:22:42.276 [http-nio-8080-exec-1] DEBUG [] org.springframework.web.servlet.DispatcherServlet - Detected org.springframework.web.servlet.view.DefaultRequestToViewNameTranslator@502a4a38
+2025-08-05 21:22:42.276 [http-nio-8080-exec-1] DEBUG [] org.springframework.web.servlet.DispatcherServlet - Detected org.springframework.web.servlet.support.SessionFlashMapManager@7c6c3b42
+2025-08-05 21:22:42.277 [http-nio-8080-exec-1] DEBUG [] org.springframework.web.servlet.DispatcherServlet - enableLoggingRequestDetails='false': request parameters and headers will be masked to prevent unsafe logging of potentially sensitive data
+2025-08-05 21:22:42.277 [http-nio-8080-exec-1] INFO  [] org.springframework.web.servlet.DispatcherServlet - Completed initialization in 2 ms
+2025-08-05 21:22:42.288 [http-nio-8080-exec-1] DEBUG [] org.springframework.web.servlet.DispatcherServlet - GET "/api/actuator/health", parameters={}
+2025-08-05 21:22:42.301 [http-nio-8080-exec-1] DEBUG [] o.s.w.s.m.m.a.RequestResponseBodyMethodProcessor - Read "application/octet-stream" to []
+2025-08-05 21:22:42.316 [http-nio-8080-exec-1] DEBUG [] o.s.w.s.m.m.annotation.HttpEntityMethodProcessor - Using 'application/vnd.spring-boot.actuator.v3+json', given [*/*] and supported [application/vnd.spring-boot.actuator.v3+json, application/vnd.spring-boot.actuator.v2+json, application/json]
+2025-08-05 21:22:42.332 [http-nio-8080-exec-1] DEBUG [] o.s.w.s.m.m.annotation.HttpEntityMethodProcessor - Writing [org.springframework.boot.actuate.health.SystemHealth@70b58a75]
+2025-08-05 21:22:42.338 [http-nio-8080-exec-1] DEBUG [] org.springframework.web.servlet.DispatcherServlet - Completed 200 OK
+2025-08-05 21:23:01.573 [HikariPool-1 housekeeper] DEBUG [] com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Pool stats (total=10, active=0, idle=10, waiting=0)
+2025-08-05 21:23:01.575 [HikariPool-1 housekeeper] DEBUG [] com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Fill pool skipped, pool has sufficient level or currently being filled.
+2025-08-05 21:23:31.581 [HikariPool-1 housekeeper] DEBUG [] com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Pool stats (total=10, active=0, idle=10, waiting=0)
+2025-08-05 21:23:31.582 [HikariPool-1 housekeeper] DEBUG [] com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Fill pool skipped, pool has sufficient level or currently being filled.
+2025-08-05 21:24:01.588 [HikariPool-1 housekeeper] DEBUG [] com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Pool stats (total=10, active=0, idle=10, waiting=0)
+2025-08-05 21:24:01.591 [HikariPool-1 housekeeper] DEBUG [] com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Fill pool skipped, pool has sufficient level or currently being filled.
+2025-08-05 21:24:31.597 [HikariPool-1 housekeeper] DEBUG [] com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Pool stats (total=10, active=0, idle=10, waiting=0)
+2025-08-05 21:24:31.605 [HikariPool-1 housekeeper] DEBUG [] com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Fill pool skipped, pool has sufficient level or currently being filled.
+2025-08-05 21:25:01.610 [HikariPool-1 housekeeper] DEBUG [] com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Pool stats (total=10, active=0, idle=10, waiting=0)
+2025-08-05 21:25:01.612 [HikariPool-1 housekeeper] DEBUG [] com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Fill pool skipped, pool has sufficient level or currently being filled.
+2025-08-05 21:25:31.620 [HikariPool-1 housekeeper] DEBUG [] com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Pool stats (total=10, active=0, idle=10, waiting=0)
+2025-08-05 21:25:31.624 [HikariPool-1 housekeeper] DEBUG [] com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Fill pool skipped, pool has sufficient level or currently being filled.
+2025-08-05 21:26:01.625 [HikariPool-1 housekeeper] DEBUG [] com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Pool stats (total=10, active=0, idle=10, waiting=0)
+2025-08-05 21:26:01.627 [HikariPool-1 housekeeper] DEBUG [] com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Fill pool skipped, pool has sufficient level or currently being filled.
+2025-08-05 21:26:31.631 [HikariPool-1 housekeeper] DEBUG [] com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Pool stats (total=10, active=0, idle=10, waiting=0)
+2025-08-05 21:26:31.633 [HikariPool-1 housekeeper] DEBUG [] com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Fill pool skipped, pool has sufficient level or currently being filled.
+2025-08-05 21:27:01.638 [HikariPool-1 housekeeper] DEBUG [] com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Pool stats (total=10, active=0, idle=10, waiting=0)
+2025-08-05 21:27:01.640 [HikariPool-1 housekeeper] DEBUG [] com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Fill pool skipped, pool has sufficient level or currently being filled.
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD FAILURE
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  04:36 min
+[INFO] Finished at: 2025-08-05T21:27:01-04:00
+[INFO] ------------------------------------------------------------------------
+[ERROR] Failed to execute goal org.springframework.boot:spring-boot-maven-plugin:3.4.6:run (default-cli) on project fabric-api: Process terminated with exit code: 137 -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoExecutionException

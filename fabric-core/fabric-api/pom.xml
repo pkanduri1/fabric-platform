@@ -34,6 +34,12 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-web</artifactId>
 		</dependency>
+		
+		<!-- Spring Data JPA for transaction management -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-data-jpa</artifactId>
+		</dependency>
 
 		<!-- Spring Boot Actuator for monitoring -->
 		<dependency>
@@ -118,7 +124,18 @@
 		</dependency>
 
 		<!-- Database Drivers -->
-		<!-- Oracle JDBC Driver (already included in parent) -->
+		<!-- Oracle JDBC Driver -->
+		<dependency>
+			<groupId>com.oracle.database.jdbc</groupId>
+			<artifactId>ojdbc11</artifactId>
+			<scope>runtime</scope>
+		</dependency>
+		
+		<!-- Connection pooling (HikariCP is default in Spring Boot) -->
+		<dependency>
+			<groupId>com.zaxxer</groupId>
+			<artifactId>HikariCP</artifactId>
+		</dependency>
 		
 		<!-- PostgreSQL JDBC Driver -->
 		<dependency>
@@ -156,12 +173,13 @@
 		</dependency>-->
 		
 		<!-- Spring Cloud AWS for AWS integration -->
-		<dependency>
+		<!-- Temporarily commented out for local development -->
+		<!--<dependency>
 			<groupId>io.awspring.cloud</groupId>
 			<artifactId>spring-cloud-aws-starter</artifactId>
 			<version>3.0.3</version>
 			<optional>true</optional>
-		</dependency>
+		</dependency>-->
 
 		<!-- Lombok -->
 		<dependency>

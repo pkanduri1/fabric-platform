@@ -10,6 +10,7 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.context.annotation.Profile;
 
 import java.time.Instant;
 import java.util.List;
@@ -37,6 +38,7 @@ import java.util.UUID;
 @Slf4j
 @Service
 @RequiredArgsConstructor
+@Profile("!local")  // Exclude from local profile to avoid security dependencies
 public class UserSecurityService {
     
     private final JdbcTemplate jdbcTemplate;

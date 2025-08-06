@@ -6,6 +6,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.context.annotation.Profile;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -35,6 +36,7 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 @Service
 @RequiredArgsConstructor
+@Profile("!local")  // Exclude from local profile to avoid Redis dependencies
 public class SessionManagementService {
     
     private final RedisTemplate<String, String> redisTemplate;

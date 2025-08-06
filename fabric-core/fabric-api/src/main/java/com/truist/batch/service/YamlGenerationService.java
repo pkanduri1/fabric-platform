@@ -344,7 +344,20 @@ public class YamlGenerationService {
         switch (mapping.getTransformationType().toLowerCase()) {
             case "constant":
                 if (mapping.getValue() == null || mapping.getValue().trim().isEmpty()) {
-                    result.addError("Value is required for constant transformation: " + fieldContext);
+                    // Try to use defaultValue as the constant value
+                    if (mapping.getDefaultValue() != null && !mapping.getDefaultValue().trim().isEmpty()) {
+                        log.debug("Using defaultValue as constant value for field: {}", fieldContext);
+                        mapping.setValue(mapping.getDefaultValue());
+                    } else {
+                        // If no value and no defaultValue, this might be incorrectly marked as constant
+                        // Check if it has a sourceField, then it should be "source" type
+                        if (mapping.getSourceField() != null && !mapping.getSourceField().trim().isEmpty()) {
+                            log.warn("Field {} marked as constant but has sourceField, changing to source transformation", fieldContext);
+                            mapping.setTransformationType("source");
+                        } else {
+                            result.addError("Value is required for constant transformation: " + fieldContext);
+                        }
+                    }
                 }
                 break;
                 

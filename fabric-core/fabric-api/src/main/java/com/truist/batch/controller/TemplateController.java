@@ -301,18 +301,29 @@ public class TemplateController {
     @PostMapping("/{fileType}/fields")
     public ResponseEntity<FieldTemplate> createField(
             @PathVariable String fileType,
-            @RequestBody FieldTemplate fieldTemplate,
+            @RequestBody Map<String, Object> fieldRequest,
             @RequestParam(defaultValue = "system") String createdBy) {
         try {
-            // Set the fileType from path parameter
+            // Convert the request to FieldTemplate
+            FieldTemplate fieldTemplate = new FieldTemplate();
             fieldTemplate.setFileType(fileType);
+            fieldTemplate.setTransactionType((String) fieldRequest.getOrDefault("transactionType", "default"));
+            fieldTemplate.setFieldName((String) fieldRequest.get("fieldName"));
+            fieldTemplate.setTargetPosition((Integer) fieldRequest.get("targetPosition"));
+            fieldTemplate.setLength((Integer) fieldRequest.get("length"));
+            fieldTemplate.setDataType((String) fieldRequest.get("dataType"));
+            fieldTemplate.setFormat((String) fieldRequest.get("format"));
+            fieldTemplate.setRequired((String) fieldRequest.getOrDefault("required", "N"));
+            fieldTemplate.setDescription((String) fieldRequest.get("description"));
+            fieldTemplate.setEnabled((String) fieldRequest.getOrDefault("enabled", "Y"));
             fieldTemplate.setCreatedBy(createdBy);
             
-            FieldTemplate created = templateService.createFieldTemplate(fieldTemplate);
+            FieldTemplate created = templateService.createFieldTemplate(fieldTemplate, createdBy);
             log.info("Created field template: {} for fileType: {}", fieldTemplate.getFieldName(), fileType);
             return ResponseEntity.ok(created);
         } catch (Exception e) {
-            log.error("Error creating field template for fileType: {}, field: {}", fileType, fieldTemplate.getFieldName(), e);
+            log.error("Error creating field template for fileType: {}, field: {}", fileType, 
+                    fieldRequest.get("fieldName"), e);
             return ResponseEntity.internalServerError().build();
         }
     }

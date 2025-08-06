@@ -16,6 +16,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.stereotype.Component;
+import org.springframework.context.annotation.Profile;
 
 import javax.naming.directory.DirContext;
 import java.util.UUID;
@@ -42,6 +43,7 @@ import java.util.UUID;
 @Slf4j
 @Component
 @RequiredArgsConstructor
+@Profile("!local")  // Exclude from local profile to avoid LDAP dependencies
 public class LdapAuthenticationProvider implements AuthenticationProvider {
     
     private final LdapTemplate ldapTemplate;

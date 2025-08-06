@@ -28,6 +28,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.truist.batch.model.FieldMapping;
 import com.truist.batch.model.FieldMappingConfig;
 import com.truist.batch.model.JobConfig;
 import com.truist.batch.model.SourceField;
@@ -37,6 +38,7 @@ import com.truist.batch.model.ValidationResult;
 import com.truist.batch.service.ConfigurationService;
 import com.truist.batch.service.YamlFileService;
 import com.truist.batch.service.YamlGenerationService;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -253,6 +255,18 @@ public class ConfigurationController {
     public ResponseEntity<?> saveConfiguration(@RequestBody FieldMappingConfig config) {
         log.info("💾 API Request: Save configuration for {}/{}", 
                 config.getSourceSystem(), config.getJobName());
+        
+        // Debug: Log the complete input JSON for troubleshooting
+        try {
+            ObjectMapper debugMapper = new ObjectMapper();
+            String configJson = debugMapper.writeValueAsString(config);
+            log.info("📥 INPUT JSON: {}", configJson);
+        } catch (Exception e) {
+            log.error("Failed to serialize config for debugging: {}", e.getMessage());
+        }
+        
+        // CRITICAL FIX: Auto-correct transformation types and transaction type
+        fixConfigurationData(config);
 
         try {
             // Save configuration (includes YAML generation)
@@ -359,6 +373,76 @@ public class ConfigurationController {
         return Arrays.asList(sampleRow);
     }
 
+    /**
+     * CRITICAL FIX: Auto-correct common UI data structure issues
+     * - Fix transformation types incorrectly marked as "constant"
+     * - Fix transaction type format
+     */
+    private void fixConfigurationData(FieldMappingConfig config) {
+        log.info("🔧 FIXING: Auto-correcting UI data structure issues...");
+        
+        // Fix transaction type format (remove template description)
+        if (config.getTransactionType() != null && config.getTransactionType().contains("Generated from")) {
+            String originalTxnType = config.getTransactionType();
+            // Extract the number from "Generated from atoctran/200 template" -> "200"
+            if (originalTxnType.contains("/") && originalTxnType.contains(" template")) {
+                String[] parts = originalTxnType.split("/");
+                if (parts.length > 1) {
+                    String txnType = parts[1].replace(" template", "").trim();
+                    config.setTransactionType(txnType);
+                    log.info("🔧 FIXED: Transaction type '{}' -> '{}'", originalTxnType, txnType);
+                }
+            }
+        }
+        
+        // Fix transformation types - auto-detect based on field content
+        if (config.getFieldMappings() != null) {
+            for (FieldMapping field : config.getFieldMappings()) {
+                String originalType = field.getTransformationType();
+                String correctedType = detectCorrectTransformationType(field);
+                
+                if (!originalType.equals(correctedType)) {
+                    field.setTransformationType(correctedType);
+                    log.info("🔧 FIXED: Field '{}' transformation type '{}' -> '{}'", 
+                            field.getFieldName(), originalType, correctedType);
+                }
+            }
+        }
+    }
+    
+    /**
+     * Smart detection of correct transformation type based on field content
+     */
+    private String detectCorrectTransformationType(FieldMapping field) {
+        // If sourceField looks like a query column name (contains underscore or is a typical column name)
+        if (field.getSourceField() != null && !field.getSourceField().trim().isEmpty()) {
+            String sourceField = field.getSourceField().trim();
+            
+            // Check if sourceField looks like a database column (contains underscore, letters)
+            if (sourceField.matches(".*[a-zA-Z_].*")) {
+                // Likely a database column name like "act_num", "batch_date", "contact_id"
+                return "source";
+            }
+            
+            // Check if sourceField is purely numeric (likely a constant value)
+            if (sourceField.matches("\\d+")) {
+                // Set the value for constant transformation
+                if (field.getValue() == null || field.getValue().trim().isEmpty()) {
+                    field.setValue(sourceField);
+                }
+                return "constant";
+            }
+        }
+        
+        // If field has a value set, it's likely a constant
+        if (field.getValue() != null && !field.getValue().trim().isEmpty()) {
+            return "constant";
+        }
+        
+        // Default to original type if unclear
+        return field.getTransformationType();
+    }
+    
     /**
      * Global exception handler for this controller
      */

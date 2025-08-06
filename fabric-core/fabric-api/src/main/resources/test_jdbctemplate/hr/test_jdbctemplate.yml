@@ -1,0 +1,25 @@
+fileType: test_jdbctemplate
+transactionType: 200
+fields:
+  account_number:
+    fieldName: ACCOUNT_NUMBER
+    value: null
+    sourceField: acct_num
+    targetField: ACCOUNT_NUMBER
+    from: null
+    length: 18
+    pad: null
+    padChar: null
+    composite: false
+    sources: null
+    transform: null
+    delimiter: null
+    format: null
+    sourceFormat: null
+    targetFormat: null
+    transformationType: source
+    conditions: null
+    targetPosition: 1
+    dataType: STRING
+    defaultValue: null
+    expression: null
