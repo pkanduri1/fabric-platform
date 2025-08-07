@@ -1,0 +1,38 @@
+# Local development overrides
+# This file is ignored by git
+
+spring:
+  profiles:
+    active: dev
+  
+  # Database override for local development
+  datasource:
+    url: ${DB_URL:jdbc:oracle:thin:@localhost:1521:XE}
+    username: ${DB_USERNAME:fabric_dev}
+    password: ${DB_PASSWORD:fabric_dev_pass}
+    
+  # Redis override for local development
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+
+# Fabric configuration overrides
+fabric:
+  security:
+    jwt:
+      secret: ${JWT_SECRET:fabric-local-jwt-secret-key-minimum-256-bits-required}
+    cors:
+      allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000,http://localhost:3001}
+    csrf:
+      enabled: ${CSRF_ENABLED:false}
+
+# Logging configuration for development
+logging:
+  level:
+    com.truist.batch: ${LOG_LEVEL_FABRIC:DEBUG}
+    org.springframework.security: DEBUG
+  file:
+    name: /Users/pavankanduri/claude-ws/fabric-platform/logs/fabric-dev.log
+
