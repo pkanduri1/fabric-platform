@@ -35,11 +35,31 @@ public class FieldMapping implements Serializable {
     private String dataType;
     private String defaultValue;
     
+    // Epic 2 Enhanced Properties
+    private String encryptionLevel = "NONE";
+    private String piiClassification = "NONE";
+    private boolean validationRequired = false;
+    private String complianceLevel = "STANDARD";
+    private String businessContext;
+    private Long businessRuleId;
     
- // ✅ ADD: Helper method for future DSL support
+    // ✅ ADD: Helper method for future DSL support
     private String expression; // For DSL expressions (future enhancement)
     
     public boolean hasDSLExpression() {
         return expression != null && !expression.trim().isEmpty();
+    }
+    
+    // Epic 2 Helper Methods
+    public boolean requiresEncryption() {
+        return encryptionLevel != null && !"NONE".equalsIgnoreCase(encryptionLevel);
+    }
+    
+    public boolean containsPII() {
+        return piiClassification != null && !"NONE".equalsIgnoreCase(piiClassification);
+    }
+    
+    public boolean isHighCompliance() {
+        return "HIGH".equalsIgnoreCase(complianceLevel) || "CRITICAL".equalsIgnoreCase(complianceLevel);
     }
 }
