@@ -149,7 +149,7 @@ public class IdempotentStepExecutionListener implements StepExecutionListener {
                 return new ExitStatus(ExitStatus.COMPLETED.getExitCode(),
                         "Idempotency check passed - proceeding with job execution");
             
-            case ExitStatus.FAILED.getExitCode():
+            case "FAILED":
                 log.error("IDEMPOTENCY CHECK FAILED: Job '{}' failed during idempotency validation. " +
                         "Check logs for detailed error information.", jobName);
                 

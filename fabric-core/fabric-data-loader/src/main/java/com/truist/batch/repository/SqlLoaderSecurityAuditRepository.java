@@ -65,7 +65,6 @@ public interface SqlLoaderSecurityAuditRepository extends JpaRepository<SqlLoade
     /**
      * Find critical security events.
      */
-    List<SqlLoaderSecurityAuditEntity> findBySeverityOrderByAuditTimestampDesc(SqlLoaderSecurityAuditEntity.Severity severity);
     
     /**
      * Find security events with high risk scores.
@@ -131,8 +130,6 @@ public interface SqlLoaderSecurityAuditRepository extends JpaRepository<SqlLoade
     /**
      * Find non-compliant security events.
      */
-    List<SqlLoaderSecurityAuditEntity> findByComplianceStatusOrderByAuditTimestampDesc(
-            SqlLoaderSecurityAuditEntity.ComplianceStatus complianceStatus);
     
     /**
      * Find security events requiring immediate attention.

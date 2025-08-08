@@ -93,7 +93,7 @@ public class TransactionResultMerger {
         BatchProcessingStatusEntity statusEntity = BatchProcessingStatusEntity.builder()
                 .executionId(executionId)
                 .transactionTypeId(transactionTypeId)
-                .processingStatus("MERGING_INITIATED")
+                .processingStatus(BatchProcessingStatusEntity.ProcessingStatus.RUNNING)
                 .startTime(Instant.now())
                 .recordsProcessed(0L)
                 .recordsFailed(0L)
@@ -103,7 +103,7 @@ public class TransactionResultMerger {
         statusRepository.save(statusEntity);
         
         // Audit the merge initiation
-        auditMergeEvent(executionId, sessionId, "MERGE_SESSION_INITIATED", 
+        auditMergeEvent(executionId, sessionId, ExecutionAuditEntity.EventType.BATCH_START, 
                        "Merge session initiated for " + expectedPartitions + " partitions");
         
         log.info("🎯 Merge session {} initiated for execution {} with {} expected partitions", 
@@ -402,7 +402,7 @@ public class TransactionResultMerger {
         // Implementation for generating final audit trail
     }
 
-    private void auditMergeEvent(String executionId, String sessionId, String eventType, String description) {
+    private void auditMergeEvent(String executionId, String sessionId, ExecutionAuditEntity.EventType eventType, String description) {
         ExecutionAuditEntity audit = ExecutionAuditEntity.builder()
                 .executionId(executionId)
                 .eventType(eventType)

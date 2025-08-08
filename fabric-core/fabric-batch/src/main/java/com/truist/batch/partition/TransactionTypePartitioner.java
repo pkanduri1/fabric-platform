@@ -218,9 +218,9 @@ public class TransactionTypePartitioner implements Partitioner {
         fileConfig.setTemplate(templatePath);
         
         // Add Epic 2 specific parameters
-        Map<String, Object> params = new HashMap<>();
-        params.put("parallelThreads", transactionType.getParallelThreads());
-        params.put("chunkSize", transactionType.getChunkSize());
+        Map<String, String> params = new HashMap<>();
+        params.put("parallelThreads", String.valueOf(transactionType.getParallelThreads()));
+        params.put("chunkSize", String.valueOf(transactionType.getChunkSize()));
         params.put("isolationLevel", transactionType.getIsolationLevel());
         params.put("complianceLevel", transactionType.getComplianceLevel());
         fileConfig.setParams(params);

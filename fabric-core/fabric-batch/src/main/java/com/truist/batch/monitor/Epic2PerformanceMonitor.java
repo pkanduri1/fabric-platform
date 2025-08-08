@@ -4,6 +4,7 @@ import com.truist.batch.entity.BatchProcessingStatusEntity;
 import com.truist.batch.entity.ExecutionAuditEntity;
 import com.truist.batch.repository.BatchProcessingStatusRepository;
 import com.truist.batch.repository.ExecutionAuditRepository;
+import lombok.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.actuate.metrics.MetricsEndpoint;
@@ -169,7 +170,7 @@ public class Epic2PerformanceMonitor {
                 totalTransactionsFailed.incrementAndGet();
             }
             
-            if (event.hasValidationErrors()) {
+            if (event.isValidationErrors()) {
                 totalValidationErrors.incrementAndGet();
             }
 
@@ -525,23 +526,41 @@ public class Epic2PerformanceMonitor {
     }
 
     // Additional placeholder classes
-    @lombok.Data public static class DiskMetrics { private long totalSpace; private long usableSpace; private double usedPercent; }
-    @lombok.Data public static class JVMMetrics { private int availableProcessors; private long totalMemory; private long freeMemory; private long maxMemory; private long uptime; }
+    @Data 
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class DiskMetrics { 
+        private long totalSpace; 
+        private long usableSpace; 
+        private double usedPercent; 
+    }
+    @Data 
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class JVMMetrics { 
+        private int availableProcessors; 
+        private long totalMemory; 
+        private long freeMemory; 
+        private long maxMemory; 
+        private long uptime; 
+    }
     @lombok.Data public static class PerformanceMetrics { private String executionId; private Instant startTime; public PerformanceMetrics(String executionId) { this.executionId = executionId; this.startTime = Instant.now(); } public void recordTransaction(TransactionProcessedEvent event) { } }
     @lombok.Data public static class Alert { }
     @lombok.Data public static class ComplianceMetrics { }
     @lombok.Data public static class TrendAnalysis { }
     
     // Event class placeholder
-    @lombok.Data 
-    @lombok.Builder 
-    @lombok.NoArgsConstructor 
-    @lombok.AllArgsConstructor
+    @Data
+    @Builder
+    @AllArgsConstructor
+    @NoArgsConstructor
     public static class TransactionProcessedEvent {
         private String executionId;
         private boolean success;
         private long processingTimeMs;
-        private boolean hasValidationErrors;
+        private boolean validationErrors;
         private String transactionType;
     }
 }

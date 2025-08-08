@@ -16,4 +16,8 @@ public class YamlMapping implements Serializable {
     private String fileType;
     private String transactionType;
     private Map<String, FieldMapping> fields;
+    private String template;
+    private String complianceLevel;
+    private String version;
+    private String lastModified;
 }

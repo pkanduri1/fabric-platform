@@ -58,7 +58,7 @@ import static org.assertj.core.api.Assertions.*;
  * @since Epic 2 - Simple Transaction Processing
  */
 @Slf4j
-@SpringBootTest(classes = InterfaceBatchApplication.class)
+@SpringBootTest
 @ActiveProfiles("test")
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
