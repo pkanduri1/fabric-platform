@@ -38,6 +38,21 @@ spring:
       auto-commit: false
       pool-name: FabricPool
 
+  # Redis Configuration for WebSocket Session Management
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      database: ${REDIS_DATABASE:0}
+      timeout: 2000ms
+      lettuce:
+        pool:
+          max-active: 20
+          max-idle: 10
+          min-idle: 2
+          max-wait: 5000ms
+
   # Spring Batch Configuration
   batch:
     job:
@@ -97,6 +112,86 @@ fabric:
       allow-credentials: ${CORS_ALLOW_CREDENTIALS:true}
     csrf:
       enabled: ${CSRF_ENABLED:true}
+
+# US008: WebSocket Real-Time Monitoring Configuration
+fabric:
+  monitoring:
+    websocket:
+      # Connection and Security Settings
+      allowed-origins:
+        - ${WS_ALLOWED_ORIGINS:https://*.truist.com,https://fabric-platform.truist.com}
+      allow-localhost: ${WS_ALLOW_LOCALHOST:false}
+      max-connections: ${WS_MAX_CONNECTIONS:100}
+      max-connections-per-user: ${WS_MAX_CONNECTIONS_PER_USER:3}
+      max-connections-per-ip: ${WS_MAX_CONNECTIONS_PER_IP:10}
+      connection-timeout-ms: ${WS_CONNECTION_TIMEOUT:30000}
+      
+      # Message and Transport Settings
+      max-message-size: ${WS_MAX_MESSAGE_SIZE:65536}
+      send-buffer-size: ${WS_SEND_BUFFER_SIZE:524288}
+      send-timeout-ms: ${WS_SEND_TIMEOUT:10000}
+      time-to-first-message: ${WS_TIME_TO_FIRST_MESSAGE:60000}
+      heartbeat-interval-ms: ${WS_HEARTBEAT_INTERVAL:25000}
+      disconnect-delay-ms: ${WS_DISCONNECT_DELAY:5000}
+      message-cache-size: ${WS_MESSAGE_CACHE_SIZE:1000}
+      max-stream-bytes: ${WS_MAX_STREAM_BYTES:524288}
+      
+      # Thread Pool and Performance Settings
+      channel-core-pool-size: ${WS_CHANNEL_CORE_POOL_SIZE:4}
+      channel-max-pool-size: ${WS_CHANNEL_MAX_POOL_SIZE:8}
+      channel-keep-alive-seconds: ${WS_CHANNEL_KEEP_ALIVE:60}
+      scheduler-pool-size: ${WS_SCHEDULER_POOL_SIZE:4}
+      
+      # Real-Time Monitoring Settings
+      update-interval-ms: ${WS_UPDATE_INTERVAL:5000}
+      min-update-interval-ms: ${WS_MIN_UPDATE_INTERVAL:2000}
+      max-update-interval-ms: ${WS_MAX_UPDATE_INTERVAL:15000}
+      adaptive-intervals: ${WS_ADAPTIVE_INTERVALS:true}
+      delta-updates: ${WS_DELTA_UPDATES:true}
+      message-compression: ${WS_MESSAGE_COMPRESSION:true}
+      max-jobs-per-update: ${WS_MAX_JOBS_PER_UPDATE:100}
+      role-based-filtering: ${WS_ROLE_BASED_FILTERING:true}
+      
+      # Security and Compliance Settings
+      audit-logging: ${WS_AUDIT_LOGGING:true}
+      security-event-logging: ${WS_SECURITY_EVENT_LOGGING:true}
+      token-rotation-interval-ms: ${WS_TOKEN_ROTATION_INTERVAL:900000}
+      session-validation-interval-ms: ${WS_SESSION_VALIDATION_INTERVAL:60000}
+      max-failed-auth-attempts: ${WS_MAX_FAILED_AUTH_ATTEMPTS:5}
+      rate-limit-requests-per-minute: ${WS_RATE_LIMIT_REQUESTS:100}
+      rate-limit-connections-per-minute: ${WS_RATE_LIMIT_CONNECTIONS:10}
+      rate-limit-block-duration-minutes: ${WS_RATE_LIMIT_BLOCK_DURATION:15}
+      
+      # Redis and Caching Settings
+      redis-key-prefix: ${WS_REDIS_KEY_PREFIX:fabric:websocket}
+      redis-session-ttl-seconds: ${WS_REDIS_SESSION_TTL:3600}
+      redis-session-clustering: ${WS_REDIS_SESSION_CLUSTERING:true}
+      cache-update-metrics: ${WS_CACHE_UPDATE_METRICS:true}
+      cache-ttl-seconds: ${WS_CACHE_TTL:30}
+      
+      # Circuit Breaker Settings
+      circuit-breaker-enabled: ${WS_CIRCUIT_BREAKER_ENABLED:true}
+      circuit-breaker-failure-rate: ${WS_CIRCUIT_BREAKER_FAILURE_RATE:50.0}
+      circuit-breaker-wait-duration-ms: ${WS_CIRCUIT_BREAKER_WAIT_DURATION:30000}
+      circuit-breaker-sliding-window-size: ${WS_CIRCUIT_BREAKER_SLIDING_WINDOW:10}
+      circuit-breaker-minimum-calls: ${WS_CIRCUIT_BREAKER_MIN_CALLS:5}
+      
+      # Monitoring and Alerting Settings
+      performance-monitoring: ${WS_PERFORMANCE_MONITORING:true}
+      performance-metrics-interval-ms: ${WS_PERFORMANCE_METRICS_INTERVAL:30000}
+      memory-usage-alert-threshold: ${WS_MEMORY_ALERT_THRESHOLD:85.0}
+      cpu-usage-alert-threshold: ${WS_CPU_ALERT_THRESHOLD:90.0}
+      response-time-alert-threshold-ms: ${WS_RESPONSE_TIME_ALERT_THRESHOLD:5000}
+      error-rate-alert-threshold: ${WS_ERROR_RATE_ALERT_THRESHOLD:5.0}
+      session-stale-timeout-ms: ${WS_SESSION_STALE_TIMEOUT:1800000}
+      
+      # Feature Flags
+      development-mode: ${WS_DEVELOPMENT_MODE:false}
+      debug-logging: ${WS_DEBUG_LOGGING:false}
+      metrics-export-enabled: ${WS_METRICS_EXPORT_ENABLED:true}
+      health-check-enabled: ${WS_HEALTH_CHECK_ENABLED:true}
+      graceful-shutdown-enabled: ${WS_GRACEFUL_SHUTDOWN_ENABLED:true}
+      graceful-shutdown-timeout-seconds: ${WS_GRACEFUL_SHUTDOWN_TIMEOUT:30}
 
   # Batch Processing Base Configuration
   batch:
