@@ -1,0 +1,178 @@
+# ======================================
+# FABRIC PLATFORM - STAGING PROFILE
+# ======================================
+# Staging environment configuration
+# Uses AWS RDS with production-like settings but relaxed security for testing
+
+spring:
+  profiles:
+    active: staging
+  
+  # Database Configuration - AWS RDS Oracle
+  datasource:
+    url: ${DB_URL}  # Required environment variable
+    username: ${DB_USERNAME}  # Required environment variable
+    password: ${DB_PASSWORD}  # Required environment variable
+    driver-class-name: oracle.jdbc.OracleDriver
+    
+    # Connection Pool Settings (Staging)
+    hikari:
+      connection-timeout: 30000
+      maximum-pool-size: 15
+      minimum-idle: 5
+      idle-timeout: 600000
+      max-lifetime: 1800000
+      leak-detection-threshold: 60000
+      pool-name: FabricStagingPool
+      data-source-properties:
+        cachePrepStmts: true
+        prepStmtCacheSize: 250
+        prepStmtCacheSqlLimit: 2048
+
+  # JPA/Hibernate Configuration
+  jpa:
+    database-platform: org.hibernate.dialect.OracleDialect
+    hibernate:
+      ddl-auto: validate
+      naming:
+        physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: false
+        jdbc:
+          batch_size: 50
+        order_inserts: true
+        order_updates: true
+        cache:
+          use_second_level_cache: true
+          region:
+            factory_class: org.hibernate.cache.ehcache.EhCacheRegionFactory
+
+  # Redis Configuration (AWS ElastiCache)
+  data:
+    redis:
+      host: ${REDIS_HOST}  # Required environment variable
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD}  # Required environment variable
+      database: 0
+      timeout: 3000ms
+      ssl: ${REDIS_SSL:true}
+      lettuce:
+        pool:
+          max-active: 20
+          max-idle: 10
+          min-idle: 5
+        cluster:
+          refresh:
+            adaptive: true
+
+# Fabric Platform Configuration
+fabric:
+  # Security Configuration
+  security:
+    jwt:
+      secret: ${JWT_SECRET}  # Required environment variable (256-bit minimum)
+      access-token-expiration: 900   # 15 minutes
+      refresh-token-expiration: 28800  # 8 hours
+      issuer: fabric-platform-staging
+      audience: fabric-users-staging
+    cors:
+      allowed-origins: ${CORS_ALLOWED_ORIGINS:https://staging.fabric.truist.com}
+    csrf:
+      enabled: true  # Enabled for staging
+
+  # LDAP Configuration
+  ldap:
+    urls: ${LDAP_URLS}  # Required environment variable
+    base-dn: ${LDAP_BASE_DN}  # Required environment variable
+    user-search-base: ${LDAP_USER_SEARCH_BASE:ou=users}
+    user-search-filter: ${LDAP_USER_SEARCH_FILTER:(uid={0})}
+    group-search-base: ${LDAP_GROUP_SEARCH_BASE:ou=groups}
+    group-search-filter: ${LDAP_GROUP_SEARCH_FILTER:(member={0})}
+    bind-dn: ${LDAP_BIND_DN}  # Required environment variable
+    bind-password: ${LDAP_BIND_PASSWORD}  # Required environment variable
+
+  # Data Loading Configuration
+  data-loader:
+    batch-size: 5000
+    chunk-size: 500
+    max-threads: 8
+    error-threshold: 0.02  # 2% error threshold
+    temp-directory: ${TEMP_DIR:/app/temp}
+    
+  # SQL*Loader Configuration
+  sql-loader:
+    oracle-home: ${ORACLE_HOME:/opt/oracle/client}
+    control-file-template: pipe-delimited-control-template.ctl
+    parallel-degree: 4
+    
+  # File Processing
+  file-processing:
+    input-directory: ${INPUT_DIR:/app/data/input}
+    output-directory: ${OUTPUT_DIR:/app/data/output}
+    archive-directory: ${ARCHIVE_DIR:/app/data/archive}
+    error-directory: ${ERROR_DIR:/app/data/error}
+
+  # AWS Configuration
+  aws:
+    region: ${AWS_REGION:us-east-1}
+    s3:
+      bucket-name: ${AWS_S3_BUCKET}  # Required environment variable
+      input-prefix: staging/input/
+      archive-prefix: staging/archive/
+    sns:
+      topic-arn: ${AWS_SNS_TOPIC_ARN}  # For notifications
+
+# Logging Configuration
+logging:
+  level:
+    com.truist.batch: INFO
+    org.springframework.security: INFO
+    org.springframework.batch: INFO
+    org.hibernate: WARN
+    org.springframework.cloud.aws: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level [%X{correlationId:-}] %logger{50} - %msg%n"
+  file:
+    name: /app/logs/fabric-staging.log
+    max-file-size: 100MB
+    max-history: 30
+
+# Management/Actuator Configuration
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus,configprops
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: when-authorized
+      group:
+        readiness:
+          include: db,redis,diskSpace
+        liveness:
+          include: ping
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+      cloudwatch:
+        enabled: true
+        namespace: fabric-platform-staging
+
+# Server Configuration
+server:
+  port: ${SERVER_PORT:8080}
+  servlet:
+    context-path: /api
+  compression:
+    enabled: true
+  http2:
+    enabled: true
+  ssl:
+    enabled: ${SSL_ENABLED:false}
+    key-store: ${SSL_KEYSTORE_PATH}
+    key-store-password: ${SSL_KEYSTORE_PASSWORD}
+    key-store-type: PKCS12

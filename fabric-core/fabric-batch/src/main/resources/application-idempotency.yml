@@ -1,0 +1,320 @@
+# ============================================================================
+# Fabric Platform Idempotency Framework Configuration
+# Version: 1.0
+# Created: August 2025
+# Description: Comprehensive configuration for enterprise-grade idempotency
+# ============================================================================
+
+fabric:
+  idempotency:
+    # Global framework settings
+    enabled: true
+    default-ttl-hours: 24
+    default-max-retries: 3
+    default-key-strategy: "AUTO_GENERATED"
+    store-request-payload-default: true
+    store-response-payload-default: true
+    
+    # Database configuration
+    database:
+      schema: "CM3INT"
+      auditing-enabled: true
+      batch-size: 1000
+      connection-timeout-seconds: 30
+      query-timeout-seconds: 60
+      optimistic-locking-enabled: true
+      max-optimistic-lock-retries: 3
+    
+    # Cache configuration
+    cache:
+      enabled: true
+      type: "caffeine"
+      max-size: 10000
+      expire-after-write: PT1H      # 1 hour
+      expire-after-access: PT30M    # 30 minutes
+      statistics-enabled: true
+      refresh-ahead: PT5M           # 5 minutes
+    
+    # Cleanup configuration
+    cleanup:
+      enabled: true
+      schedule: "0 0 */4 * * *"     # Every 4 hours
+      batch-size: 1000
+      audit-retention-days: 90
+      metrics-enabled: true
+      max-execution-time-minutes: 60
+    
+    # Performance tuning
+    performance:
+      stale-request-timeout-minutes: 30
+      processing-timeout-minutes: 60
+      max-payload-size-bytes: 1048576    # 1MB
+      async-thread-pool-size: 10
+      monitoring-enabled: true
+      warning-threshold-ms: 5000         # 5 seconds
+      compression-enabled: false
+    
+    # Security settings
+    security:
+      encryption-required: false
+      encryption-algorithm: "AES-256-GCM"
+      mask-sensitive-data: true
+      sensitive-fields:
+        - password
+        - ssn
+        - creditCard
+        - token
+        - apiKey
+      auditing-enabled: true
+      max-failed-attempts: 5
+      lockout-duration-minutes: 15
+    
+    # Events and monitoring
+    events:
+      publish-job-events: true
+      publish-state-change-events: true
+      publish-performance-events: false
+      publisher-type: "local"
+      topic-name: "fabric.idempotency.events"
+      metrics-enabled: true
+      metrics-interval-seconds: 60
+      export-metrics: false
+      metrics-endpoint: "/actuator/prometheus"
+    
+    # Development settings
+    development:
+      enabled: false                     # Set to true for development
+      log-level: "INFO"
+      verbose-logging: false
+      debug-endpoints-enabled: false
+      disable-ttl: false
+      test-mode: false
+      mock-external-dependencies: false
+      simulate-failures: false
+      failure-rate: 0.0
+
+---
+# Development profile overrides
+spring:
+  profiles: development
+  
+fabric:
+  idempotency:
+    development:
+      enabled: true
+      log-level: "DEBUG"
+      verbose-logging: true
+      debug-endpoints-enabled: true
+      test-mode: true
+    
+    cache:
+      max-size: 1000                     # Smaller cache for dev
+    
+    cleanup:
+      schedule: "0 */15 * * * *"          # Every 15 minutes in dev
+      batch-size: 100
+    
+    performance:
+      warning-threshold-ms: 1000         # Lower threshold for dev
+
+---
+# Test profile overrides
+spring:
+  profiles: test
+  
+fabric:
+  idempotency:
+    development:
+      enabled: true
+      test-mode: true
+      mock-external-dependencies: true
+      disable-ttl: true
+    
+    cache:
+      enabled: false                     # Disable cache for testing
+    
+    cleanup:
+      enabled: false                     # Disable cleanup in tests
+    
+    events:
+      publish-job-events: false
+      publish-state-change-events: false
+      metrics-enabled: false
+
+---
+# Production profile overrides  
+spring:
+  profiles: production
+  
+fabric:
+  idempotency:
+    development:
+      enabled: false                     # Ensure dev mode is off
+    
+    security:
+      encryption-required: true          # Enable encryption in prod
+      auditing-enabled: true
+    
+    performance:
+      monitoring-enabled: true
+      warning-threshold-ms: 10000        # Higher threshold for prod
+    
+    events:
+      publish-job-events: true
+      publish-state-change-events: true
+      publish-performance-events: true
+      export-metrics: true
+    
+    cache:
+      max-size: 50000                    # Larger cache for prod
+      expire-after-write: PT2H           # Longer expiration
+
+---
+# Staging profile overrides
+spring:
+  profiles: staging
+  
+fabric:
+  idempotency:
+    default-ttl-hours: 12                # Shorter TTL for staging
+    
+    cleanup:
+      schedule: "0 0 */2 * * *"           # Every 2 hours
+      audit-retention-days: 30           # Shorter retention
+    
+    events:
+      publish-job-events: true
+      export-metrics: true
+    
+    performance:
+      monitoring-enabled: true
+
+# ============================================================================
+# Spring Boot Configuration Integration
+# ============================================================================
+
+spring:
+  batch:
+    job:
+      enabled: false                     # Disable auto-start, controlled by idempotency framework
+    
+  cache:
+    type: caffeine
+    caffeine:
+      spec: maximumSize=10000,expireAfterWrite=1h,expireAfterAccess=30m,recordStats
+
+  jpa:
+    show-sql: false
+    properties:
+      hibernate:
+        jdbc:
+          batch_size: ${fabric.idempotency.database.batch-size:1000}
+        order_inserts: true
+        order_updates: true
+        batch_versioned_data: true
+
+# Management endpoints for monitoring
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: when-authorized
+    metrics:
+      enabled: ${fabric.idempotency.events.metrics-enabled:true}
+  metrics:
+    export:
+      prometheus:
+        enabled: ${fabric.idempotency.events.export-metrics:false}
+
+# Logging configuration
+logging:
+  level:
+    com.truist.batch.idempotency: ${fabric.idempotency.development.log-level:INFO}
+    org.springframework.batch: WARN
+    org.springframework.cache: WARN
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level [%X{correlationId:-}] %logger{36} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level [%X{correlationId:-}] %logger{36} - %msg%n"
+
+# ============================================================================
+# Environment-specific Database Configuration Examples
+# ============================================================================
+
+---
+# Local development database
+spring:
+  profiles: local
+  
+  datasource:
+    url: jdbc:h2:mem:idempotency_dev;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: 
+  
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+  
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: ${fabric.idempotency.development.verbose-logging:false}
+
+---
+# Oracle database configuration template
+spring:
+  profiles: oracle
+  
+  datasource:
+    url: jdbc:oracle:thin:@${DB_HOST:localhost}:${DB_PORT:1521}:${DB_SID:XE}
+    driver-class-name: oracle.jdbc.OracleDriver
+    username: ${DB_USERNAME:fabric_user}
+    password: ${DB_PASSWORD:password}
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 5
+      connection-timeout: ${fabric.idempotency.database.connection-timeout-seconds:30}000
+      idle-timeout: 300000
+      max-lifetime: 1800000
+      leak-detection-threshold: 60000
+  
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    database-platform: org.hibernate.dialect.OracleDialect
+    properties:
+      hibernate:
+        default_schema: ${fabric.idempotency.database.schema:CM3INT}
+
+# ============================================================================
+# Additional Configuration Notes
+# ============================================================================
+
+# The idempotency framework integrates seamlessly with existing Spring Batch
+# configurations. To use idempotency in your batch jobs:
+#
+# 1. Include the idempotencyCheckStep as the first step in your job
+# 2. Use the idempotentJobTemplate as a base for new jobs
+# 3. Configure job parameters to include sourceSystem, jobName, and fileName
+# 4. The framework will automatically handle duplicate detection and retry logic
+#
+# Example job configuration:
+# @Bean
+# public Job myIdempotentJob(JobRepository jobRepository, Step myBusinessStep) {
+#     return new JobBuilder("myJob", jobRepository)
+#             .incrementer(new RunIdIncrementer())
+#             .start(idempotencyCheckStep(jobRepository, idempotencyCheckTasklet, transactionManager))
+#             .next(myBusinessStep)
+#             .build();
+# }
+
+# For production deployments, ensure:
+# - Database schema is properly created and indexed
+# - Cleanup jobs are scheduled appropriately
+# - Monitoring and alerting are configured
+# - Security settings are reviewed and enabled
+# - Performance thresholds are set based on your SLAs

@@ -1,0 +1,247 @@
+# ======================================
+# FABRIC PLATFORM - REDIS PROFILE
+# ======================================
+# Redis-focused configuration for caching and session management
+# Can be combined with other database profiles
+
+spring:
+  profiles:
+    active: redis
+  
+  # Redis Configuration
+  data:
+    redis:
+      # Single Node Configuration
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      database: ${REDIS_DATABASE:0}
+      timeout: ${REDIS_TIMEOUT:5000ms}
+      
+      # SSL Configuration
+      ssl: ${REDIS_SSL:false}
+      
+      # Connection Pool (Lettuce)
+      lettuce:
+        pool:
+          max-active: ${REDIS_POOL_MAX_ACTIVE:50}
+          max-idle: ${REDIS_POOL_MAX_IDLE:20}
+          min-idle: ${REDIS_POOL_MIN_IDLE:5}
+          max-wait: ${REDIS_POOL_MAX_WAIT:30000ms}
+        shutdown-timeout: ${REDIS_SHUTDOWN_TIMEOUT:100ms}
+        
+      # Cluster Configuration (if using Redis Cluster)
+      cluster:
+        nodes: ${REDIS_CLUSTER_NODES:}
+        max-redirects: ${REDIS_CLUSTER_MAX_REDIRECTS:3}
+        
+      # Sentinel Configuration (if using Redis Sentinel)
+      sentinel:
+        master: ${REDIS_SENTINEL_MASTER:}
+        nodes: ${REDIS_SENTINEL_NODES:}
+        password: ${REDIS_SENTINEL_PASSWORD:}
+
+  # Session Management with Redis
+  session:
+    store-type: redis
+    redis:
+      flush-mode: on_save
+      namespace: fabric:session
+      cleanup-cron: "0 * * * * *"  # Clean up every minute
+    timeout: ${SESSION_TIMEOUT:30m}
+    cookie:
+      name: FABRICSESSIONID
+      http-only: true
+      secure: ${SESSION_COOKIE_SECURE:false}
+      same-site: strict
+      max-age: ${SESSION_MAX_AGE:1800}  # 30 minutes
+
+  # Cache Configuration
+  cache:
+    type: redis
+    redis:
+      time-to-live: ${CACHE_TTL:600000}  # 10 minutes
+      key-prefix: fabric:cache:
+      use-key-prefix: true
+      cache-null-values: false
+
+# Fabric Platform Configuration
+fabric:
+  # Security Configuration
+  security:
+    jwt:
+      secret: ${JWT_SECRET:fabric-redis-jwt-secret-key-minimum-256-bits-required-for-hmac-sha}
+      access-token-expiration: 900   # 15 minutes
+      refresh-token-expiration: 28800  # 8 hours
+      issuer: fabric-platform-redis
+      audience: fabric-users-redis
+    cors:
+      allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000}
+
+  # Redis-specific Configuration
+  redis:
+    # Key Namespaces
+    namespaces:
+      session: "fabric:session:"
+      cache: "fabric:cache:"
+      locks: "fabric:locks:"
+      queues: "fabric:queues:"
+      metrics: "fabric:metrics:"
+      audit: "fabric:audit:"
+      
+    # Cache Configuration
+    caches:
+      configurations:
+        ttl: 3600  # 1 hour
+        max-idle: 1800  # 30 minutes
+      templates:
+        ttl: 7200  # 2 hours
+        max-idle: 3600  # 1 hour
+      users:
+        ttl: 1800  # 30 minutes
+        max-idle: 900   # 15 minutes
+      permissions:
+        ttl: 3600  # 1 hour
+        max-idle: 1800  # 30 minutes
+        
+    # Distributed Locking
+    locks:
+      default-timeout: 30000  # 30 seconds
+      retry-interval: 100     # 100ms
+      max-retries: 300
+      
+    # Rate Limiting
+    rate-limiting:
+      window-size: 60  # 1 minute
+      max-requests: 100
+      
+    # Message Queues
+    queues:
+      job-processing:
+        max-length: 10000
+        block-timeout: 5000
+      notifications:
+        max-length: 1000
+        block-timeout: 1000
+        
+    # Pub/Sub Configuration
+    pubsub:
+      channels:
+        job-status: "fabric:jobs:status"
+        configuration-updates: "fabric:config:updates"
+        user-activity: "fabric:users:activity"
+        
+    # Monitoring and Health Checks
+    health-check:
+      enabled: true
+      timeout: 5000
+      interval: 30000
+      
+    # Serialization
+    serialization:
+      default: json
+      key-serializer: string
+      value-serializer: json
+      hash-key-serializer: string
+      hash-value-serializer: json
+
+# Logging Configuration
+logging:
+  level:
+    org.springframework.data.redis: DEBUG
+    io.lettuce.core: INFO
+    com.truist.batch: DEBUG
+  pattern:
+    console: "%d{HH:mm:ss.SSS} [%thread] %-5level [%X{correlationId:-}] %logger{36} - %msg%n"
+
+# Management/Actuator Configuration
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus,redishealth,caches
+  endpoint:
+    health:
+      show-details: always
+  health:
+    redis:
+      enabled: true
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+
+# Server Configuration
+server:
+  port: ${SERVER_PORT:8080}
+  servlet:
+    context-path: /api
+
+---
+# Redis Cluster Configuration
+spring:
+  config:
+    activate:
+      on-profile: redis,cluster
+      
+  data:
+    redis:
+      cluster:
+        nodes: ${REDIS_CLUSTER_NODES}  # Required: comma-separated list of host:port
+        max-redirects: 3
+      lettuce:
+        cluster:
+          refresh:
+            adaptive: true
+            period: 30s
+
+fabric:
+  redis:
+    cluster:
+      enabled: true
+      topology-refresh: true
+      adaptive-refresh: true
+      
+---
+# Redis Sentinel Configuration  
+spring:
+  config:
+    activate:
+      on-profile: redis,sentinel
+      
+  data:
+    redis:
+      sentinel:
+        master: ${REDIS_SENTINEL_MASTER:mymaster}
+        nodes: ${REDIS_SENTINEL_NODES}  # Required: comma-separated list of host:port
+        password: ${REDIS_SENTINEL_PASSWORD:}
+
+fabric:
+  redis:
+    sentinel:
+      enabled: true
+      failover-timeout: 30000
+      
+---
+# Redis Enterprise/SSL Configuration
+spring:
+  config:
+    activate:
+      on-profile: redis,enterprise
+      
+  data:
+    redis:
+      ssl: true
+      password: ${REDIS_PASSWORD}  # Required for enterprise
+      lettuce:
+        pool:
+          max-active: 100
+          max-idle: 50
+          min-idle: 10
+
+fabric:
+  redis:
+    enterprise:
+      enabled: true
+      ssl-verify-peer: true
+      ssl-verify-hostname: true

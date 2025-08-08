@@ -1,0 +1,25 @@
+fileType: test_schema_fixed
+transactionType: 200
+fields:
+  schema_test_field:
+    fieldName: schema_test_field
+    value: null
+    sourceField: source_schema_test
+    targetField: schema_test_field
+    from: null
+    length: 10
+    pad: null
+    padChar: null
+    composite: false
+    sources: null
+    transform: null
+    delimiter: null
+    format: null
+    sourceFormat: null
+    targetFormat: null
+    transformationType: source
+    conditions: null
+    targetPosition: 1
+    dataType: String
+    defaultValue: null
+    expression: null

@@ -1,0 +1,357 @@
+# Consumer Default Template Profiles Configuration
+# Configuration for pre-defined template profiles for different consumer lending scenarios
+# Author: Claude Code - Senior Full Stack Developer
+# Version: 1.0
+# Date: 2025-08-02
+
+consumer-default:
+  template-profiles:
+    
+    # Mortgage Application Template Profile
+    mortgage-application:
+      category: MORTGAGE_APPLICATION
+      description: "Comprehensive template for mortgage loan applications"
+      file-type: "p327"
+      transaction-type: "mortgage"
+      total-fields: 45
+      record-length: 800
+      required-fields:
+        - field-name: "borrower_ssn"
+          data-type: CONSUMER_SSN
+          pii-classification: HIGH
+          encryption-required: true
+          length: 11
+          required: true
+          description: "Primary borrower Social Security Number"
+          consumer-rules: |
+            {
+              "validation": "ssn_format",
+              "masking": "show_last_4",
+              "audit_level": "HIGH"
+            }
+        - field-name: "borrower_name"
+          data-type: STRING
+          pii-classification: MEDIUM
+          encryption-required: false
+          length: 50
+          required: true
+          description: "Primary borrower full name"
+        - field-name: "property_address"
+          data-type: CONSUMER_ADDRESS
+          pii-classification: MEDIUM
+          encryption-required: false
+          length: 255
+          required: true
+          description: "Subject property address"
+        - field-name: "loan_amount"
+          data-type: LOAN_AMOUNT
+          pii-classification: LOW
+          encryption-required: false
+          length: 12
+          required: true
+          description: "Requested loan amount"
+          consumer-rules: |
+            {
+              "min_value": 50000,
+              "max_value": 10000000,
+              "business_rule": "conforming_loan_limit_check"
+            }
+        - field-name: "property_value"
+          data-type: PROPERTY_VALUE
+          pii-classification: LOW
+          encryption-required: false
+          length: 12
+          required: true
+          description: "Property appraised value"
+        - field-name: "annual_income"
+          data-type: CONSUMER_INCOME
+          pii-classification: MEDIUM
+          encryption-required: false
+          length: 10
+          required: true
+          description: "Borrower annual income"
+        - field-name: "credit_score"
+          data-type: CONSUMER_CREDIT_SCORE
+          pii-classification: HIGH
+          encryption-required: false
+          length: 3
+          required: true
+          description: "Primary borrower credit score"
+          consumer-rules: |
+            {
+              "min_value": 300,
+              "max_value": 850,
+              "business_rule": "qm_credit_score_validation"
+            }
+        - field-name: "dti_ratio"
+          data-type: DTI_RATIO
+          pii-classification: LOW
+          encryption-required: false
+          length: 6
+          required: true
+          description: "Debt-to-income ratio"
+          consumer-rules: |
+            {
+              "max_value": 50.0,
+              "business_rule": "qm_dti_validation"
+            }
+        - field-name: "ltv_ratio"
+          data-type: LTV_RATIO
+          pii-classification: LOW
+          encryption-required: false
+          length: 6
+          required: true
+          description: "Loan-to-value ratio"
+          consumer-rules: |
+            {
+              "calculation": "loan_amount / property_value * 100",
+              "max_value": 97.0
+            }
+      
+      business-rules:
+        cross-field-validations:
+          - name: "ltv_calculation"
+            description: "Validate LTV calculation"
+            fields: ["loan_amount", "property_value", "ltv_ratio"]
+            rule: "ltv_ratio == (loan_amount / property_value * 100)"
+          - name: "qm_compliance"
+            description: "Qualified Mortgage compliance check"
+            fields: ["dti_ratio", "credit_score", "loan_amount"]
+            rule: "dti_ratio <= 43.0 OR (credit_score >= 680 AND dti_ratio <= 50.0)"
+      
+      regulatory-requirements:
+        - regulation: "TRID"
+          fields: ["loan_amount", "property_address", "borrower_name"]
+          requirement: "3-day disclosure period validation"
+        - regulation: "QM"
+          fields: ["dti_ratio", "credit_score"]
+          requirement: "Ability-to-repay validation"
+    
+    # Personal Loan Template Profile  
+    personal-loan:
+      category: PERSONAL_LOAN
+      description: "Template for personal loan applications"
+      file-type: "p327"
+      transaction-type: "personal"
+      total-fields: 25
+      record-length: 450
+      required-fields:
+        - field-name: "borrower_ssn"
+          data-type: CONSUMER_SSN
+          pii-classification: HIGH
+          encryption-required: true
+          length: 11
+          required: true
+          description: "Borrower Social Security Number"
+        - field-name: "borrower_email"
+          data-type: CONSUMER_EMAIL
+          pii-classification: MEDIUM
+          encryption-required: false
+          length: 255
+          required: true
+          description: "Borrower email address"
+        - field-name: "borrower_phone"
+          data-type: CONSUMER_PHONE
+          pii-classification: MEDIUM
+          encryption-required: false
+          length: 14
+          required: true
+          description: "Borrower phone number"
+        - field-name: "loan_amount"
+          data-type: LOAN_AMOUNT
+          pii-classification: LOW
+          encryption-required: false
+          length: 8
+          required: true
+          description: "Requested loan amount"
+          consumer-rules: |
+            {
+              "min_value": 1000,
+              "max_value": 100000
+            }
+        - field-name: "annual_income"
+          data-type: CONSUMER_INCOME
+          pii-classification: MEDIUM
+          encryption-required: false
+          length: 10
+          required: true
+          description: "Borrower annual income"
+        - field-name: "employment_status"
+          data-type: EMPLOYMENT_STATUS
+          pii-classification: LOW
+          encryption-required: false
+          length: 15
+          required: true
+          description: "Current employment status"
+      
+      business-rules:
+        cross-field-validations:
+          - name: "income_loan_ratio"
+            description: "Validate loan amount vs income"
+            fields: ["loan_amount", "annual_income"]
+            rule: "loan_amount <= (annual_income * 0.3)"
+    
+    # Credit Card Application Template Profile
+    credit-card-application:
+      category: CREDIT_CARD_APPLICATION
+      description: "Template for credit card applications"
+      file-type: "p327"
+      transaction-type: "credit_card"
+      total-fields: 20
+      record-length: 350
+      required-fields:
+        - field-name: "applicant_ssn"
+          data-type: CONSUMER_SSN
+          pii-classification: HIGH
+          encryption-required: true
+          length: 11
+          required: true
+          description: "Applicant Social Security Number"
+        - field-name: "credit_score"
+          data-type: CONSUMER_CREDIT_SCORE
+          pii-classification: HIGH
+          encryption-required: false
+          length: 3
+          required: true
+          description: "Applicant credit score"
+        - field-name: "annual_income"
+          data-type: CONSUMER_INCOME
+          pii-classification: MEDIUM
+          encryption-required: false
+          length: 10
+          required: true
+          description: "Applicant annual income"
+        - field-name: "requested_limit"
+          data-type: LOAN_AMOUNT
+          pii-classification: LOW
+          encryption-required: false
+          length: 8
+          required: false
+          description: "Requested credit limit"
+    
+    # Default Management Template Profile
+    default-management:
+      category: DEFAULT_MANAGEMENT
+      description: "Template for default management and recovery"
+      file-type: "p327"
+      transaction-type: "default"
+      total-fields: 35
+      record-length: 600
+      required-fields:
+        - field-name: "account_number"
+          data-type: STRING
+          pii-classification: HIGH
+          encryption-required: true
+          length: 20
+          required: true
+          description: "Account number in default"
+        - field-name: "borrower_ssn"
+          data-type: CONSUMER_SSN
+          pii-classification: HIGH
+          encryption-required: true
+          length: 11
+          required: true
+          description: "Borrower Social Security Number"
+        - field-name: "default_status"
+          data-type: DEFAULT_STATUS
+          pii-classification: LOW
+          encryption-required: false
+          length: 15
+          required: true
+          description: "Current default status"
+        - field-name: "days_delinquent"
+          data-type: INTEGER
+          pii-classification: LOW
+          encryption-required: false
+          length: 3
+          required: true
+          description: "Number of days delinquent"
+        - field-name: "outstanding_balance"
+          data-type: LOAN_AMOUNT
+          pii-classification: MEDIUM
+          encryption-required: false
+          length: 12
+          required: true
+          description: "Outstanding loan balance"
+        - field-name: "payment_history"
+          data-type: PAYMENT_HISTORY
+          pii-classification: MEDIUM
+          encryption-required: false
+          length: 24
+          required: true
+          description: "24-month payment history"
+        - field-name: "recovery_amount"
+          data-type: RECOVERY_AMOUNT
+          pii-classification: LOW
+          encryption-required: false
+          length: 12
+          required: false
+          description: "Amount recovered to date"
+      
+      business-rules:
+        cross-field-validations:
+          - name: "default_status_days_validation"
+            description: "Validate default status matches days delinquent"
+            fields: ["default_status", "days_delinquent"]
+            rule: |
+              (default_status == 'CURRENT' AND days_delinquent == 0) OR
+              (default_status == '30_DAYS' AND days_delinquent >= 30 AND days_delinquent < 60) OR
+              (default_status == '60_DAYS' AND days_delinquent >= 60 AND days_delinquent < 90) OR
+              (default_status == '90_DAYS' AND days_delinquent >= 90 AND days_delinquent < 120) OR
+              (default_status == '120_PLUS' AND days_delinquent >= 120)
+
+# PII Protection Configuration
+pii-protection:
+  masking-rules:
+    non-production-environments:
+      - classification: HIGH
+        masking-type: "PARTIAL"
+        show-characters: 4
+        position: "LAST"
+      - classification: MEDIUM
+        masking-type: "PATTERN"
+        pattern: "X"
+    
+  encryption-settings:
+    algorithm: "AES-256-GCM"
+    key-rotation-days: 90
+    required-for:
+      - HIGH
+      - MEDIUM  # When explicitly marked as encryption_required
+
+# Audit Configuration
+audit-settings:
+  pii-access-logging:
+    enabled: true
+    log-level: "INFO"
+    retention-days: 2555  # 7 years
+  
+  template-changes:
+    enabled: true
+    log-level: "WARN"
+    include-before-after: true
+    
+  regulatory-events:
+    enabled: true
+    log-level: "INFO"
+    compliance-tags:
+      - "TRID"
+      - "QM"
+      - "HMDA"
+      - "RESPA"
+
+# Validation Settings
+validation:
+  consumer-default:
+    enabled: true
+    fail-fast: false
+    max-errors: 100
+    
+  cross-field-validation:
+    enabled: true
+    execution-order: "DEPENDENCY_FIRST"
+    
+  business-rules:
+    enabled: true
+    cache-results: true
+    cache-ttl-minutes: 30

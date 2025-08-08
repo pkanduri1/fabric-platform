@@ -1,0 +1,25 @@
+fileType: test_config_job
+transactionType: 200
+fields:
+  test_field:
+    fieldName: test_field
+    value: null
+    sourceField: source_test
+    targetField: test_field
+    from: null
+    length: 10
+    pad: null
+    padChar: null
+    composite: false
+    sources: null
+    transform: null
+    delimiter: null
+    format: null
+    sourceFormat: null
+    targetFormat: null
+    transformationType: source
+    conditions: null
+    targetPosition: 1
+    dataType: String
+    defaultValue: null
+    expression: null

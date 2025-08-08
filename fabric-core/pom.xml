@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	
+	<parent>
+		<groupId>org.springframework.boot</groupId>
+		<artifactId>spring-boot-starter-parent</artifactId>
+		<version>3.4.6</version>
+		<relativePath />
+	</parent>
+	
+	<groupId>com.truist</groupId>
+	<artifactId>fabric-core</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+	<packaging>pom</packaging>
+	<name>fabric-core</name>
+	<description>Fabric Platform Core - Multi-module Spring Boot Batch Framework</description>
+	
+	<properties>
+		<java.version>17</java.version>
+		<resilience4j.version>2.2.0</resilience4j.version>
+		<wiremock.version>3.0.1</wiremock.version>
+	</properties>
+	
+	<modules>
+		<module>fabric-utils</module>
+		<module>fabric-data-loader</module>
+		<module>fabric-batch</module>
+		<module>fabric-api</module>
+	</modules>
+	
+	<dependencyManagement>
+		<dependencies>
+			<!-- Internal module dependencies -->
+			<dependency>
+				<groupId>com.truist</groupId>
+				<artifactId>fabric-utils</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.truist</groupId>
+				<artifactId>fabric-data-loader</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.truist</groupId>
+				<artifactId>fabric-batch</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.truist</groupId>
+				<artifactId>fabric-api</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			
+			<!-- External dependencies -->
+			<dependency>
+				<groupId>io.github.resilience4j</groupId>
+				<artifactId>resilience4j-spring-boot3</artifactId>
+				<version>${resilience4j.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.wiremock</groupId>
+				<artifactId>wiremock-standalone</artifactId>
+				<version>${wiremock.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.poi</groupId>
+				<artifactId>poi-ooxml</artifactId>
+				<version>5.4.1</version>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
+	
+	<build>
+		<pluginManagement>
+			<plugins>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-compiler-plugin</artifactId>
+					<configuration>
+						<annotationProcessorPaths>
+							<path>
+								<groupId>org.projectlombok</groupId>
+								<artifactId>lombok</artifactId>
+							</path>
+						</annotationProcessorPaths>
+					</configuration>
+				</plugin>
+			</plugins>
+		</pluginManagement>
+	</build>
+</project>
