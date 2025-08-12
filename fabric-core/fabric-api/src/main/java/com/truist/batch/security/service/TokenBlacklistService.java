@@ -51,6 +51,13 @@ public class TokenBlacklistService {
     }
     
     /**
+     * Alias method for isTokenBlacklisted
+     */
+    public boolean isBlacklisted(String token) {
+        return isTokenBlacklisted(token);
+    }
+    
+    /**
      * Blacklists all tokens for a specific user
      */
     public void blacklistAllUserTokens(String userId, String reason, String blacklistedBy) {

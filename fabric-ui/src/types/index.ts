@@ -48,5 +48,47 @@ export interface SourceField {
   description?: string;
 }
 
-export * from './template';
+// Export everything from template except PaginatedResponse (which is defined in monitoring)
+export type {
+  FieldTemplate,
+  FileType,
+  FileTypeTemplate,
+  CreateFieldRequest,
+  UpdateFieldRequest,
+  CreateFileTypeRequest,
+  TemplateImportRequest,
+  TemplateImportResult,
+  TemplateExportOptions,
+  TemplateValidationResult,
+  FieldValidationRule,
+  FieldMappingConfig,
+  TemplateMetadata,
+  TemplateToConfigurationResult,
+  TemplateStatistics,
+  TemplateUsageStats,
+  TemplateHistoryEntry,
+  TemplateChange,
+  TemplateEditSession,
+  FieldEditState,
+  TemplateFormData,
+  FieldFormData,
+  TemplateSortOptions,
+  TemplateFilterOptions,
+  BulkFieldOperation,
+  BulkOperationResult,
+  TemplateComparison,
+  TemplateDifference,
+  ApiResponse,
+  TemplateError
+} from './template';
+
+// Export constants and functions (not types)
+export {
+  DATA_TYPES,
+  REQUIRED_OPTIONS,
+  ENABLED_OPTIONS,
+  isFieldTemplate,
+  isFileType
+} from './template';
+
 export * from './monitoring';

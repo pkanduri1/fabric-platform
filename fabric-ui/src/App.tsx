@@ -7,6 +7,7 @@ import { createTheme } from '@mui/material/styles';
 import { Container, Typography, Box, Card, CardContent, Button } from '@mui/material';
 import { Build, Code, Visibility } from '@mui/icons-material';
 import { ConfigurationProvider } from './contexts/ConfigurationContext';
+import { AuthProvider } from './contexts/AuthContext';
 import { AppThemeProvider } from './contexts/ThemeContext';
 import { ContextTest } from './contexts/ContextTest';
 import { HomePage } from './pages/HomePage';
@@ -32,11 +33,13 @@ const theme = createTheme({
 function App() {
   return (
     <AppThemeProvider>
-      <ConfigurationProvider>
-       <BrowserRouter>
-          <AppRouter />
-        </BrowserRouter>
-      </ConfigurationProvider>
+      <AuthProvider>
+        <ConfigurationProvider>
+         <BrowserRouter>
+            <AppRouter />
+          </BrowserRouter>
+        </ConfigurationProvider>
+      </AuthProvider>
     </AppThemeProvider>
   );
 }

@@ -5,7 +5,7 @@ import com.truist.batch.config.WebSocketMonitoringProperties;
 import com.truist.batch.config.WebSocketSecurityConfig.WebSocketConnectionManager;
 import com.truist.batch.config.WebSocketSecurityConfig.WebSocketSecurityEventPublisher;
 import com.truist.batch.security.jwt.JwtTokenService;
-import com.truist.batch.service.SecurityAuditService;
+import com.truist.batch.security.service.SecurityAuditService;
 import com.truist.batch.websocket.service.RealTimeMonitoringService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -41,9 +41,12 @@ import java.util.concurrent.atomic.AtomicInteger;
  * @since US008 - Real-Time Job Monitoring Dashboard
  */
 @Slf4j
-@Component
+// @Component - Temporarily disabled to get basic backend running
 @RequiredArgsConstructor
-public class EnterpriseWebSocketHandler extends TextWebSocketHandler {
+public class EnterpriseWebSocketHandler extends org.springframework.web.socket.handler.TextWebSocketHandler {
+
+    // Explicit logger in case @Slf4j fails
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(EnterpriseWebSocketHandler.class);
 
     private final RedisTemplate<String, Object> redisTemplate;
     private final JwtTokenService jwtTokenService;
@@ -211,7 +214,7 @@ public class EnterpriseWebSocketHandler extends TextWebSocketHandler {
             sessionInfo.incrementErrorCount();
             
             // Close session if too many errors
-            if (sessionInfo.getErrorCount() > 10) {
+            if (sessionInfo.getErrorCount().get() > 10) {
                 log.warn("🚫 Closing session due to excessive errors: session={}, user={}, errors={}", 
                         sessionId, sessionInfo.getUserId(), sessionInfo.getErrorCount());
                 session.close(CloseStatus.SERVER_ERROR.withReason("Excessive transport errors"));
@@ -341,7 +344,9 @@ public class EnterpriseWebSocketHandler extends TextWebSocketHandler {
                 }
 
                 // Validate JWT token
-                if (!jwtTokenService.validateToken(sessionInfo.getJwtToken())) {
+                try {
+                    jwtTokenService.validateToken(sessionInfo.getJwtToken());
+                } catch (Exception e) {
                     log.warn("🚫 Invalid JWT token in active session: session={}, user={}", 
                             sessionId, sessionInfo.getUserId());
                     
@@ -392,13 +397,15 @@ public class EnterpriseWebSocketHandler extends TextWebSocketHandler {
     }
 
     private boolean validateAndHandleTokenRotation(WebSocketSession session, String jwtToken, String userId) {
-        if (!jwtTokenService.validateToken(jwtToken)) {
+        try {
+            jwtTokenService.validateToken(jwtToken);
+        } catch (Exception e) {
             log.warn("🚫 Invalid JWT token during connection: user={}, session={}", userId, session.getId());
             
             try {
                 session.close(CloseStatus.NOT_ACCEPTABLE.withReason("Token invalid"));
-            } catch (IOException e) {
-                log.warn("⚠️ Failed to close session with invalid token: {}", e.getMessage());
+            } catch (IOException ioException) {
+                log.warn("⚠️ Failed to close session with invalid token: {}", ioException.getMessage());
             }
             return false;
         }
@@ -436,9 +443,9 @@ public class EnterpriseWebSocketHandler extends TextWebSocketHandler {
                 .lastActivity(Instant.now())
                 .jwtToken((String) session.getAttributes().get("jwtToken"))
                 .connectionStatus(WebSocketSessionInfo.ConnectionStatus.ACTIVE)
-                .messagesSent(0)
-                .messagesReceived(0)
-                .errorCount(0)
+                .messagesSent(new AtomicInteger(0))
+                .messagesReceived(new AtomicInteger(0))
+                .errorCount(new AtomicInteger(0))
                 .build();
     }
 
@@ -470,9 +477,9 @@ public class EnterpriseWebSocketHandler extends TextWebSocketHandler {
             String redisKey = monitoringProperties.getRedisKeyPrefix() + ":session:" + sessionInfo.getSessionId();
             
             redisTemplate.opsForHash().put(redisKey, "lastActivity", sessionInfo.getLastActivity().toString());
-            redisTemplate.opsForHash().put(redisKey, "messagesSent", String.valueOf(sessionInfo.getMessagesSent()));
-            redisTemplate.opsForHash().put(redisKey, "messagesReceived", String.valueOf(sessionInfo.getMessagesReceived()));
-            redisTemplate.opsForHash().put(redisKey, "errorCount", String.valueOf(sessionInfo.getErrorCount()));
+            redisTemplate.opsForHash().put(redisKey, "messagesSent", String.valueOf(sessionInfo.getMessagesSent().get()));
+            redisTemplate.opsForHash().put(redisKey, "messagesReceived", String.valueOf(sessionInfo.getMessagesReceived().get()));
+            redisTemplate.opsForHash().put(redisKey, "errorCount", String.valueOf(sessionInfo.getErrorCount().get()));
             redisTemplate.opsForHash().put(redisKey, "status", sessionInfo.getConnectionStatus().toString());
             
         } catch (Exception e) {

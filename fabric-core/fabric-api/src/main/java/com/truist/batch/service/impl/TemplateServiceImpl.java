@@ -24,8 +24,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 //Spring transaction support
 import org.springframework.transaction.annotation.Transactional;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
+// JPA dependencies removed - now using JdbcTemplate
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -59,8 +58,7 @@ public class TemplateServiceImpl implements TemplateService {
 	@Autowired
 	private AuditService auditService;
 	
-	@PersistenceContext
-	private EntityManager entityManager;
+	// EntityManager removed - now using JdbcTemplate
 	
 	@Autowired
 	private JdbcTemplate jdbcTemplate;
@@ -101,9 +99,31 @@ public class TemplateServiceImpl implements TemplateService {
 
 	@Override
 	public List<FieldTemplate> getFieldTemplatesByFileTypeAndTransactionType(String fileType, String transactionType) {
-		return fieldTemplateRepository
-				.findByFileTypeAndTransactionTypeAndEnabledOrderByTargetPosition(fileType, transactionType, "Y")
-				.stream().map(this::convertToFieldTemplate).collect(Collectors.toList());
+		log.debug("Getting field templates for fileType: {}, transactionType: {}", fileType, transactionType);
+		
+		try {
+			List<FieldTemplateEntity> entities = fieldTemplateRepository
+					.findByFileTypeAndTransactionTypeAndEnabledOrderByTargetPosition(fileType, transactionType, "Y");
+			
+			log.debug("Found {} field template entities for {}/{}", entities.size(), fileType, transactionType);
+			
+			if (entities.isEmpty()) {
+				log.info("No field templates found for fileType: {}, transactionType: {}", fileType, transactionType);
+				return new ArrayList<>();
+			}
+			
+			List<FieldTemplate> templates = entities.stream()
+					.map(this::convertToFieldTemplate)
+					.filter(template -> template != null) // Filter out any null conversions
+					.collect(Collectors.toList());
+					
+			log.debug("Successfully converted {} field templates for {}/{}", templates.size(), fileType, transactionType);
+			return templates;
+			
+		} catch (Exception e) {
+			log.error("Error retrieving field templates for fileType: {}, transactionType: {}", fileType, transactionType, e);
+			throw new RuntimeException("Failed to retrieve field templates", e);
+		}
 	}
 
 	@Override
@@ -188,9 +208,47 @@ public class TemplateServiceImpl implements TemplateService {
 	}
 
 	private FieldTemplate convertToFieldTemplate(FieldTemplateEntity entity) {
-		FieldTemplate template = new FieldTemplate();
-		BeanUtils.copyProperties(entity, template);
-		return template;
+		if (entity == null) {
+			return null;
+		}
+		
+		try {
+			FieldTemplate template = new FieldTemplate();
+			
+			// Map all fields manually to handle data type mismatches
+			template.setFileType(entity.getFileType());
+			template.setTransactionType(entity.getTransactionType());
+			template.setFieldName(entity.getFieldName());
+			template.setTargetPosition(entity.getTargetPosition());
+			template.setLength(entity.getLength());
+			template.setDataType(entity.getDataType());
+			template.setFormat(entity.getFormat());
+			template.setRequired(entity.getRequired());
+			template.setDescription(entity.getDescription());
+			template.setVersion(entity.getVersion());
+			template.setEnabled(entity.getEnabled());
+			template.setCreatedBy(entity.getCreatedBy());
+			template.setCreatedDate(entity.getCreatedDate()); // Both LocalDateTime
+			
+			// Handle modifiedBy and modifiedDate mappings
+			template.setModifiedBy(entity.getModifiedBy());
+			template.setLastModifiedBy(entity.getModifiedBy()); // Duplicate for compatibility
+			
+			// Convert LocalDateTime to String for modifiedDate field in DTO
+			if (entity.getModifiedDate() != null) {
+				template.setModifiedDate(entity.getModifiedDate().toString());
+			}
+			template.setLastModifiedDate(entity.getModifiedDate()); // Keep as LocalDateTime
+			
+			log.debug("Converted FieldTemplateEntity to FieldTemplate: {}/{}/{}", 
+				entity.getFileType(), entity.getTransactionType(), entity.getFieldName());
+			
+			return template;
+		} catch (Exception e) {
+			log.error("Error converting FieldTemplateEntity to FieldTemplate for {}/{}/{}", 
+				entity.getFileType(), entity.getTransactionType(), entity.getFieldName(), e);
+			throw new RuntimeException("Failed to convert field template entity", e);
+		}
 	}
 
 	// TODO: Implement remaining CRUD operations
@@ -306,7 +364,7 @@ public class TemplateServiceImpl implements TemplateService {
 				VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 			""";
 			
-			Date now = new Date();
+			LocalDateTime now = LocalDateTime.now();
 			int rowsInserted = jdbcTemplate.update(insertSql,
 				template.getFileType(),
 				template.getTransactionType(),
@@ -318,7 +376,7 @@ public class TemplateServiceImpl implements TemplateService {
 				template.getRequired() != null ? template.getRequired() : "N",
 				template.getDescription(),
 				createdBy,
-				new java.sql.Timestamp(now.getTime()),
+				java.sql.Timestamp.valueOf(now),
 				1, // version
 				template.getEnabled() != null ? template.getEnabled() : "Y"
 			);
@@ -364,7 +422,7 @@ public class TemplateServiceImpl implements TemplateService {
 				WHERE FILE_TYPE = ? AND TRANSACTION_TYPE = ? AND FIELD_NAME = ?
 			""";
 			
-			Date now = new Date();
+			LocalDateTime now = LocalDateTime.now();
 			int rowsUpdated = jdbcTemplate.update(updateSql,
 				template.getTargetPosition(),
 				template.getLength(),
@@ -373,7 +431,7 @@ public class TemplateServiceImpl implements TemplateService {
 				template.getRequired() != null ? template.getRequired() : "N",
 				template.getDescription(),
 				modifiedBy,
-				new java.sql.Timestamp(now.getTime()),
+				java.sql.Timestamp.valueOf(now),
 				template.getEnabled() != null ? template.getEnabled() : "Y",
 				template.getFileType(),
 				template.getTransactionType(),
@@ -809,7 +867,7 @@ public class TemplateServiceImpl implements TemplateService {
 			""";
 			
 			int savedCount = 0;
-			Date now = new Date();
+			LocalDateTime now = LocalDateTime.now();
 			
 			for (FieldTemplate field : fields) {
 				try {
@@ -824,7 +882,7 @@ public class TemplateServiceImpl implements TemplateService {
 						field.getRequired() != null ? field.getRequired() : "N",
 						field.getDescription(),
 						createdBy,
-						new java.sql.Timestamp(now.getTime()),
+						java.sql.Timestamp.valueOf(now),
 						1, // version
 						field.getEnabled() != null ? field.getEnabled() : "Y"
 					);
@@ -879,9 +937,9 @@ public class TemplateServiceImpl implements TemplateService {
 
 		// Set audit fields
 		entity.setCreatedBy(createdBy);
-		entity.setCreatedDate(new Date());
+		entity.setCreatedDate(LocalDateTime.now());
 		entity.setModifiedBy(createdBy);
-		entity.setModifiedDate(new Date());
+		entity.setModifiedDate(LocalDateTime.now());
 		entity.setVersion(1);
 
 		return entity;
@@ -962,7 +1020,7 @@ public class TemplateServiceImpl implements TemplateService {
 	        
 	        // Create entity
 	        FieldTemplateEntity entity = convertToFieldTemplateEntity(fieldTemplate);
-	        entity.setCreatedDate(new Date());
+	        entity.setCreatedDate(LocalDateTime.now());
 	        entity.setEnabled("Y");
 	        
 	        // Save and audit
@@ -1006,7 +1064,7 @@ public class TemplateServiceImpl implements TemplateService {
 	        entity.setDescription(fieldTemplate.getDescription());
 	        entity.setEnabled(fieldTemplate.getEnabled());
 	        entity.setModifiedBy(fieldTemplate.getModifiedBy());
-	        entity.setModifiedDate(new Date());
+	        entity.setModifiedDate(LocalDateTime.now());
 	        entity.setVersion(entity.getVersion() + 1);
 	        
 	        // Save and audit
@@ -1041,7 +1099,7 @@ public class TemplateServiceImpl implements TemplateService {
 	        // Soft delete - mark as disabled
 	        entity.setEnabled("N");
 	        entity.setModifiedBy(deletedBy);
-	        entity.setModifiedDate(new Date());
+	        entity.setModifiedDate(LocalDateTime.now());
 	        entity.setVersion(entity.getVersion() + 1);
 	        
 	        fieldTemplateRepository.save(entity);
@@ -1130,7 +1188,7 @@ public class TemplateServiceImpl implements TemplateService {
 	                FieldTemplateEntity entity = existing.get();
 	                entity.setTargetPosition(newPosition);
 	                entity.setModifiedBy(modifiedBy);
-	                entity.setModifiedDate(new Date());
+	                entity.setModifiedDate(LocalDateTime.now());
 	                entity.setVersion(entity.getVersion() + 1);
 	                
 	                FieldTemplateEntity saved = fieldTemplateRepository.save(entity);

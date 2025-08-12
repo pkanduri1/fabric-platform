@@ -98,12 +98,11 @@ export const useSourceSystems = (
         }));
       }
     } catch (err) {
-        console.warn('API failed, using mock source fields:', err);
+        console.error('API failed to load source systems:', err);
+        const errorMessage = err instanceof Error ? err.message : 'Failed to load source systems - API not responding';
+        setError(errorMessage);
+        // Temporarily falling back to mock data
         setSourceSystems(mockSourceSystems);
-        setError(null);
-      //const errorMessage = err instanceof Error ? err.message : 'Failed to load source systems';
-      //setError(errorMessage);
-      //console.error('Failed to load source systems:', err);
       
     } finally {
       setIsLoading(false);

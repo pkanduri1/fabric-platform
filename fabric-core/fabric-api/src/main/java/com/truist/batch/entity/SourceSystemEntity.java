@@ -1,39 +1,22 @@
 package com.truist.batch.entity;
 
-import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
 /**
- * Entity for existing CM3INT.SOURCE_SYSTEMS table
+ * POJO for existing CM3INT.SOURCE_SYSTEMS table
  * Used for US002 Template Configuration Enhancement - Source System Management
+ * 
+ * Converted from JPA Entity to simple POJO to eliminate JPA dependencies
  */
-@Entity
-@Table(name = "SOURCE_SYSTEMS", schema = "CM3INT")
 public class SourceSystemEntity {
 
-    @Id
-    @Column(name = "ID", length = 50)
     private String id;
-
-    @Column(name = "NAME", length = 100, nullable = false)
     private String name;
-
-    @Column(name = "TYPE", length = 20, nullable = false)
     private String type;
-
-    @Column(name = "DESCRIPTION", length = 500)
     private String description;
-
-    @Column(name = "CONNECTION_STRING", length = 1000)
     private String connectionString;
-
-    @Column(name = "ENABLED", length = 1)
     private String enabled = "Y";
-
-    @Column(name = "CREATED_DATE", nullable = false, updatable = false)
     private LocalDateTime createdDate;
-
-    @Column(name = "JOB_COUNT")
     private Integer jobCount = 0;
 
     // Constructors

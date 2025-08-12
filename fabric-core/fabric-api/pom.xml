@@ -29,6 +29,18 @@
 			<artifactId>fabric-batch</artifactId>
 		</dependency>
 
+		<!-- Apache POI for Excel processing -->
+		<dependency>
+			<groupId>org.apache.poi</groupId>
+			<artifactId>poi</artifactId>
+			<version>5.2.3</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.poi</groupId>
+			<artifactId>poi-ooxml</artifactId>
+			<version>5.2.3</version>
+		</dependency>
+
 		<!-- Spring Web -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -99,6 +111,16 @@
 			<artifactId>spring-session-data-redis</artifactId>
 		</dependency>
 
+		<!-- WebSocket Support -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-websocket</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-messaging</artifactId>
+		</dependency>
+
 		<!-- Resilience4j for circuit breaker -->
 		<dependency>
 			<groupId>io.github.resilience4j</groupId>
@@ -157,6 +179,7 @@
 			<artifactId>mssql-jdbc</artifactId>
 			<scope>runtime</scope>
 		</dependency>
+
 		
 		<!-- MongoDB Driver (Spring Data MongoDB) -->
 		<dependency>
@@ -197,7 +220,7 @@
 		<dependency>
 			<groupId>com.h2database</groupId>
 			<artifactId>h2</artifactId>
-			<scope>test</scope>
+			<scope>runtime</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.batch</groupId>

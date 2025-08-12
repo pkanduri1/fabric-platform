@@ -71,6 +71,20 @@ public class SqlLoaderReports {
         private LocalDateTime assessedAt;
         private String assessedBy;
         private Map<String, Object> complianceMetrics;
+        
+        /**
+         * Convenience method for accessing compliant field
+         */
+        public Boolean isCompliant() {
+            return this.compliant;
+        }
+        
+        /**
+         * Convenience method for accessing complianceRecommendations field
+         */
+        public List<String> getRecommendations() {
+            return this.complianceRecommendations;
+        }
     }
 
     @Data
@@ -112,6 +126,27 @@ public class SqlLoaderReports {
         private Map<String, Object> performanceMetrics;
         private LocalDateTime analyzedAt;
         private String analyzedBy;
+        
+        /**
+         * Convenience method for accessing needsOptimization field
+         */
+        public Boolean needsOptimization() {
+            return this.needsOptimization;
+        }
+        
+        /**
+         * Convenience method for accessing performanceRecommendations field
+         */
+        public List<String> getOptimizationRecommendations() {
+            return this.performanceRecommendations;
+        }
+        
+        /**
+         * Convenience method for accessing directPathEnabled field
+         */
+        public Boolean isDirectPathEnabled() {
+            return this.directPathEnabled;
+        }
     }
 
     @Data

@@ -1,88 +1,36 @@
 package com.truist.batch.entity;
 
-import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
 /**
- * Entity for CM3INT.TEMPLATE_SOURCE_MAPPINGS table
+ * POJO for CM3INT.TEMPLATE_SOURCE_MAPPINGS table
  * Used for US002 Template Configuration Enhancement - Field-level mappings between templates and source systems
+ * 
+ * Converted from JPA Entity to simple POJO to eliminate JPA dependencies
  */
-@Entity
-@Table(name = "TEMPLATE_SOURCE_MAPPINGS", schema = "CM3INT")
 public class TemplateSourceMappingEntity {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "ID")
     private Long id;
-
-    @Column(name = "FILE_TYPE", length = 50, nullable = false)
     private String fileType;
-
-    @Column(name = "TRANSACTION_TYPE", length = 10, nullable = false)
     private String transactionType;
-
-    @Column(name = "SOURCE_SYSTEM_ID", length = 50, nullable = false)
     private String sourceSystemId;
-
-    @Column(name = "JOB_NAME", length = 100, nullable = false)
     private String jobName;
-
-    @Column(name = "TARGET_FIELD_NAME", length = 50, nullable = false)
     private String targetFieldName;
-
-    @Column(name = "SOURCE_FIELD_NAME", length = 100)
     private String sourceFieldName;
-
-    @Column(name = "TRANSFORMATION_TYPE", length = 20)
     private String transformationType = "source";
-
-    @Column(name = "TRANSFORMATION_CONFIG", length = 1000)
     private String transformationConfig;
-
-    @Column(name = "TARGET_POSITION")
     private Integer targetPosition;
-
-    @Column(name = "LENGTH")
     private Integer length;
-
-    @Column(name = "DATA_TYPE", length = 20)
     private String dataType;
-
-    @Column(name = "CREATED_BY", length = 50, nullable = false)
     private String createdBy;
-
-    @Column(name = "CREATED_DATE", nullable = false, updatable = false)
     private LocalDateTime createdDate;
-
-    @Column(name = "MODIFIED_BY", length = 50)
     private String modifiedBy;
-
-    @Column(name = "MODIFIED_DATE")
     private LocalDateTime modifiedDate;
-
-    @Column(name = "VERSION")
     private Integer version = 1;
-
-    @Column(name = "ENABLED", length = 1)
     private String enabled = "Y";
 
-    // Foreign key relationships (optional, for reference)
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "SOURCE_SYSTEM_ID", referencedColumnName = "ID", insertable = false, updatable = false)
-    private SourceSystemEntity sourceSystem;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "FILE_TYPE", referencedColumnName = "FILE_TYPE", insertable = false, updatable = false)
-    private FileTypeTemplateEntity fileTypeTemplate;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumns({
-        @JoinColumn(name = "FILE_TYPE", referencedColumnName = "FILE_TYPE", insertable = false, updatable = false),
-        @JoinColumn(name = "TRANSACTION_TYPE", referencedColumnName = "TRANSACTION_TYPE", insertable = false, updatable = false),
-        @JoinColumn(name = "TARGET_FIELD_NAME", referencedColumnName = "FIELD_NAME", insertable = false, updatable = false)
-    })
-    private FieldTemplateEntity fieldTemplate;
+    // Foreign key relationships removed for POJO conversion
+    // These can be handled by separate service methods when needed
 
     // Constructors
     public TemplateSourceMappingEntity() {
@@ -102,8 +50,7 @@ public class TemplateSourceMappingEntity {
         this.createdBy = createdBy;
     }
 
-    // JPA lifecycle methods
-    @PreUpdate
+    // Lifecycle methods (previously JPA callbacks)
     public void preUpdate() {
         this.modifiedDate = LocalDateTime.now();
     }
@@ -253,29 +200,7 @@ public class TemplateSourceMappingEntity {
         this.enabled = enabled;
     }
 
-    public SourceSystemEntity getSourceSystem() {
-        return sourceSystem;
-    }
-
-    public void setSourceSystem(SourceSystemEntity sourceSystem) {
-        this.sourceSystem = sourceSystem;
-    }
-
-    public FileTypeTemplateEntity getFileTypeTemplate() {
-        return fileTypeTemplate;
-    }
-
-    public void setFileTypeTemplate(FileTypeTemplateEntity fileTypeTemplate) {
-        this.fileTypeTemplate = fileTypeTemplate;
-    }
-
-    public FieldTemplateEntity getFieldTemplate() {
-        return fieldTemplate;
-    }
-
-    public void setFieldTemplate(FieldTemplateEntity fieldTemplate) {
-        this.fieldTemplate = fieldTemplate;
-    }
+    // Removed relationship getters/setters for POJO conversion
 
     // Utility methods
     public boolean isEnabled() {

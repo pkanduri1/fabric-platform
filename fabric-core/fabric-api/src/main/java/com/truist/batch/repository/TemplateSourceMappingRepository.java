@@ -1,20 +1,20 @@
 package com.truist.batch.repository;
 
 import com.truist.batch.entity.TemplateSourceMappingEntity;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Modifying;
-import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Repository for TemplateSourceMappingEntity in US002 Template Configuration Enhancement
  * Maps to CM3INT.TEMPLATE_SOURCE_MAPPINGS table
+ * 
+ * Converted from JPA to JdbcTemplate-based repository to eliminate JPA dependencies
  */
 @Repository
-public interface TemplateSourceMappingRepository extends JpaRepository<TemplateSourceMappingEntity, Long> {
+public interface TemplateSourceMappingRepository {
 
     /**
      * Find all enabled mappings for a specific template-source combination
@@ -90,8 +90,6 @@ public interface TemplateSourceMappingRepository extends JpaRepository<TemplateS
      * @param sourceSystemId Source system ID
      * @param jobName Job name
      */
-    @Modifying
-    @Query("DELETE FROM TemplateSourceMappingEntity t WHERE t.fileType = :fileType AND t.transactionType = :transactionType AND t.sourceSystemId = :sourceSystemId AND t.jobName = :jobName")
     void deleteByFileTypeAndTransactionTypeAndSourceSystemIdAndJobName(
             @Param("fileType") String fileType, 
             @Param("transactionType") String transactionType, 
@@ -105,8 +103,6 @@ public interface TemplateSourceMappingRepository extends JpaRepository<TemplateS
      * @param transactionType Template transaction type
      * @param sourceSystemId Source system ID
      */
-    @Modifying
-    @Query("UPDATE TemplateSourceMappingEntity t SET t.enabled = 'N', t.modifiedDate = CURRENT_TIMESTAMP WHERE t.fileType = :fileType AND t.transactionType = :transactionType AND t.sourceSystemId = :sourceSystemId AND t.enabled = 'Y'")
     void disableByFileTypeAndTransactionTypeAndSourceSystemId(
             @Param("fileType") String fileType, 
             @Param("transactionType") String transactionType, 
@@ -120,7 +116,6 @@ public interface TemplateSourceMappingRepository extends JpaRepository<TemplateS
      * @param enabled Enabled flag ('Y' or 'N')
      * @return List of distinct source system IDs
      */
-    @Query("SELECT DISTINCT t.sourceSystemId FROM TemplateSourceMappingEntity t WHERE t.fileType = :fileType AND t.transactionType = :transactionType AND t.enabled = :enabled ORDER BY t.sourceSystemId")
     List<String> findDistinctSourceSystemIdsByFileTypeAndTransactionTypeAndEnabled(
             @Param("fileType") String fileType, 
             @Param("transactionType") String transactionType, 
@@ -133,7 +128,6 @@ public interface TemplateSourceMappingRepository extends JpaRepository<TemplateS
      * @param enabled Enabled flag ('Y' or 'N')
      * @return List of distinct file type and transaction type combinations
      */
-    @Query("SELECT DISTINCT CONCAT(t.fileType, '/', t.transactionType) FROM TemplateSourceMappingEntity t WHERE t.sourceSystemId = :sourceSystemId AND t.enabled = :enabled ORDER BY t.fileType, t.transactionType")
     List<String> findDistinctTemplatesBySourceSystemIdAndEnabled(
             @Param("sourceSystemId") String sourceSystemId, 
             @Param("enabled") String enabled);
@@ -147,10 +141,23 @@ public interface TemplateSourceMappingRepository extends JpaRepository<TemplateS
      * @param enabled Enabled flag ('Y' or 'N')
      * @return List of mappings with null or empty source fields
      */
-    @Query("SELECT t FROM TemplateSourceMappingEntity t WHERE t.fileType = :fileType AND t.transactionType = :transactionType AND t.sourceSystemId = :sourceSystemId AND t.enabled = :enabled AND (t.sourceFieldName IS NULL OR t.sourceFieldName = '') ORDER BY t.targetPosition")
     List<TemplateSourceMappingEntity> findMappingsWithMissingSourceFields(
             @Param("fileType") String fileType, 
             @Param("transactionType") String transactionType, 
             @Param("sourceSystemId") String sourceSystemId, 
             @Param("enabled") String enabled);
+
+    // Standard CRUD operations to replace JpaRepository methods
+    <S extends TemplateSourceMappingEntity> S save(S entity);
+    <S extends TemplateSourceMappingEntity> Iterable<S> saveAll(Iterable<S> entities);
+    Optional<TemplateSourceMappingEntity> findById(Long id);
+    boolean existsById(Long id);
+    List<TemplateSourceMappingEntity> findAll();
+    Iterable<TemplateSourceMappingEntity> findAllById(Iterable<Long> ids);
+    long count();
+    void deleteById(Long id);
+    void delete(TemplateSourceMappingEntity entity);
+    void deleteAllById(Iterable<? extends Long> ids);
+    void deleteAll(Iterable<? extends TemplateSourceMappingEntity> entities);
+    void deleteAll();
 }

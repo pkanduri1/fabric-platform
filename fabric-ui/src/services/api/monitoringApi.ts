@@ -110,10 +110,11 @@ apiClient.interceptors.response.use(
 function transformToMonitoringError(error: AxiosError): MonitoringError {
   const response = error.response;
   const correlationId = response?.headers['x-correlation-id'] || 'unknown';
+  const responseData = response?.data as any;
   
   return {
-    code: response?.data?.code || `HTTP_${response?.status}` || 'NETWORK_ERROR',
-    message: response?.data?.message || error.message || 'An error occurred',
+    code: responseData?.code || `HTTP_${response?.status}` || 'NETWORK_ERROR',
+    message: responseData?.message || error.message || 'An error occurred',
     timestamp: new Date().toISOString(),
     recoverable: response?.status !== 401 && response?.status !== 403,
     details: {
@@ -463,5 +464,4 @@ export class MonitoringApiService {
 // Export singleton instance
 export const monitoringApi = new MonitoringApiService();
 
-// Export for testing or custom configuration
-export { MonitoringApiService };
+// MonitoringApiService class is already exported above

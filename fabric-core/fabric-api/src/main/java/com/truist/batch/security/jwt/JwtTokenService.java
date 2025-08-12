@@ -265,22 +265,6 @@ public class JwtTokenService {
         }
     }
     
-    /**
-     * Generates a token ID for blacklisting purposes
-     * 
-     * @param token JWT token
-     * @return SHA-256 hash of the token for secure storage
-     */
-    public String generateTokenHash(String token) {
-        try {
-            java.security.MessageDigest digest = java.security.MessageDigest.getInstance("SHA-256");
-            byte[] hash = digest.digest(token.getBytes(StandardCharsets.UTF_8));
-            return Base64.getEncoder().encodeToString(hash);
-        } catch (Exception e) {
-            log.error("Error generating token hash: {}", e.getMessage());
-            throw new JwtTokenException("Failed to generate token hash", e);
-        }
-    }
     
     // Private helper methods
     
@@ -334,5 +318,90 @@ public class JwtTokenService {
         if (!TOKEN_TYPE_ACCESS.equals(tokenType) && !TOKEN_TYPE_REFRESH.equals(tokenType)) {
             throw new JwtTokenException("Invalid token type: " + tokenType);
         }
+    }
+    
+    /**
+     * Check if token is near expiry (within 5 minutes)
+     */
+    public boolean isTokenNearExpiry(String token) {
+        try {
+            Claims claims = validateToken(token);
+            Date expiration = claims.getExpiration();
+            long timeLeft = expiration.getTime() - System.currentTimeMillis();
+            return timeLeft < 300000; // 5 minutes
+        } catch (Exception e) {
+            return true; // Consider invalid tokens as needing rotation
+        }
+    }
+    
+    /**
+     * Rotate token by generating a new one with same claims
+     */
+    public String rotateToken(String oldToken) {
+        try {
+            Claims oldClaims = validateToken(oldToken);
+            String userId = oldClaims.get(CLAIM_USER_ID, String.class);
+            
+            // Create new token details from old token  
+            @SuppressWarnings("unchecked")
+            List<String> roles = oldClaims.get(CLAIM_ROLES, List.class);
+            
+            UserTokenDetails userDetails = UserTokenDetails.builder()
+                    .userId(userId)
+                    .username(oldClaims.getSubject())
+                    .roles(roles != null ? roles : java.util.Collections.emptyList())
+                    .build();
+            
+            return generateAccessToken(userDetails);
+        } catch (Exception e) {
+            throw new JwtTokenException("Failed to rotate token", e);
+        }
+    }
+    
+    /**
+     * Get user ID from token
+     */
+    public String getUserIdFromToken(String token) {
+        try {
+            Claims claims = validateToken(token);
+            return claims.get(CLAIM_USER_ID, String.class);
+        } catch (Exception e) {
+            throw new JwtTokenException("Failed to extract user ID from token", e);
+        }
+    }
+    
+    /**
+     * Get user roles from token
+     */
+    @SuppressWarnings("unchecked")
+    public List<String> getUserRolesFromToken(String token) {
+        try {
+            Claims claims = validateToken(token);
+            List<String> roles = claims.get(CLAIM_ROLES, List.class);
+            return roles != null ? roles : java.util.Collections.emptyList();
+        } catch (Exception e) {
+            throw new JwtTokenException("Failed to extract roles from token", e);
+        }
+    }
+    
+    /**
+     * Generate a hash of the token for blacklist storage
+     */
+    public String generateTokenHash(String token) {
+        try {
+            java.security.MessageDigest digest = java.security.MessageDigest.getInstance("SHA-256");
+            byte[] hash = digest.digest(token.getBytes(StandardCharsets.UTF_8));
+            return bytesToHex(hash);
+        } catch (Exception e) {
+            throw new JwtTokenException("Failed to generate token hash", e);
+        }
+    }
+    
+    private String bytesToHex(byte[] bytes) {
+        StringBuilder result = new StringBuilder();
+        for (byte b : bytes) {
+            result.append(String.format("%02x", b));
+        }
+        return result.toString();
     }
 }

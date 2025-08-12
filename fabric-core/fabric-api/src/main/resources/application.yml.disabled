@@ -14,10 +14,9 @@ spring:
   profiles:
     active: local
     
-  # Configuration Import Strategy
+  # Configuration Import Strategy (temporarily disabled for startup)
   config:
     import:
-      - optional:classpath:batch-sources/
       - optional:file:./config/
       - optional:file:./config/local/
 

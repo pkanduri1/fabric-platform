@@ -30,7 +30,9 @@ import { Download, Upload, Save, Settings, OpenInNew } from '@mui/icons-material
 import { useConfigurationContext } from '../../contexts/ConfigurationContext';
 import { templateApiService } from '../../services/api/templateApi';
 import { FileTypeTemplate, FieldTemplate, FieldMappingConfig, TemplateToConfigurationResult } from '../../types/template';
+import { SourceSystem } from '../../types/configuration';
 import { useNavigate } from 'react-router-dom';
+import { useSourceSystems } from '../../hooks/useSourceSystems';
 
 const steps = ['Select Template', 'Configure Mappings', 'Generate & Save'];
 
@@ -46,14 +48,25 @@ export const TemplateConfigurationPage: React.FC = () => {
     const [templateJobName, setTemplateJobName] = useState('');
     const [success, setSuccess] = useState<string | null>(null);
     const [generatedConfig, setGeneratedConfig] = useState<any>(null);
+    const [localSelectedSourceSystem, setLocalSelectedSourceSystem] = useState<SourceSystem | null>(null);
 
     const navigate = useNavigate();
+    
+    const { sourceSystems, isLoading: sourceSystemsLoading } = useSourceSystems();
 
     const {
         selectedSourceSystem,
         selectedJob,
-        saveConfiguration
+        saveConfiguration,
+        selectSourceSystem
     } = useConfigurationContext();
+
+    // Initialize local source system with context value
+    useEffect(() => {
+        if (selectedSourceSystem && !localSelectedSourceSystem) {
+            setLocalSelectedSourceSystem(selectedSourceSystem);
+        }
+    }, [selectedSourceSystem, localSelectedSourceSystem]);
 
     // Load file types on mount
     useEffect(() => {
@@ -141,6 +154,14 @@ export const TemplateConfigurationPage: React.FC = () => {
         setTemplateFields(updated);
     };
 
+    const handleSourceSystemChange = (sourceSystemId: string) => {
+        const sourceSystem = sourceSystems.find(s => s.id === sourceSystemId);
+        if (sourceSystem) {
+            setLocalSelectedSourceSystem(sourceSystem);
+            selectSourceSystem(sourceSystemId);
+        }
+    };
+
     const generateConfiguration = async () => {
         // Validation checks
         if (!selectedFileType) {
@@ -153,8 +174,8 @@ export const TemplateConfigurationPage: React.FC = () => {
             return;
         }
 
-        if (!selectedSourceSystem) {
-            setError('Please select a source system from the sidebar');
+        if (!localSelectedSourceSystem) {
+            setError('Please select a source system');
             return;
         }
 
@@ -171,7 +192,7 @@ export const TemplateConfigurationPage: React.FC = () => {
             console.log('🚀 Starting configuration generation...', {
                 fileType: selectedFileType,
                 transactionType: selectedTransactionType,
-                sourceSystem: selectedSourceSystem.id,
+                sourceSystem: localSelectedSourceSystem.id,
                 jobName: jobName
             });
 
@@ -182,7 +203,7 @@ export const TemplateConfigurationPage: React.FC = () => {
                 configWithMetadata = await templateApiService.createConfigurationFromTemplateWithMetadata(
                     selectedFileType,
                     selectedTransactionType,
-                    selectedSourceSystem.id,
+                    localSelectedSourceSystem.id,
                     jobName
                 );
 
@@ -242,7 +263,7 @@ export const TemplateConfigurationPage: React.FC = () => {
     console.log('📦 Sending to backend:', configForBackend);
 
     // Call the backend API directly instead of context save
-    const response = await fetch('http://localhost:8080/api/config/mappings/save', {
+    const response = await fetch('http://localhost:8080/ui/mappings/save', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -282,7 +303,7 @@ Configuration ID: ${result}
 
 Template: ${templateMetadata.fileType}/${templateMetadata.transactionType}
 Job Name: ${jobName}
-Source System: ${selectedSourceSystem.name}
+Source System: ${localSelectedSourceSystem.name}
 Fields prepared: ${enhancedFields.length}
 
 📋 Next Steps:
@@ -310,8 +331,8 @@ Fields prepared: ${enhancedFields.length}
     };
 
     const navigateToManualConfig = () => {
-        if (selectedSourceSystem && templateJobName) {
-            navigate(`/configuration/${selectedSourceSystem.id}/${templateJobName}`);
+        if (localSelectedSourceSystem && templateJobName) {
+            navigate(`/configuration/${localSelectedSourceSystem.id}/${templateJobName}`);
         }
     };
 
@@ -448,13 +469,21 @@ Fields prepared: ${enhancedFields.length}
                         </Grid>
 
                         <Grid item xs={12} md={3}>
-                            <TextField
-                                fullWidth
-                                label="Source System"
-                                value={selectedSourceSystem?.name || 'Select from sidebar'}
-                                disabled
-                                helperText="Selected from navigation"
-                            />
+                            <FormControl fullWidth>
+                                <InputLabel>Source System</InputLabel>
+                                <Select
+                                    value={localSelectedSourceSystem?.id || ''}
+                                    onChange={(e) => handleSourceSystemChange(e.target.value)}
+                                    label="Source System"
+                                    disabled={sourceSystemsLoading}
+                                >
+                                    {sourceSystems.map((system) => (
+                                        <MenuItem key={system.id} value={system.id}>
+                                            {system.name} - {system.systemType}
+                                        </MenuItem>
+                                    ))}
+                                </Select>
+                            </FormControl>
                         </Grid>
 
                         <Grid item xs={12} md={3}>
@@ -585,7 +614,7 @@ Fields prepared: ${enhancedFields.length}
                                 variant="contained"
                                 startIcon={loading ? <CircularProgress size={20} /> : <Save />}
                                 onClick={generateConfiguration}
-                                disabled={loading || !selectedSourceSystem || !templateJobName}
+                                disabled={loading || !localSelectedSourceSystem || !templateJobName}
                             >
                                 Generate & Save Configuration
                             </Button>
@@ -607,10 +636,10 @@ Fields prepared: ${enhancedFields.length}
                             </Button>
                         </Box>
 
-                        {(!selectedSourceSystem || !templateJobName) && (
+                        {(!localSelectedSourceSystem || !templateJobName) && (
                             <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-                                {!selectedSourceSystem
-                                    ? "Please select a source system from the sidebar navigation."
+                                {!localSelectedSourceSystem
+                                    ? "Please select a source system from the dropdown above."
                                     : "Please select a template to generate a job name."
                                 }
                             </Typography>

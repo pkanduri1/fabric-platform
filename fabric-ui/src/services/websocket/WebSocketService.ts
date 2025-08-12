@@ -53,10 +53,8 @@ export type WebSocketEventType =
   | 'reconnect'
   | 'heartbeat';
 
-// Event listener interface
-export interface WebSocketEventListener {
-  (event: WebSocketEventType, data?: any): void;
-}
+// Event listener type
+export type WebSocketEventListener = (data?: any) => void;
 
 // Default configuration
 const DEFAULT_CONFIG: WebSocketConfig = {
@@ -616,7 +614,7 @@ export class WebSocketService {
     const listeners = this.eventListeners.get(eventType) || [];
     listeners.forEach(listener => {
       try {
-        listener(eventType, data);
+        listener(data);
       } catch (error) {
         console.error(`Error in WebSocket event listener:`, error);
       }

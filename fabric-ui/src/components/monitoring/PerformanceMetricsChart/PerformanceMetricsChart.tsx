@@ -184,7 +184,7 @@ export const PerformanceMetricsChart: React.FC<PerformanceChartProps> = ({
       }));
     } else if (type === 'historical' && trends) {
       // For historical, use trend data
-      return trends.jobExecutionTrends.map((trend, index) => ({
+      return trends.jobExecutionTrends.map((trend: any, index: number) => ({
         timestamp: new Date(trend.timestamp).getTime(),
         time: new Date(trend.timestamp).toLocaleTimeString(),
         throughput: trends.throughputTrends[index]?.value || 0,

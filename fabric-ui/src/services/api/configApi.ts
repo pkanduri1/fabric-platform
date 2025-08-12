@@ -9,7 +9,7 @@ import { ApiResponse } from '../../types/configuration';
 import { SourceField} from '../../types/configuration';
 
 
-const API_BASE_URL = 'http://localhost:8080/api/config'; // Update with your actual API base URL
+const API_BASE_URL = 'http://localhost:8080/ui'; // Corrected to match backend controller path
 
 
 

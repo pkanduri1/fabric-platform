@@ -1,0 +1,254 @@
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] -----------------------< com.truist:fabric-api >------------------------
+[INFO] Building fabric-api 0.0.1-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] >>> spring-boot:3.4.6:run (default-cli) > test-compile @ fabric-api >>>
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ fabric-api ---
+[INFO] Copying 2 resources from src/main/resources to target/classes
+[INFO] Copying 34 resources from src/main/resources to target/classes
+[INFO] 
+[INFO] --- compiler:3.13.0:compile (default-compile) @ fabric-api ---
+[INFO] Recompiling the module because of changed source code.
+[INFO] Compiling 116 source files with javac [debug parameters release 17] to target/classes
+[WARNING] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/websocket/service/RealTimeMonitoringService.java:[477,25] @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
+[WARNING] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/websocket/service/RealTimeMonitoringService.java:[478,24] @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
+[WARNING] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/websocket/service/RealTimeMonitoringService.java:[479,24] @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
+[WARNING] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/websocket/service/RealTimeMonitoringService.java:[480,24] @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
+[WARNING] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/websocket/service/RealTimeMonitoringService.java:[481,24] @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
+[WARNING] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/websocket/service/RealTimeMonitoringService.java:[482,24] @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
+[WARNING] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/websocket/service/RealTimeMonitoringService.java:[483,24] @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
+[WARNING] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/websocket/service/RealTimeMonitoringService.java:[484,34] @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
+[WARNING] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/websocket/service/RealTimeMonitoringService.java:[532,24] @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
+[WARNING] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/websocket/service/RealTimeMonitoringService.java:[533,24] @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
+[WARNING] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/websocket/service/RealTimeMonitoringService.java:[534,24] @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
+[WARNING] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/monitor/Epic2PerformanceMonitor.java:[98,35] @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
+[WARNING] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/audit/NoOpAuditTrailManager.java:[24,1] Field 'log' already exists.
+[WARNING] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/websocket/handler/EnterpriseWebSocketHandler.java:[43,1] Field 'log' already exists.
+[WARNING] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/security/config/SecurityConfig.java:[123,17] frameOptions() in org.springframework.security.config.annotation.web.configurers.HeadersConfigurer has been deprecated and marked for removal
+[WARNING] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/security/config/SecurityConfig.java:[124,17] contentTypeOptions() in org.springframework.security.config.annotation.web.configurers.HeadersConfigurer has been deprecated and marked for removal
+[WARNING] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/security/config/SecurityConfig.java:[124,38] and() in org.springframework.security.config.annotation.web.configurers.HeadersConfigurer.ContentTypeOptionsConfig has been deprecated and marked for removal
+[WARNING] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/security/config/SecurityConfig.java:[128,17] referrerPolicy(org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter.ReferrerPolicy) in org.springframework.security.config.annotation.web.configurers.HeadersConfigurer has been deprecated and marked for removal
+[WARNING] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/security/config/SecurityConfig.java:[129,17] and() in org.springframework.security.config.annotation.web.configurers.HeadersConfigurer.ReferrerPolicyConfig has been deprecated and marked for removal
+[INFO] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/security/jwt/JwtTokenService.java: /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/security/jwt/JwtTokenService.java uses or overrides a deprecated API.
+[INFO] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/security/jwt/JwtTokenService.java: Recompile with -Xlint:deprecation for details.
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ fabric-api ---
+[INFO] Copying 1 resource from src/test/resources to target/test-classes
+[INFO] 
+[INFO] --- compiler:3.13.0:testCompile (default-testCompile) @ fabric-api ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 33 source files with javac [debug parameters release 17] to target/test-classes
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/test/java/com/truist/batch/integration/RealTimeMonitoringIntegrationTest.java:[511,94] illegal text block open delimiter sequence, missing line terminator
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/test/java/com/truist/batch/integration/RealTimeMonitoringIntegrationTest.java:[512,24] illegal text block open delimiter sequence, missing line terminator
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/test/java/com/truist/batch/integration/RealTimeMonitoringIntegrationTest.java:[517,25] <identifier> expected
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/test/java/com/truist/batch/integration/RealTimeMonitoringIntegrationTest.java:[517,26] illegal start of type
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/test/java/com/truist/batch/integration/RealTimeMonitoringIntegrationTest.java:[520,13] illegal start of type
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/test/java/com/truist/batch/integration/RealTimeMonitoringIntegrationTest.java:[520,28] <identifier> expected
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/test/java/com/truist/batch/integration/RealTimeMonitoringIntegrationTest.java:[529,26] <identifier> expected
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/test/java/com/truist/batch/integration/RealTimeMonitoringIntegrationTest.java:[751,13] class, interface, enum, or record expected
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/test/java/com/truist/batch/integration/RealTimeMonitoringIntegrationTest.java:[768,9] class, interface, enum, or record expected
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/test/java/com/truist/batch/integration/RealTimeMonitoringIntegrationTest.java:[782,9] class, interface, enum, or record expected
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/test/java/com/truist/batch/integration/RealTimeMonitoringIntegrationTest.java:[783,5] class, interface, enum, or record expected
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/test/java/com/truist/batch/integration/RealTimeMonitoringIntegrationTest.java:[787,5] class, interface, enum, or record expected
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/test/java/com/truist/batch/integration/RealTimeMonitoringIntegrationTest.java:[806,9] class, interface, enum, or record expected
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/test/java/com/truist/batch/integration/RealTimeMonitoringIntegrationTest.java:[807,5] class, interface, enum, or record expected
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/test/java/com/truist/batch/integration/RealTimeMonitoringIntegrationTest.java:[823,9] class, interface, enum, or record expected
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/test/java/com/truist/batch/integration/RealTimeMonitoringIntegrationTest.java:[824,5] class, interface, enum, or record expected
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/test/java/com/truist/batch/integration/RealTimeMonitoringIntegrationTest.java:[841,9] class, interface, enum, or record expected
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/test/java/com/truist/batch/integration/RealTimeMonitoringIntegrationTest.java:[842,5] class, interface, enum, or record expected
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/test/java/com/truist/batch/integration/RealTimeMonitoringIntegrationTest.java:[889,1] class, interface, enum, or record expected
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/test/java/com/truist/batch/integration/WebSocketSessionManagementIntegrationTest.java:[779,72] illegal text block open delimiter sequence, missing line terminator
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/test/java/com/truist/batch/integration/WebSocketSessionManagementIntegrationTest.java:[781,32] illegal text block open delimiter sequence, missing line terminator
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/test/java/com/truist/batch/integration/WebSocketSessionManagementIntegrationTest.java:[774,21] 'try' without 'catch', 'finally' or resource declarations
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/test/java/com/truist/batch/integration/WebSocketSessionManagementIntegrationTest.java:[782,22] ')' expected
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/test/java/com/truist/batch/integration/WebSocketSessionManagementIntegrationTest.java:[782,23] 'catch' without 'try'
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/test/java/com/truist/batch/integration/WebSocketSessionManagementIntegrationTest.java:[785,18] illegal start of expression
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/test/java/com/truist/batch/integration/WebSocketSessionManagementIntegrationTest.java:[788,13] illegal start of type
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/test/java/com/truist/batch/integration/WebSocketSessionManagementIntegrationTest.java:[788,31] ';' expected
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/test/java/com/truist/batch/integration/WebSocketSessionManagementIntegrationTest.java:[788,41] <identifier> expected
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/test/java/com/truist/batch/integration/WebSocketSessionManagementIntegrationTest.java:[792,13] illegal start of type
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/test/java/com/truist/batch/integration/WebSocketSessionManagementIntegrationTest.java:[792,31] ';' expected
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/test/java/com/truist/batch/integration/WebSocketSessionManagementIntegrationTest.java:[792,41] <identifier> expected
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/test/java/com/truist/batch/integration/WebSocketSessionManagementIntegrationTest.java:[797,13] invalid method declaration; return type required
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/test/java/com/truist/batch/integration/WebSocketSessionManagementIntegrationTest.java:[797,38] <identifier> expected
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/test/java/com/truist/batch/integration/WebSocketSessionManagementIntegrationTest.java:[801,13] illegal start of type
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/test/java/com/truist/batch/integration/WebSocketSessionManagementIntegrationTest.java:[801,37] <identifier> expected
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/test/java/com/truist/batch/integration/WebSocketSessionManagementIntegrationTest.java:[801,39] ';' expected
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/test/java/com/truist/batch/integration/WebSocketSessionManagementIntegrationTest.java:[809,26] <identifier> expected
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/test/java/com/truist/batch/integration/WebSocketSessionManagementIntegrationTest.java:[862,1] class, interface, enum, or record expected
+[INFO] 
+[INFO] <<< spring-boot:3.4.6:run (default-cli) < test-compile @ fabric-api <<<
+[INFO] 
+[INFO] 
+[INFO] --- spring-boot:3.4.6:run (default-cli) @ fabric-api ---
+[INFO] Attaching agents: []
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v3.4.6)
+
+2025-08-11T18:50:22.447-04:00  INFO 13719 --- [fabric-platform] [           main] c.t.batch.InterfaceBatchApplication      : Starting InterfaceBatchApplication using Java 17.0.14 with PID 13719 (/Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/target/classes started by pavankanduri in /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api)
+2025-08-11T18:50:22.448-04:00  INFO 13719 --- [fabric-platform] [           main] c.t.batch.InterfaceBatchApplication      : The following 1 profile is active: "local"
+2025-08-11T18:50:22.932-04:00  INFO 13719 --- [fabric-platform] [           main] o.s.b.f.s.DefaultListableBeanFactory     : Overriding bean definition for bean 'transactionManager' with a different definition: replacing [Root bean: class=null; scope=; abstract=false; lazyInit=null; autowireMode=3; dependencyCheck=0; autowireCandidate=true; primary=true; fallback=false; factoryBeanName=localDataSourceConfig; factoryMethodName=transactionManager; initMethodNames=null; destroyMethodNames=[(inferred)]; defined in class path resource [com/truist/batch/config/LocalDataSourceConfig.class]] with [Root bean: class=null; scope=; abstract=false; lazyInit=null; autowireMode=3; dependencyCheck=0; autowireCandidate=true; primary=false; fallback=false; factoryBeanName=localTransactionConfig; factoryMethodName=transactionManager; initMethodNames=null; destroyMethodNames=[(inferred)]; defined in class path resource [com/truist/batch/config/LocalTransactionConfig.class]]
+2025-08-11T18:50:22.934-04:00  INFO 13719 --- [fabric-platform] [           main] o.s.b.f.s.DefaultListableBeanFactory     : Overriding bean definition for bean 'dataSource' with a different definition: replacing [Root bean: class=null; scope=; abstract=false; lazyInit=null; autowireMode=3; dependencyCheck=0; autowireCandidate=true; primary=true; fallback=false; factoryBeanName=localDataSourceConfig; factoryMethodName=dataSource; initMethodNames=null; destroyMethodNames=[(inferred)]; defined in class path resource [com/truist/batch/config/LocalDataSourceConfig.class]] with [Root bean: class=null; scope=; abstract=false; lazyInit=null; autowireMode=3; dependencyCheck=0; autowireCandidate=true; primary=true; fallback=false; factoryBeanName=databaseConfig; factoryMethodName=dataSource; initMethodNames=null; destroyMethodNames=[(inferred)]; defined in class path resource [com/truist/batch/config/DatabaseConfig.class]]
+2025-08-11T18:50:22.934-04:00  INFO 13719 --- [fabric-platform] [           main] o.s.b.f.s.DefaultListableBeanFactory     : Overriding bean definition for bean 'transactionManager' with a different definition: replacing [Root bean: class=null; scope=; abstract=false; lazyInit=null; autowireMode=3; dependencyCheck=0; autowireCandidate=true; primary=false; fallback=false; factoryBeanName=localTransactionConfig; factoryMethodName=transactionManager; initMethodNames=null; destroyMethodNames=[(inferred)]; defined in class path resource [com/truist/batch/config/LocalTransactionConfig.class]] with [Root bean: class=null; scope=; abstract=false; lazyInit=null; autowireMode=3; dependencyCheck=0; autowireCandidate=true; primary=true; fallback=false; factoryBeanName=databaseConfig; factoryMethodName=transactionManager; initMethodNames=null; destroyMethodNames=[(inferred)]; defined in class path resource [com/truist/batch/config/DatabaseConfig.class]]
+2025-08-11T18:50:22.935-04:00  INFO 13719 --- [fabric-platform] [           main] o.s.b.c.c.annotation.BatchRegistrar      : Bean jobRepository already defined in the application context, skipping the registration of a jobRepository
+2025-08-11T18:50:22.937-04:00  INFO 13719 --- [fabric-platform] [           main] o.s.b.c.c.annotation.BatchRegistrar      : Finished Spring Batch infrastructure beans configuration in 2 ms.
+2025-08-11T18:50:22.938-04:00  INFO 13719 --- [fabric-platform] [           main] o.s.b.c.c.annotation.BatchRegistrar      : Bean jobRepository already defined in the application context, skipping the registration of a jobRepository
+2025-08-11T18:50:22.938-04:00  INFO 13719 --- [fabric-platform] [           main] o.s.b.c.c.annotation.BatchRegistrar      : Bean jobExplorer already defined in the application context, skipping the registration of a jobExplorer
+2025-08-11T18:50:22.938-04:00  INFO 13719 --- [fabric-platform] [           main] o.s.b.c.c.annotation.BatchRegistrar      : Bean jobLauncher already defined in the application context, skipping the registration of a jobLauncher
+2025-08-11T18:50:22.938-04:00  INFO 13719 --- [fabric-platform] [           main] o.s.b.c.c.annotation.BatchRegistrar      : Bean jobRegistry already defined in the application context, skipping the registration of a jobRegistry
+2025-08-11T18:50:22.938-04:00  INFO 13719 --- [fabric-platform] [           main] o.s.b.c.c.annotation.BatchRegistrar      : Bean jobRegistrySmartInitializingSingleton already defined in the application context, skipping the registration of a jobRegistrySmartInitializingSingleton
+2025-08-11T18:50:22.938-04:00  INFO 13719 --- [fabric-platform] [           main] o.s.b.c.c.annotation.BatchRegistrar      : Bean jobOperator already defined in the application context, skipping the registration of a jobOperator
+2025-08-11T18:50:22.938-04:00  INFO 13719 --- [fabric-platform] [           main] o.s.b.c.c.annotation.BatchRegistrar      : Finished Spring Batch infrastructure beans configuration in 0 ms.
+2025-08-11T18:50:22.938-04:00  INFO 13719 --- [fabric-platform] [           main] o.s.b.c.c.annotation.BatchRegistrar      : Bean jobRepository already defined in the application context, skipping the registration of a jobRepository
+2025-08-11T18:50:22.938-04:00  INFO 13719 --- [fabric-platform] [           main] o.s.b.c.c.annotation.BatchRegistrar      : Bean jobExplorer already defined in the application context, skipping the registration of a jobExplorer
+2025-08-11T18:50:22.938-04:00  INFO 13719 --- [fabric-platform] [           main] o.s.b.c.c.annotation.BatchRegistrar      : Bean jobLauncher already defined in the application context, skipping the registration of a jobLauncher
+2025-08-11T18:50:22.938-04:00  INFO 13719 --- [fabric-platform] [           main] o.s.b.c.c.annotation.BatchRegistrar      : Bean jobRegistry already defined in the application context, skipping the registration of a jobRegistry
+2025-08-11T18:50:22.938-04:00  INFO 13719 --- [fabric-platform] [           main] o.s.b.c.c.annotation.BatchRegistrar      : Bean jobRegistrySmartInitializingSingleton already defined in the application context, skipping the registration of a jobRegistrySmartInitializingSingleton
+2025-08-11T18:50:22.938-04:00  INFO 13719 --- [fabric-platform] [           main] o.s.b.c.c.annotation.BatchRegistrar      : Bean jobOperator already defined in the application context, skipping the registration of a jobOperator
+2025-08-11T18:50:22.938-04:00  INFO 13719 --- [fabric-platform] [           main] o.s.b.c.c.annotation.BatchRegistrar      : Finished Spring Batch infrastructure beans configuration in 0 ms.
+2025-08-11T18:50:23.710-04:00  INFO 13719 --- [fabric-platform] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8080 (http)
+2025-08-11T18:50:23.715-04:00  INFO 13719 --- [fabric-platform] [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2025-08-11T18:50:23.715-04:00  INFO 13719 --- [fabric-platform] [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.41]
+2025-08-11T18:50:23.740-04:00  INFO 13719 --- [fabric-platform] [           main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2025-08-11T18:50:23.741-04:00  INFO 13719 --- [fabric-platform] [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 1271 ms
+2025-08-11T18:50:24.002-04:00 DEBUG 13719 --- [fabric-platform] [           main] o.s.jdbc.datasource.DataSourceUtils      : Fetching JDBC Connection from DataSource
+2025-08-11T18:50:24.002-04:00  INFO 13719 --- [fabric-platform] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2025-08-11T18:50:24.326-04:00  INFO 13719 --- [fabric-platform] [           main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection oracle.jdbc.driver.T4CConnection@3b839f68
+2025-08-11T18:50:24.327-04:00  INFO 13719 --- [fabric-platform] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2025-08-11T18:50:24.333-04:00 DEBUG 13719 --- [fabric-platform] [           main] o.s.jdbc.datasource.DataSourceUtils      : Fetching JDBC Connection from DataSource
+2025-08-11T18:50:24.419-04:00  INFO 13719 --- [fabric-platform] [           main] c.t.b.i.config.IdempotencyConfiguration  : Initializing Fabric Platform Idempotency Framework with properties: IdempotencyProperties[enabled=true, ttl=24h, retries=3, cache=true, cleanup=true, dev=false]
+2025-08-11T18:50:24.511-04:00  INFO 13719 --- [fabric-platform] [           main] c.t.b.service.impl.TemplateServiceImpl   : TemplateServiceImpl initialized with repositories: field=true, fileType=true
+2025-08-11T18:50:24.616-04:00  INFO 13719 --- [fabric-platform] [           main] c.t.b.c.DataLoadConfigurationService     : Loading JSON fallback configurations from: classpath:config/data-loader-configs.json
+2025-08-11T18:50:24.633-04:00 ERROR 13719 --- [fabric-platform] [           main] c.t.b.c.DataLoadConfigurationService     : Error loading JSON fallback configurations: null
+🚀 FIXED DataSourceAdapterRegistry constructor called with 2 adapters
+2025-08-11T18:50:24.667-04:00  INFO 13719 --- [fabric-platform] [           main] c.t.b.adapter.DataSourceAdapterRegistry  : 🔌 Discovered 2 data source adapters:
+2025-08-11T18:50:24.667-04:00  INFO 13719 --- [fabric-platform] [           main] c.t.b.adapter.DataSourceAdapterRegistry  :   📌 JdbcDataSourceAdapter (priority: 100)
+🔍 FIXED Testing adapter JdbcDataSourceAdapter against 15 formats
+  JdbcDataSourceAdapter supports 'jdbc': true
+  ✅ FIXED Registered JdbcDataSourceAdapter for format 'jdbc'
+  JdbcDataSourceAdapter supports 'database': true
+  ✅ FIXED Registered JdbcDataSourceAdapter for format 'database'
+  JdbcDataSourceAdapter supports 'sql': true
+  ✅ FIXED Registered JdbcDataSourceAdapter for format 'sql'
+  JdbcDataSourceAdapter supports 'rest': false
+  JdbcDataSourceAdapter supports 'api': false
+  JdbcDataSourceAdapter supports 'http': false
+  JdbcDataSourceAdapter supports 'https': false
+  JdbcDataSourceAdapter supports 'kafka': false
+  JdbcDataSourceAdapter supports 'stream': false
+  JdbcDataSourceAdapter supports 's3': false
+  JdbcDataSourceAdapter supports 'aws': false
+  JdbcDataSourceAdapter supports 'csv': false
+  JdbcDataSourceAdapter supports 'excel': false
+  JdbcDataSourceAdapter supports 'json': false
+  JdbcDataSourceAdapter supports 'xml': false
+🎯 FIXED Adapter JdbcDataSourceAdapter registration complete
+2025-08-11T18:50:24.668-04:00  INFO 13719 --- [fabric-platform] [           main] c.t.b.adapter.DataSourceAdapterRegistry  :   📌 RestApiDataSourceAdapter (priority: 50)
+🔍 FIXED Testing adapter RestApiDataSourceAdapter against 15 formats
+  RestApiDataSourceAdapter supports 'jdbc': false
+  RestApiDataSourceAdapter supports 'database': false
+  RestApiDataSourceAdapter supports 'sql': false
+  RestApiDataSourceAdapter supports 'rest': true
+  ✅ FIXED Registered RestApiDataSourceAdapter for format 'rest'
+  RestApiDataSourceAdapter supports 'api': true
+  ✅ FIXED Registered RestApiDataSourceAdapter for format 'api'
+  RestApiDataSourceAdapter supports 'http': true
+  ✅ FIXED Registered RestApiDataSourceAdapter for format 'http'
+  RestApiDataSourceAdapter supports 'https': true
+  ✅ FIXED Registered RestApiDataSourceAdapter for format 'https'
+  RestApiDataSourceAdapter supports 'kafka': false
+  RestApiDataSourceAdapter supports 'stream': false
+  RestApiDataSourceAdapter supports 's3': false
+  RestApiDataSourceAdapter supports 'aws': false
+  RestApiDataSourceAdapter supports 'csv': false
+  RestApiDataSourceAdapter supports 'excel': false
+  RestApiDataSourceAdapter supports 'json': false
+  RestApiDataSourceAdapter supports 'xml': false
+🎯 FIXED Adapter RestApiDataSourceAdapter registration complete
+🎯 FIXED Adapter registry initialized with 7 format mappings: [rest, database, http, jdbc, api, https, sql]
+2025-08-11T18:50:24.669-04:00  INFO 13719 --- [fabric-platform] [           main] c.t.b.adapter.DataSourceAdapterRegistry  : 🎯 Adapter registry initialized with 7 format mappings
+No batch-source files found: class path resource [batch-sources/] cannot be resolved to URL because it does not exist
+2025-08-11T18:50:24.674-04:00  INFO 13719 --- [fabric-platform] [           main] com.truist.batch.config.DatabaseConfig   : 🕒 Transaction timeout set to 300 seconds (NORMAL MODE)
+2025-08-11T18:50:24.684-04:00 DEBUG 13719 --- [fabric-platform] [           main] o.s.jdbc.datasource.DataSourceUtils      : Fetching JDBC Connection from DataSource
+2025-08-11T18:50:24.685-04:00  INFO 13719 --- [fabric-platform] [           main] o.s.b.c.r.s.JobRepositoryFactoryBean     : No database type set, using meta data indicating: ORACLE
+2025-08-11T18:50:24.707-04:00  INFO 13719 --- [fabric-platform] [           main] c.t.batch.config.TaskExecutorConfig      : 🚀 PRODUCTION MODE: Using ThreadPoolTaskExecutor (parallel execution)
+2025-08-11T18:50:24.741-04:00  INFO 13719 --- [fabric-platform] [           main] o.s.b.c.l.s.TaskExecutorJobLauncher      : No TaskExecutor has been set, defaulting to synchronous executor.
+2025-08-11T18:50:24.899-04:00  WARN 13719 --- [fabric-platform] [           main] .s.s.UserDetailsServiceAutoConfiguration : 
+
+Using generated security password: b860baef-190a-482f-b7e5-e5334f540321
+
+This generated password is for development use only. Your security configuration must be updated before running your application in production.
+
+2025-08-11T18:50:24.907-04:00  INFO 13719 --- [fabric-platform] [           main] r$InitializeUserDetailsManagerConfigurer : Global AuthenticationManager configured with UserDetailsService bean with name inMemoryUserDetailsManager
+2025-08-11T18:50:25.155-04:00  INFO 13719 --- [fabric-platform] [           main] o.s.l.c.support.AbstractContextSource    : Property 'userDn' not set - anonymous context will be used for read-only operations
+2025-08-11T18:50:25.224-04:00  INFO 13719 --- [fabric-platform] [           main] o.s.b.a.e.web.EndpointLinksResolver      : Exposing 3 endpoints beneath base path '/actuator'
+2025-08-11T18:50:25.342-04:00  INFO 13719 --- [fabric-platform] [           main] c.t.b.i.config.IdempotencyConfiguration  : Configured cache manager for idempotency framework
+2025-08-11T18:50:25.344-04:00  INFO 13719 --- [fabric-platform] [           main] c.t.b.i.c.IdempotencyMetricsCollector    : Initialized idempotency metrics collector with properties: IdempotencyProperties[enabled=true, ttl=24h, retries=3, cache=true, cleanup=true, dev=false]
+2025-08-11T18:50:25.346-04:00  INFO 13719 --- [fabric-platform] [           main] c.t.b.i.config.IdempotencyConfiguration  : Creating idempotent job template with idempotency framework integration
+2025-08-11T18:50:25.873-04:00  INFO 13719 --- [fabric-platform] [localhost:27017] org.mongodb.driver.cluster               : Exception in monitor thread while connecting to server localhost:27017
+
+com.mongodb.MongoSocketOpenException: Exception opening socket
+	at com.mongodb.internal.connection.SocketStream.lambda$open$0(SocketStream.java:85) ~[mongodb-driver-core-5.2.1.jar:na]
+	at java.base/java.util.Optional.orElseThrow(Optional.java:403) ~[na:na]
+	at com.mongodb.internal.connection.SocketStream.open(SocketStream.java:85) ~[mongodb-driver-core-5.2.1.jar:na]
+	at com.mongodb.internal.connection.InternalStreamConnection.open(InternalStreamConnection.java:233) ~[mongodb-driver-core-5.2.1.jar:na]
+	at com.mongodb.internal.connection.DefaultServerMonitor$ServerMonitor.lookupServerDescription(DefaultServerMonitor.java:219) ~[mongodb-driver-core-5.2.1.jar:na]
+	at com.mongodb.internal.connection.DefaultServerMonitor$ServerMonitor.run(DefaultServerMonitor.java:176) ~[mongodb-driver-core-5.2.1.jar:na]
+Caused by: java.net.ConnectException: Connection refused
+	at java.base/sun.nio.ch.Net.pollConnect(Native Method) ~[na:na]
+	at java.base/sun.nio.ch.Net.pollConnectNow(Net.java:672) ~[na:na]
+	at java.base/sun.nio.ch.NioSocketImpl.timedFinishConnect(NioSocketImpl.java:554) ~[na:na]
+	at java.base/sun.nio.ch.NioSocketImpl.connect(NioSocketImpl.java:602) ~[na:na]
+	at java.base/java.net.SocksSocketImpl.connect(SocksSocketImpl.java:327) ~[na:na]
+	at java.base/java.net.Socket.connect(Socket.java:633) ~[na:na]
+	at com.mongodb.internal.connection.SocketStreamHelper.initialize(SocketStreamHelper.java:76) ~[mongodb-driver-core-5.2.1.jar:na]
+	at com.mongodb.internal.connection.SocketStream.initializeSocket(SocketStream.java:104) ~[mongodb-driver-core-5.2.1.jar:na]
+	at com.mongodb.internal.connection.SocketStream.open(SocketStream.java:79) ~[mongodb-driver-core-5.2.1.jar:na]
+	... 3 common frames omitted
+
+2025-08-11T18:50:25.875-04:00  INFO 13719 --- [fabric-platform] [           main] org.mongodb.driver.client                : MongoClient with metadata {"driver": {"name": "mongo-java-driver|sync|spring-boot", "version": "5.2.1"}, "os": {"type": "Darwin", "name": "Mac OS X", "architecture": "aarch64", "version": "15.5"}, "platform": "Java/Homebrew/17.0.14+0"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=null, transportSettings=null, commandListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsCommandListener@3656a6cd], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, EnumCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@32df1a2a, com.mongodb.Jep395RecordCodecProvider@4fecdf0b, com.mongodb.KotlinCodecProvider@4c431e2a]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:27017], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='30000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=10000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, password=null}}, heartbeatSocketSettings=SocketSettings{connectTimeoutMS=10000, readTimeoutMS=10000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, password=null}}, connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=120000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsConnectionPoolListener@597f9d91], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverMonitoringMode=AUTO, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=JAVA_LEGACY, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null, timeoutMS=null}
+2025-08-11T18:50:26.077-04:00  INFO 13719 --- [fabric-platform] [           main] c.t.b.p.TransactionTypePartitioner       : 🎯 Initializing TransactionTypePartitioner for 1000.1000 with executionId: 1000_1000_1754952626077
+2025-08-11T18:50:26.115-04:00  WARN 13719 --- [fabric-platform] [           main] ConfigServletWebServerApplicationContext : Exception encountered during context initialization - cancelling refresh attempt: org.springframework.context.ApplicationContextException: Failed to start bean 'webServerStartStop'
+2025-08-11T18:50:26.120-04:00  INFO 13719 --- [fabric-platform] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown initiated...
+2025-08-11T18:50:26.137-04:00  INFO 13719 --- [fabric-platform] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown completed.
+2025-08-11T18:50:26.151-04:00  INFO 13719 --- [fabric-platform] [           main] .s.b.a.l.ConditionEvaluationReportLogger : 
+
+Error starting ApplicationContext. To display the condition evaluation report re-run your application with 'debug' enabled.
+2025-08-11T18:50:26.157-04:00 ERROR 13719 --- [fabric-platform] [           main] o.s.b.d.LoggingFailureAnalysisReporter   : 
+
+***************************
+APPLICATION FAILED TO START
+***************************
+
+Description:
+
+Web server failed to start. Port 8080 was already in use.
+
+Action:
+
+Identify and stop the process that's listening on port 8080 or configure this application to listen on another port.
+
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD FAILURE
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  9.996 s
+[INFO] Finished at: 2025-08-11T18:50:26-04:00
+[INFO] ------------------------------------------------------------------------
+[ERROR] Failed to execute goal org.springframework.boot:spring-boot-maven-plugin:3.4.6:run (default-cli) on project fabric-api: Process terminated with exit code: 1 -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoExecutionException

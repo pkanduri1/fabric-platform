@@ -1,0 +1,442 @@
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] -----------------------< com.truist:fabric-api >------------------------
+[INFO] Building fabric-api 0.0.1-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- clean:3.4.1:clean (default-clean) @ fabric-api ---
+[INFO] Deleting /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/target
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ fabric-api ---
+[INFO] Copying 11 resources from src/main/resources to target/classes
+[INFO] Copying 22 resources from src/main/resources to target/classes
+[INFO] 
+[INFO] --- compiler:3.13.0:compile (default-compile) @ fabric-api ---
+[INFO] Recompiling the module because of changed source code.
+[INFO] Compiling 84 source files with javac [debug parameters release 17] to target/classes
+[INFO] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/security/jwt/JwtTokenService.java: /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/security/jwt/JwtTokenService.java uses or overrides a deprecated API.
+[INFO] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/security/jwt/JwtTokenService.java: Recompile with -Xlint:deprecation for details.
+[INFO] Some messages have been simplified; recompile with -Xdiags:verbose to get full output
+[INFO] -------------------------------------------------------------
+[WARNING] COMPILATION WARNING : 
+[INFO] -------------------------------------------------------------
+[WARNING] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/monitor/Epic2PerformanceMonitor.java:[98,35] @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
+[WARNING] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/security/config/SecurityConfig.java:[123,17] frameOptions() in org.springframework.security.config.annotation.web.configurers.HeadersConfigurer has been deprecated and marked for removal
+[WARNING] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/security/config/SecurityConfig.java:[124,17] contentTypeOptions() in org.springframework.security.config.annotation.web.configurers.HeadersConfigurer has been deprecated and marked for removal
+[WARNING] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/security/config/SecurityConfig.java:[124,38] and() in org.springframework.security.config.annotation.web.configurers.HeadersConfigurer.ContentTypeOptionsConfig has been deprecated and marked for removal
+[WARNING] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/security/config/SecurityConfig.java:[128,17] referrerPolicy(org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter.ReferrerPolicy) in org.springframework.security.config.annotation.web.configurers.HeadersConfigurer has been deprecated and marked for removal
+[WARNING] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/security/config/SecurityConfig.java:[129,17] and() in org.springframework.security.config.annotation.web.configurers.HeadersConfigurer.ReferrerPolicyConfig has been deprecated and marked for removal
+[INFO] 6 warnings 
+[INFO] -------------------------------------------------------------
+[INFO] -------------------------------------------------------------
+[ERROR] COMPILATION ERROR : 
+[INFO] -------------------------------------------------------------
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/config/WebSocketSecurityConfig.java:[145,94] cannot find symbol
+  symbol:   class WebSocketTransportRegistration
+  location: package org.springframework.messaging.simp.config
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/websocket/handler/EnterpriseWebSocketHandler.java:[214,45] bad operand types for binary operator '>'
+  first type:  java.util.concurrent.atomic.AtomicInteger
+  second type: int
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/websocket/handler/EnterpriseWebSocketHandler.java:[344,21] bad operand type io.jsonwebtoken.Claims for unary operator '!'
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/websocket/handler/EnterpriseWebSocketHandler.java:[395,13] bad operand type io.jsonwebtoken.Claims for unary operator '!'
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/websocket/handler/EnterpriseWebSocketHandler.java:[407,28] cannot find symbol
+  symbol:   method isTokenNearExpiry(java.lang.String)
+  location: variable jwtTokenService of type com.truist.batch.security.jwt.JwtTokenService
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/websocket/handler/EnterpriseWebSocketHandler.java:[409,50] cannot find symbol
+  symbol:   method rotateToken(java.lang.String)
+  location: variable jwtTokenService of type com.truist.batch.security.jwt.JwtTokenService
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/websocket/handler/EnterpriseWebSocketHandler.java:[439,31] incompatible types: int cannot be converted to java.util.concurrent.atomic.AtomicInteger
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/security/websocket/SecurityHandshakeInterceptor.java:[251,13] bad operand type io.jsonwebtoken.Claims for unary operator '!'
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/security/websocket/SecurityHandshakeInterceptor.java:[259,34] cannot find symbol
+  symbol:   method isBlacklisted(java.lang.String)
+  location: variable tokenBlacklistService of type com.truist.batch.security.service.TokenBlacklistService
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/security/websocket/SecurityHandshakeInterceptor.java:[267,40] cannot find symbol
+  symbol:   method getUserIdFromToken(java.lang.String)
+  location: variable jwtTokenService of type com.truist.batch.security.jwt.JwtTokenService
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/security/websocket/SecurityHandshakeInterceptor.java:[268,49] cannot find symbol
+  symbol:   method getUserRolesFromToken(java.lang.String)
+  location: variable jwtTokenService of type com.truist.batch.security.jwt.JwtTokenService
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/security/websocket/SecurityHandshakeInterceptor.java:[509,29] method logSecurityEvent in class com.truist.batch.security.service.SecurityAuditService cannot be applied to given types;
+  required: java.lang.String,java.lang.String,java.lang.String,java.lang.String
+  found:    java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.util.Map<java.lang.String,java.lang.Object&java.io.Serializable&java.lang.Comparable<? extends java.lang.Object&java.io.Serializable&java.lang.Comparable<?>&java.lang.constant.Constable>&java.lang.constant.Constable>
+  reason: actual and formal argument lists differ in length
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/security/websocket/SecurityHandshakeInterceptor.java:[523,29] method logSecurityEvent in class com.truist.batch.security.service.SecurityAuditService cannot be applied to given types;
+  required: java.lang.String,java.lang.String,java.lang.String,java.lang.String
+  found:    java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.util.Map<java.lang.String,java.lang.String>
+  reason: actual and formal argument lists differ in length
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/websocket/service/RealTimeMonitoringService.java:[118,22] cannot find symbol
+  symbol:   method hasChanges()
+  location: variable delta of type com.truist.batch.websocket.service.RealTimeMonitoringService.MonitoringDelta
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/websocket/service/RealTimeMonitoringService.java:[135,53] cannot find symbol
+  symbol:   method hasChanges()
+  location: variable delta of type com.truist.batch.websocket.service.RealTimeMonitoringService.MonitoringDelta
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/websocket/service/RealTimeMonitoringService.java:[155,13] cannot find symbol
+  symbol:   class PerformanceDashboard
+  location: class com.truist.batch.websocket.service.RealTimeMonitoringService
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/websocket/service/RealTimeMonitoringService.java:[155,46] cannot find symbol
+  symbol:   method getPerformanceDashboard()
+  location: class com.truist.batch.websocket.service.RealTimeMonitoringService
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/websocket/service/RealTimeMonitoringService.java:[160,38] cannot find symbol
+  symbol:   method builder()
+  location: class com.truist.batch.websocket.service.RealTimeMonitoringService.MonitoringSnapshot
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/websocket/service/RealTimeMonitoringService.java:[470,64] constructor WebSocketMetrics in class com.truist.batch.websocket.service.RealTimeMonitoringService.WebSocketMetrics cannot be applied to given types;
+  required: int,java.util.Map<java.lang.String,java.lang.Integer>,double,int,int,double,double
+  found:    no arguments
+  reason: actual and formal argument lists differ in length
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/websocket/handler/WebSocketSessionInfo.java:[342,19] no suitable method found for of(java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,connectedA[...] null,java.lang.String,lastActivi[...] null,java.lang.String,java.lang.String,java.lang.String,int,java.lang.String,int,java.lang.String,int,java.lang.String,long,java.lang.String,java.util.Set<java.lang.String>)
+    method java.util.Map.<K,V>of() is not applicable
+      (cannot infer type-variable(s) K,V
+        (actual and formal argument lists differ in length))
+    method java.util.Map.<K,V>of(K,V) is not applicable
+      (cannot infer type-variable(s) K,V
+        (actual and formal argument lists differ in length))
+    method java.util.Map.<K,V>of(K,V,K,V) is not applicable
+      (cannot infer type-variable(s) K,V
+        (actual and formal argument lists differ in length))
+    method java.util.Map.<K,V>of(K,V,K,V,K,V) is not applicable
+      (cannot infer type-variable(s) K,V
+        (actual and formal argument lists differ in length))
+    method java.util.Map.<K,V>of(K,V,K,V,K,V,K,V) is not applicable
+      (cannot infer type-variable(s) K,V
+        (actual and formal argument lists differ in length))
+    method java.util.Map.<K,V>of(K,V,K,V,K,V,K,V,K,V) is not applicable
+      (cannot infer type-variable(s) K,V
+        (actual and formal argument lists differ in length))
+    method java.util.Map.<K,V>of(K,V,K,V,K,V,K,V,K,V,K,V) is not applicable
+      (cannot infer type-variable(s) K,V
+        (actual and formal argument lists differ in length))
+    method java.util.Map.<K,V>of(K,V,K,V,K,V,K,V,K,V,K,V,K,V) is not applicable
+      (cannot infer type-variable(s) K,V
+        (actual and formal argument lists differ in length))
+    method java.util.Map.<K,V>of(K,V,K,V,K,V,K,V,K,V,K,V,K,V,K,V) is not applicable
+      (cannot infer type-variable(s) K,V
+        (actual and formal argument lists differ in length))
+    method java.util.Map.<K,V>of(K,V,K,V,K,V,K,V,K,V,K,V,K,V,K,V,K,V) is not applicable
+      (cannot infer type-variable(s) K,V
+        (actual and formal argument lists differ in length))
+    method java.util.Map.<K,V>of(K,V,K,V,K,V,K,V,K,V,K,V,K,V,K,V,K,V,K,V) is not applicable
+      (cannot infer type-variable(s) K,V
+        (actual and formal argument lists differ in length))
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/controller/AuthenticationController.java:[126,33] cannot find symbol
+  symbol:   method auditLoginSuccess(java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String)
+  location: variable securityAuditService of type com.truist.batch.security.service.SecurityAuditService
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/controller/AuthenticationController.java:[162,33] cannot find symbol
+  symbol:   method auditLoginFailure(java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,int)
+  location: variable securityAuditService of type com.truist.batch.security.service.SecurityAuditService
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/controller/AuthenticationController.java:[206,37] cannot find symbol
+  symbol:   method auditLogout(java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String)
+  location: variable securityAuditService of type com.truist.batch.security.service.SecurityAuditService
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/controller/SqlLoaderController.java:[558,51] cannot find symbol
+  symbol:   method needsOptimization()
+  location: variable report of type com.truist.batch.dto.SqlLoaderReports.PerformanceReport
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/security/service/UserSecurityService.java:[268,33] cannot find symbol
+  symbol:   method auditRoleAssignment(java.lang.String,java.lang.String,java.lang.String,java.lang.String)
+  location: variable securityAuditService of type com.truist.batch.security.service.SecurityAuditService
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/security/service/UserSecurityService.java:[301,33] cannot find symbol
+  symbol:   method auditRoleRevocation(java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String)
+  location: variable securityAuditService of type com.truist.batch.security.service.SecurityAuditService
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/service/EnhancedControlFileGenerator.java:[76,25] cannot find symbol
+  symbol:   method logSecurityEvent(java.lang.String,java.lang.String,java.lang.String,java.util.Map<java.lang.String,java.lang.String>)
+  location: variable auditService of type com.truist.batch.service.AuditService
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/service/EnhancedControlFileGenerator.java:[169,25] cannot find symbol
+  symbol:   method logSecurityEvent(java.lang.String,java.lang.String,java.lang.String,java.util.Map<java.lang.String,java.lang.Object&java.io.Serializable&java.lang.Comparable<? extends java.lang.Object&java.io.Serializable&java.lang.Comparable<?>&java.lang.constant.Constable>&java.lang.constant.Constable>)
+  location: variable auditService of type com.truist.batch.service.AuditService
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/service/impl/SqlLoaderConfigServiceImpl.java:[64,35] incompatible types: java.util.List<com.truist.batch.entity.SqlLoaderFieldConfigEntity> cannot be converted to java.util.List<java.lang.Object>
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/service/impl/SqlLoaderConfigServiceImpl.java:[104,45] incompatible types: java.util.List<com.truist.batch.entity.SqlLoaderFieldConfigEntity> cannot be converted to java.util.List<java.lang.Object>
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/service/impl/SqlLoaderConfigServiceImpl.java:[136,52] incompatible types: java.lang.Object cannot be converted to com.truist.batch.entity.SqlLoaderConfigEntity
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/service/impl/SqlLoaderConfigServiceImpl.java:[161,72] incompatible types: java.lang.Object cannot be converted to com.truist.batch.entity.SqlLoaderConfigEntity
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/service/impl/SqlLoaderConfigServiceImpl.java:[217,25] cannot find symbol
+  symbol:   method logSecurityEvent(java.lang.String,java.lang.String,@jakarta.validation.constraints.NotBlank java.lang.String,java.util.Map<java.lang.String,java.lang.String>)
+  location: variable auditService of type com.truist.batch.service.AuditService
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/service/impl/SqlLoaderConfigServiceImpl.java:[255,42] cannot find symbol
+  symbol:   method getJobName()
+  location: variable configEntity of type java.lang.Object
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/service/impl/SqlLoaderConfigServiceImpl.java:[256,47] cannot find symbol
+  symbol:   method getSourceSystem()
+  location: variable configEntity of type java.lang.Object
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/service/impl/SqlLoaderConfigServiceImpl.java:[257,46] cannot find symbol
+  symbol:   method getTargetTable()
+  location: variable configEntity of type java.lang.Object
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/service/impl/SqlLoaderConfigServiceImpl.java:[261,46] cannot find symbol
+  symbol:   method getFieldConfigs()
+  location: variable configEntity of type java.lang.Object
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/service/impl/SqlLoaderConfigServiceImpl.java:[261,87] cannot find symbol
+  symbol:   method getFieldConfigs()
+  location: variable configEntity of type java.lang.Object
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/service/impl/SqlLoaderConfigServiceImpl.java:[263,47] cannot find symbol
+  symbol:   method getCharacterSet()
+  location: variable configEntity of type java.lang.Object
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/service/impl/SqlLoaderConfigServiceImpl.java:[264,45] cannot find symbol
+  symbol:   method getFieldDelimiter()
+  location: variable configEntity of type java.lang.Object
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/service/impl/SqlLoaderConfigServiceImpl.java:[265,45] cannot find symbol
+  symbol:   method getLoadMethod()
+  location: variable configEntity of type java.lang.Object
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/service/impl/SqlLoaderConfigServiceImpl.java:[420,48] cannot find symbol
+  symbol:   method isCompliant()
+  location: variable complianceReport of type com.truist.batch.dto.SqlLoaderReports.ComplianceReport
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/service/impl/SqlLoaderConfigServiceImpl.java:[424,64] cannot find symbol
+  symbol:   method getRecommendations()
+  location: variable complianceReport of type com.truist.batch.dto.SqlLoaderReports.ComplianceReport
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/service/impl/SqlLoaderConfigServiceImpl.java:[426,48] cannot find symbol
+  symbol:   method isCompliant()
+  location: variable complianceReport of type com.truist.batch.dto.SqlLoaderReports.ComplianceReport
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/service/impl/SqlLoaderConfigServiceImpl.java:[447,58] cannot find symbol
+  symbol:   method getOptimizationRecommendations()
+  location: variable performanceReport of type com.truist.batch.dto.SqlLoaderReports.PerformanceReport
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/service/impl/SqlLoaderConfigServiceImpl.java:[448,57] cannot find symbol
+  symbol:   method isDirectPathEnabled()
+  location: variable performanceReport of type com.truist.batch.dto.SqlLoaderReports.PerformanceReport
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/service/impl/SqlLoaderConfigServiceImpl.java:[452,66] cannot find symbol
+  symbol:   method getOptimizationRecommendations()
+  location: variable performanceReport of type com.truist.batch.dto.SqlLoaderReports.PerformanceReport
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/service/impl/SqlLoaderConfigServiceImpl.java:[475,29] cannot find symbol
+  symbol:   method containsPiiData()
+  location: variable configEntity of type java.lang.Object
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/service/impl/SqlLoaderConfigServiceImpl.java:[476,34] cannot find symbol
+  symbol:   method isEncryptionRequired()
+  location: variable configEntity of type java.lang.Object
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/service/impl/SqlLoaderConfigServiceImpl.java:[483,30] cannot find symbol
+  symbol:   method isAuditTrailRequired()
+  location: variable configEntity of type java.lang.Object
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/service/impl/SqlLoaderConfigServiceImpl.java:[496,53] cannot find symbol
+  symbol:   method getRegulatoryCompliance()
+  location: variable configEntity of type java.lang.Object
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/service/impl/SqlLoaderConfigServiceImpl.java:[490,42] cannot find symbol
+  symbol:   method getJobName()
+  location: variable configEntity of type java.lang.Object
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/service/impl/SqlLoaderConfigServiceImpl.java:[491,47] cannot find symbol
+  symbol:   method getSourceSystem()
+  location: variable configEntity of type java.lang.Object
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/service/impl/SqlLoaderConfigServiceImpl.java:[493,50] cannot find symbol
+  symbol:   method containsPiiData()
+  location: variable configEntity of type java.lang.Object
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/service/impl/SqlLoaderConfigServiceImpl.java:[494,55] cannot find symbol
+  symbol:   method isEncryptionRequired()
+  location: variable configEntity of type java.lang.Object
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/service/impl/SqlLoaderConfigServiceImpl.java:[495,50] cannot find symbol
+  symbol:   method isAuditTrailRequired()
+  location: variable configEntity of type java.lang.Object
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/service/impl/SqlLoaderConfigServiceImpl.java:[759,32] cannot find symbol
+  symbol:   method isEnabled()
+  location: variable entity of type com.truist.batch.entity.SqlLoaderConfigEntity
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/websocket/audit/AuditWebSocketEventListener.java:[85,31] cannot find symbol
+  symbol:   method requiresImmediateAction()
+  location: variable classification of type com.truist.batch.websocket.audit.AuditWebSocketEventListener.AuditClassification
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/websocket/audit/AuditWebSocketEventListener.java:[90,33] method logSecurityEvent in class com.truist.batch.security.service.SecurityAuditService cannot be applied to given types;
+  required: java.lang.String,java.lang.String,java.lang.String,java.lang.String
+  found:    java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.util.Map<java.lang.String,java.lang.Object>
+  reason: actual and formal argument lists differ in length
+[INFO] 59 errors 
+[INFO] -------------------------------------------------------------
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD FAILURE
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  4.632 s
+[INFO] Finished at: 2025-08-08T16:11:56-04:00
+[INFO] ------------------------------------------------------------------------
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-compiler-plugin:3.13.0:compile (default-compile) on project fabric-api: Compilation failure: Compilation failure: 
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/config/WebSocketSecurityConfig.java:[145,94] cannot find symbol
+[ERROR]   symbol:   class WebSocketTransportRegistration
+[ERROR]   location: package org.springframework.messaging.simp.config
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/websocket/handler/EnterpriseWebSocketHandler.java:[214,45] bad operand types for binary operator '>'
+[ERROR]   first type:  java.util.concurrent.atomic.AtomicInteger
+[ERROR]   second type: int
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/websocket/handler/EnterpriseWebSocketHandler.java:[344,21] bad operand type io.jsonwebtoken.Claims for unary operator '!'
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/websocket/handler/EnterpriseWebSocketHandler.java:[395,13] bad operand type io.jsonwebtoken.Claims for unary operator '!'
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/websocket/handler/EnterpriseWebSocketHandler.java:[407,28] cannot find symbol
+[ERROR]   symbol:   method isTokenNearExpiry(java.lang.String)
+[ERROR]   location: variable jwtTokenService of type com.truist.batch.security.jwt.JwtTokenService
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/websocket/handler/EnterpriseWebSocketHandler.java:[409,50] cannot find symbol
+[ERROR]   symbol:   method rotateToken(java.lang.String)
+[ERROR]   location: variable jwtTokenService of type com.truist.batch.security.jwt.JwtTokenService
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/websocket/handler/EnterpriseWebSocketHandler.java:[439,31] incompatible types: int cannot be converted to java.util.concurrent.atomic.AtomicInteger
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/security/websocket/SecurityHandshakeInterceptor.java:[251,13] bad operand type io.jsonwebtoken.Claims for unary operator '!'
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/security/websocket/SecurityHandshakeInterceptor.java:[259,34] cannot find symbol
+[ERROR]   symbol:   method isBlacklisted(java.lang.String)
+[ERROR]   location: variable tokenBlacklistService of type com.truist.batch.security.service.TokenBlacklistService
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/security/websocket/SecurityHandshakeInterceptor.java:[267,40] cannot find symbol
+[ERROR]   symbol:   method getUserIdFromToken(java.lang.String)
+[ERROR]   location: variable jwtTokenService of type com.truist.batch.security.jwt.JwtTokenService
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/security/websocket/SecurityHandshakeInterceptor.java:[268,49] cannot find symbol
+[ERROR]   symbol:   method getUserRolesFromToken(java.lang.String)
+[ERROR]   location: variable jwtTokenService of type com.truist.batch.security.jwt.JwtTokenService
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/security/websocket/SecurityHandshakeInterceptor.java:[509,29] method logSecurityEvent in class com.truist.batch.security.service.SecurityAuditService cannot be applied to given types;
+[ERROR]   required: java.lang.String,java.lang.String,java.lang.String,java.lang.String
+[ERROR]   found:    java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.util.Map<java.lang.String,java.lang.Object&java.io.Serializable&java.lang.Comparable<? extends java.lang.Object&java.io.Serializable&java.lang.Comparable<?>&java.lang.constant.Constable>&java.lang.constant.Constable>
+[ERROR]   reason: actual and formal argument lists differ in length
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/security/websocket/SecurityHandshakeInterceptor.java:[523,29] method logSecurityEvent in class com.truist.batch.security.service.SecurityAuditService cannot be applied to given types;
+[ERROR]   required: java.lang.String,java.lang.String,java.lang.String,java.lang.String
+[ERROR]   found:    java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.util.Map<java.lang.String,java.lang.String>
+[ERROR]   reason: actual and formal argument lists differ in length
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/websocket/service/RealTimeMonitoringService.java:[118,22] cannot find symbol
+[ERROR]   symbol:   method hasChanges()
+[ERROR]   location: variable delta of type com.truist.batch.websocket.service.RealTimeMonitoringService.MonitoringDelta
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/websocket/service/RealTimeMonitoringService.java:[135,53] cannot find symbol
+[ERROR]   symbol:   method hasChanges()
+[ERROR]   location: variable delta of type com.truist.batch.websocket.service.RealTimeMonitoringService.MonitoringDelta
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/websocket/service/RealTimeMonitoringService.java:[155,13] cannot find symbol
+[ERROR]   symbol:   class PerformanceDashboard
+[ERROR]   location: class com.truist.batch.websocket.service.RealTimeMonitoringService
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/websocket/service/RealTimeMonitoringService.java:[155,46] cannot find symbol
+[ERROR]   symbol:   method getPerformanceDashboard()
+[ERROR]   location: class com.truist.batch.websocket.service.RealTimeMonitoringService
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/websocket/service/RealTimeMonitoringService.java:[160,38] cannot find symbol
+[ERROR]   symbol:   method builder()
+[ERROR]   location: class com.truist.batch.websocket.service.RealTimeMonitoringService.MonitoringSnapshot
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/websocket/service/RealTimeMonitoringService.java:[470,64] constructor WebSocketMetrics in class com.truist.batch.websocket.service.RealTimeMonitoringService.WebSocketMetrics cannot be applied to given types;
+[ERROR]   required: int,java.util.Map<java.lang.String,java.lang.Integer>,double,int,int,double,double
+[ERROR]   found:    no arguments
+[ERROR]   reason: actual and formal argument lists differ in length
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/websocket/handler/WebSocketSessionInfo.java:[342,19] no suitable method found for of(java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,connectedA[...] null,java.lang.String,lastActivi[...] null,java.lang.String,java.lang.String,java.lang.String,int,java.lang.String,int,java.lang.String,int,java.lang.String,long,java.lang.String,java.util.Set<java.lang.String>)
+[ERROR]     method java.util.Map.<K,V>of() is not applicable
+[ERROR]       (cannot infer type-variable(s) K,V
+[ERROR]         (actual and formal argument lists differ in length))
+[ERROR]     method java.util.Map.<K,V>of(K,V) is not applicable
+[ERROR]       (cannot infer type-variable(s) K,V
+[ERROR]         (actual and formal argument lists differ in length))
+[ERROR]     method java.util.Map.<K,V>of(K,V,K,V) is not applicable
+[ERROR]       (cannot infer type-variable(s) K,V
+[ERROR]         (actual and formal argument lists differ in length))
+[ERROR]     method java.util.Map.<K,V>of(K,V,K,V,K,V) is not applicable
+[ERROR]       (cannot infer type-variable(s) K,V
+[ERROR]         (actual and formal argument lists differ in length))
+[ERROR]     method java.util.Map.<K,V>of(K,V,K,V,K,V,K,V) is not applicable
+[ERROR]       (cannot infer type-variable(s) K,V
+[ERROR]         (actual and formal argument lists differ in length))
+[ERROR]     method java.util.Map.<K,V>of(K,V,K,V,K,V,K,V,K,V) is not applicable
+[ERROR]       (cannot infer type-variable(s) K,V
+[ERROR]         (actual and formal argument lists differ in length))
+[ERROR]     method java.util.Map.<K,V>of(K,V,K,V,K,V,K,V,K,V,K,V) is not applicable
+[ERROR]       (cannot infer type-variable(s) K,V
+[ERROR]         (actual and formal argument lists differ in length))
+[ERROR]     method java.util.Map.<K,V>of(K,V,K,V,K,V,K,V,K,V,K,V,K,V) is not applicable
+[ERROR]       (cannot infer type-variable(s) K,V
+[ERROR]         (actual and formal argument lists differ in length))
+[ERROR]     method java.util.Map.<K,V>of(K,V,K,V,K,V,K,V,K,V,K,V,K,V,K,V) is not applicable
+[ERROR]       (cannot infer type-variable(s) K,V
+[ERROR]         (actual and formal argument lists differ in length))
+[ERROR]     method java.util.Map.<K,V>of(K,V,K,V,K,V,K,V,K,V,K,V,K,V,K,V,K,V) is not applicable
+[ERROR]       (cannot infer type-variable(s) K,V
+[ERROR]         (actual and formal argument lists differ in length))
+[ERROR]     method java.util.Map.<K,V>of(K,V,K,V,K,V,K,V,K,V,K,V,K,V,K,V,K,V,K,V) is not applicable
+[ERROR]       (cannot infer type-variable(s) K,V
+[ERROR]         (actual and formal argument lists differ in length))
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/controller/AuthenticationController.java:[126,33] cannot find symbol
+[ERROR]   symbol:   method auditLoginSuccess(java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String)
+[ERROR]   location: variable securityAuditService of type com.truist.batch.security.service.SecurityAuditService
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/controller/AuthenticationController.java:[162,33] cannot find symbol
+[ERROR]   symbol:   method auditLoginFailure(java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,int)
+[ERROR]   location: variable securityAuditService of type com.truist.batch.security.service.SecurityAuditService
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/controller/AuthenticationController.java:[206,37] cannot find symbol
+[ERROR]   symbol:   method auditLogout(java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String)
+[ERROR]   location: variable securityAuditService of type com.truist.batch.security.service.SecurityAuditService
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/controller/SqlLoaderController.java:[558,51] cannot find symbol
+[ERROR]   symbol:   method needsOptimization()
+[ERROR]   location: variable report of type com.truist.batch.dto.SqlLoaderReports.PerformanceReport
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/security/service/UserSecurityService.java:[268,33] cannot find symbol
+[ERROR]   symbol:   method auditRoleAssignment(java.lang.String,java.lang.String,java.lang.String,java.lang.String)
+[ERROR]   location: variable securityAuditService of type com.truist.batch.security.service.SecurityAuditService
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/security/service/UserSecurityService.java:[301,33] cannot find symbol
+[ERROR]   symbol:   method auditRoleRevocation(java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String)
+[ERROR]   location: variable securityAuditService of type com.truist.batch.security.service.SecurityAuditService
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/service/EnhancedControlFileGenerator.java:[76,25] cannot find symbol
+[ERROR]   symbol:   method logSecurityEvent(java.lang.String,java.lang.String,java.lang.String,java.util.Map<java.lang.String,java.lang.String>)
+[ERROR]   location: variable auditService of type com.truist.batch.service.AuditService
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/service/EnhancedControlFileGenerator.java:[169,25] cannot find symbol
+[ERROR]   symbol:   method logSecurityEvent(java.lang.String,java.lang.String,java.lang.String,java.util.Map<java.lang.String,java.lang.Object&java.io.Serializable&java.lang.Comparable<? extends java.lang.Object&java.io.Serializable&java.lang.Comparable<?>&java.lang.constant.Constable>&java.lang.constant.Constable>)
+[ERROR]   location: variable auditService of type com.truist.batch.service.AuditService
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/service/impl/SqlLoaderConfigServiceImpl.java:[64,35] incompatible types: java.util.List<com.truist.batch.entity.SqlLoaderFieldConfigEntity> cannot be converted to java.util.List<java.lang.Object>
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/service/impl/SqlLoaderConfigServiceImpl.java:[104,45] incompatible types: java.util.List<com.truist.batch.entity.SqlLoaderFieldConfigEntity> cannot be converted to java.util.List<java.lang.Object>
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/service/impl/SqlLoaderConfigServiceImpl.java:[136,52] incompatible types: java.lang.Object cannot be converted to com.truist.batch.entity.SqlLoaderConfigEntity
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/service/impl/SqlLoaderConfigServiceImpl.java:[161,72] incompatible types: java.lang.Object cannot be converted to com.truist.batch.entity.SqlLoaderConfigEntity
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/service/impl/SqlLoaderConfigServiceImpl.java:[217,25] cannot find symbol
+[ERROR]   symbol:   method logSecurityEvent(java.lang.String,java.lang.String,@jakarta.validation.constraints.NotBlank java.lang.String,java.util.Map<java.lang.String,java.lang.String>)
+[ERROR]   location: variable auditService of type com.truist.batch.service.AuditService
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/service/impl/SqlLoaderConfigServiceImpl.java:[255,42] cannot find symbol
+[ERROR]   symbol:   method getJobName()
+[ERROR]   location: variable configEntity of type java.lang.Object
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/service/impl/SqlLoaderConfigServiceImpl.java:[256,47] cannot find symbol
+[ERROR]   symbol:   method getSourceSystem()
+[ERROR]   location: variable configEntity of type java.lang.Object
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/service/impl/SqlLoaderConfigServiceImpl.java:[257,46] cannot find symbol
+[ERROR]   symbol:   method getTargetTable()
+[ERROR]   location: variable configEntity of type java.lang.Object
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/service/impl/SqlLoaderConfigServiceImpl.java:[261,46] cannot find symbol
+[ERROR]   symbol:   method getFieldConfigs()
+[ERROR]   location: variable configEntity of type java.lang.Object
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/service/impl/SqlLoaderConfigServiceImpl.java:[261,87] cannot find symbol
+[ERROR]   symbol:   method getFieldConfigs()
+[ERROR]   location: variable configEntity of type java.lang.Object
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/service/impl/SqlLoaderConfigServiceImpl.java:[263,47] cannot find symbol
+[ERROR]   symbol:   method getCharacterSet()
+[ERROR]   location: variable configEntity of type java.lang.Object
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/service/impl/SqlLoaderConfigServiceImpl.java:[264,45] cannot find symbol
+[ERROR]   symbol:   method getFieldDelimiter()
+[ERROR]   location: variable configEntity of type java.lang.Object
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/service/impl/SqlLoaderConfigServiceImpl.java:[265,45] cannot find symbol
+[ERROR]   symbol:   method getLoadMethod()
+[ERROR]   location: variable configEntity of type java.lang.Object
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/service/impl/SqlLoaderConfigServiceImpl.java:[420,48] cannot find symbol
+[ERROR]   symbol:   method isCompliant()
+[ERROR]   location: variable complianceReport of type com.truist.batch.dto.SqlLoaderReports.ComplianceReport
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/service/impl/SqlLoaderConfigServiceImpl.java:[424,64] cannot find symbol
+[ERROR]   symbol:   method getRecommendations()
+[ERROR]   location: variable complianceReport of type com.truist.batch.dto.SqlLoaderReports.ComplianceReport
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/service/impl/SqlLoaderConfigServiceImpl.java:[426,48] cannot find symbol
+[ERROR]   symbol:   method isCompliant()
+[ERROR]   location: variable complianceReport of type com.truist.batch.dto.SqlLoaderReports.ComplianceReport
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/service/impl/SqlLoaderConfigServiceImpl.java:[447,58] cannot find symbol
+[ERROR]   symbol:   method getOptimizationRecommendations()
+[ERROR]   location: variable performanceReport of type com.truist.batch.dto.SqlLoaderReports.PerformanceReport
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/service/impl/SqlLoaderConfigServiceImpl.java:[448,57] cannot find symbol
+[ERROR]   symbol:   method isDirectPathEnabled()
+[ERROR]   location: variable performanceReport of type com.truist.batch.dto.SqlLoaderReports.PerformanceReport
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/service/impl/SqlLoaderConfigServiceImpl.java:[452,66] cannot find symbol
+[ERROR]   symbol:   method getOptimizationRecommendations()
+[ERROR]   location: variable performanceReport of type com.truist.batch.dto.SqlLoaderReports.PerformanceReport
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/service/impl/SqlLoaderConfigServiceImpl.java:[475,29] cannot find symbol
+[ERROR]   symbol:   method containsPiiData()
+[ERROR]   location: variable configEntity of type java.lang.Object
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/service/impl/SqlLoaderConfigServiceImpl.java:[476,34] cannot find symbol
+[ERROR]   symbol:   method isEncryptionRequired()
+[ERROR]   location: variable configEntity of type java.lang.Object
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/service/impl/SqlLoaderConfigServiceImpl.java:[483,30] cannot find symbol
+[ERROR]   symbol:   method isAuditTrailRequired()
+[ERROR]   location: variable configEntity of type java.lang.Object
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/service/impl/SqlLoaderConfigServiceImpl.java:[496,53] cannot find symbol
+[ERROR]   symbol:   method getRegulatoryCompliance()
+[ERROR]   location: variable configEntity of type java.lang.Object
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/service/impl/SqlLoaderConfigServiceImpl.java:[490,42] cannot find symbol
+[ERROR]   symbol:   method getJobName()
+[ERROR]   location: variable configEntity of type java.lang.Object
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/service/impl/SqlLoaderConfigServiceImpl.java:[491,47] cannot find symbol
+[ERROR]   symbol:   method getSourceSystem()
+[ERROR]   location: variable configEntity of type java.lang.Object
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/service/impl/SqlLoaderConfigServiceImpl.java:[493,50] cannot find symbol
+[ERROR]   symbol:   method containsPiiData()
+[ERROR]   location: variable configEntity of type java.lang.Object
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/service/impl/SqlLoaderConfigServiceImpl.java:[494,55] cannot find symbol
+[ERROR]   symbol:   method isEncryptionRequired()
+[ERROR]   location: variable configEntity of type java.lang.Object
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/service/impl/SqlLoaderConfigServiceImpl.java:[495,50] cannot find symbol
+[ERROR]   symbol:   method isAuditTrailRequired()
+[ERROR]   location: variable configEntity of type java.lang.Object
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/service/impl/SqlLoaderConfigServiceImpl.java:[759,32] cannot find symbol
+[ERROR]   symbol:   method isEnabled()
+[ERROR]   location: variable entity of type com.truist.batch.entity.SqlLoaderConfigEntity
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/websocket/audit/AuditWebSocketEventListener.java:[85,31] cannot find symbol
+[ERROR]   symbol:   method requiresImmediateAction()
+[ERROR]   location: variable classification of type com.truist.batch.websocket.audit.AuditWebSocketEventListener.AuditClassification
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/websocket/audit/AuditWebSocketEventListener.java:[90,33] method logSecurityEvent in class com.truist.batch.security.service.SecurityAuditService cannot be applied to given types;
+[ERROR]   required: java.lang.String,java.lang.String,java.lang.String,java.lang.String
+[ERROR]   found:    java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.util.Map<java.lang.String,java.lang.Object>
+[ERROR]   reason: actual and formal argument lists differ in length
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException

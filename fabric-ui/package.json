@@ -19,7 +19,7 @@
     "react-hook-form": "^7.57.0",
     "react-router-dom": "^6.30.1",
     "react-scripts": "^5.0.1",
-    "recharts": "^2.8.0",
+    "recharts": "^2.15.4",
     "web-vitals": "^3.5.2"
   },
   "devDependencies": {

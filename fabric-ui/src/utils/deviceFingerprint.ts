@@ -37,9 +37,9 @@ export function generateDeviceFingerprint(): string {
       language: navigator.language,
       platform: navigator.platform,
       screen: {
-        width: screen.width,
-        height: screen.height,
-        colorDepth: screen.colorDepth
+        width: window.screen.width,
+        height: window.screen.height,
+        colorDepth: window.screen.colorDepth
       },
       timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
       hasLocalStorage: isStorageAvailable('localStorage'),
@@ -140,7 +140,7 @@ export function getDeviceInfo() {
   return {
     browser: getBrowserName(),
     os: getOperatingSystem(),
-    screen: `${screen.width}x${screen.height}`,
+    screen: `${window.screen.width}x${window.screen.height}`,
     language: navigator.language,
     timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
   };

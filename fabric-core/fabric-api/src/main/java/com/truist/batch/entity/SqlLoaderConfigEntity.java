@@ -66,4 +66,8 @@ public class SqlLoaderConfigEntity {
     public boolean containsPiiData() {
         return piiFields != null && !piiFields.trim().isEmpty();
     }
+    
+    public boolean isEnabled() {
+        return enabled != null ? enabled : true;
+    }
 }

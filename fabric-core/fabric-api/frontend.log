@@ -1,0 +1,1500 @@
+
+> batch-config-ui@1.0.0 start
+> react-scripts start
+
+(node:70363) [DEP_WEBPACK_DEV_SERVER_ON_AFTER_SETUP_MIDDLEWARE] DeprecationWarning: 'onAfterSetupMiddleware' option is deprecated. Please use the 'setupMiddlewares' option.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+(node:70363) [DEP_WEBPACK_DEV_SERVER_ON_BEFORE_SETUP_MIDDLEWARE] DeprecationWarning: 'onBeforeSetupMiddleware' option is deprecated. Please use the 'setupMiddlewares' option.
+Starting the development server...
+
+Compiled with warnings.
+
+[eslint] 
+src/components/monitoring/JobStatusGrid/JobStatusGrid.tsx
+  Line 38:3:    'Tooltip' is defined but never used               @typescript-eslint/no-unused-vars
+  Line 66:3:    'Schedule' is defined but never used              @typescript-eslint/no-unused-vars
+  Line 68:3:    'Memory' is defined but never used                @typescript-eslint/no-unused-vars
+  Line 70:3:    'FilterList' is defined but never used            @typescript-eslint/no-unused-vars
+  Line 71:3:    'GetApp' is defined but never used                @typescript-eslint/no-unused-vars
+  Line 81:40:   'formatTimestamp' is defined but never used       @typescript-eslint/no-unused-vars
+  Line 168:9:   'isTablet' is assigned a value but never used     @typescript-eslint/no-unused-vars
+  Line 177:20:  'setViewMode' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+src/components/monitoring/PerformanceMetricsChart/PerformanceMetricsChart.tsx
+  Line 21:44:   'useEffect' is defined but never used                @typescript-eslint/no-unused-vars
+  Line 33:3:    'Grid' is defined but never used                     @typescript-eslint/no-unused-vars
+  Line 51:3:    'ReferenceLine' is defined but never used            @typescript-eslint/no-unused-vars
+  Line 56:3:    'PerformanceMetrics' is defined but never used       @typescript-eslint/no-unused-vars
+  Line 57:3:    'HistoricalMetrics' is defined but never used        @typescript-eslint/no-unused-vars
+  Line 58:3:    'TrendData' is defined but never used                @typescript-eslint/no-unused-vars
+  Line 61:24:   'formatTimestamp' is defined but never used          @typescript-eslint/no-unused-vars
+  Line 163:10:  'hoveredData' is assigned a value but never used     @typescript-eslint/no-unused-vars
+  Line 163:23:  'setHoveredData' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  Line 166:9:   'intervalRef' is assigned a value but never used     @typescript-eslint/no-unused-vars
+
+Search for the keywords to learn more about each warning.
+To ignore, add // eslint-disable-next-line to the line before.
+
+WARNING in [eslint] 
+src/components/monitoring/JobStatusGrid/JobStatusGrid.tsx
+  Line 38:3:    'Tooltip' is defined but never used               @typescript-eslint/no-unused-vars
+  Line 66:3:    'Schedule' is defined but never used              @typescript-eslint/no-unused-vars
+  Line 68:3:    'Memory' is defined but never used                @typescript-eslint/no-unused-vars
+  Line 70:3:    'FilterList' is defined but never used            @typescript-eslint/no-unused-vars
+  Line 71:3:    'GetApp' is defined but never used                @typescript-eslint/no-unused-vars
+  Line 81:40:   'formatTimestamp' is defined but never used       @typescript-eslint/no-unused-vars
+  Line 168:9:   'isTablet' is assigned a value but never used     @typescript-eslint/no-unused-vars
+  Line 177:20:  'setViewMode' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+src/components/monitoring/PerformanceMetricsChart/PerformanceMetricsChart.tsx
+  Line 21:44:   'useEffect' is defined but never used                @typescript-eslint/no-unused-vars
+  Line 33:3:    'Grid' is defined but never used                     @typescript-eslint/no-unused-vars
+  Line 51:3:    'ReferenceLine' is defined but never used            @typescript-eslint/no-unused-vars
+  Line 56:3:    'PerformanceMetrics' is defined but never used       @typescript-eslint/no-unused-vars
+  Line 57:3:    'HistoricalMetrics' is defined but never used        @typescript-eslint/no-unused-vars
+  Line 58:3:    'TrendData' is defined but never used                @typescript-eslint/no-unused-vars
+  Line 61:24:   'formatTimestamp' is defined but never used          @typescript-eslint/no-unused-vars
+  Line 163:10:  'hoveredData' is assigned a value but never used     @typescript-eslint/no-unused-vars
+  Line 163:23:  'setHoveredData' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  Line 166:9:   'intervalRef' is assigned a value but never used     @typescript-eslint/no-unused-vars
+
+webpack compiled with 1 warning
+ERROR in src/hooks/useWebSocket.ts:122:27
+TS2345: Argument of type '(message: WebSocketMessage) => void' is not assignable to parameter of type 'WebSocketEventListener'.
+  Types of parameters 'message' and 'event' are incompatible.
+    Type 'string' is not assignable to type 'WebSocketMessage'.
+      Type 'string' is not assignable to type 'WebSocketMessage'.
+    120 |     service.on('connect', handleConnect);
+    121 |     service.on('disconnect', handleDisconnect);
+  > 122 |     service.on('message', handleMessage);
+        |                           ^^^^^^^^^^^^^
+    123 |     service.on('error', handleError);
+    124 |     service.on('reconnect', handleReconnect);
+    125 |     
+
+ERROR in src/hooks/useWebSocket.ts:123:25
+TS2345: Argument of type '(error: MonitoringError) => void' is not assignable to parameter of type 'WebSocketEventListener'.
+  Types of parameters 'error' and 'event' are incompatible.
+    Type 'string' is not assignable to type 'MonitoringError'.
+      Type 'string' is not assignable to type 'MonitoringError'.
+    121 |     service.on('disconnect', handleDisconnect);
+    122 |     service.on('message', handleMessage);
+  > 123 |     service.on('error', handleError);
+        |                         ^^^^^^^^^^^
+    124 |     service.on('reconnect', handleReconnect);
+    125 |     
+    126 |     wsServiceRef.current = service;
+
+ERROR in src/hooks/useWebSocket.ts:124:29
+TS2345: Argument of type '(data: {    attempt: number;}) => void' is not assignable to parameter of type 'WebSocketEventListener'.
+  Types of parameters 'data' and 'event' are incompatible.
+    Type 'string' is not assignable to type '{ attempt: number; }'.
+      Type 'string' is not assignable to type '{ attempt: number; }'.
+    122 |     service.on('message', handleMessage);
+    123 |     service.on('error', handleError);
+  > 124 |     service.on('reconnect', handleReconnect);
+        |                             ^^^^^^^^^^^^^^^
+    125 |     
+    126 |     wsServiceRef.current = service;
+    127 |     return service;
+
+ERROR in src/hooks/useWebSocket.ts:329:7
+TS2322: Type '"CLIENT_MESSAGE"' is not assignable to type '"DASHBOARD_UPDATE" | "JOB_UPDATE" | "ALERT" | "SYSTEM_HEALTH" | "ERROR"'.
+    327 |     
+    328 |     const wsMessage: WebSocketMessage = {
+  > 329 |       type: 'CLIENT_MESSAGE',
+        |       ^^^^
+    330 |       payload: message,
+    331 |       timestamp: new Date().toISOString(),
+    332 |       correlationId: generateCorrelationId()
+
+ERROR in src/pages/MonitoringDashboard/MonitoringDashboard.tsx:509:19
+TS2322: Type '{ metrics: PerformanceMetrics[]; trends: HistoricalMetrics | undefined; height: number; realTime: boolean; }' is not assignable to type 'IntrinsicAttributes & PerformanceChartProps'.
+  Property 'realTime' does not exist on type 'IntrinsicAttributes & PerformanceChartProps'.
+    507 |                   trends={dashboardData?.trends}
+    508 |                   height={300}
+  > 509 |                   realTime={true}
+        |                   ^^^^^^^^
+    510 |                 />
+    511 |               </CardContent>
+    512 |             </Card>
+
+ERROR in src/services/api/monitoringApi.ts:115:27
+TS2339: Property 'code' does not exist on type '{}'.
+    113 |   
+    114 |   return {
+  > 115 |     code: response?.data?.code || `HTTP_${response?.status}` || 'NETWORK_ERROR',
+        |                           ^^^^
+    116 |     message: response?.data?.message || error.message || 'An error occurred',
+    117 |     timestamp: new Date().toISOString(),
+    118 |     recoverable: response?.status !== 401 && response?.status !== 403,
+
+ERROR in src/services/api/monitoringApi.ts:116:30
+TS2339: Property 'message' does not exist on type '{}'.
+    114 |   return {
+    115 |     code: response?.data?.code || `HTTP_${response?.status}` || 'NETWORK_ERROR',
+  > 116 |     message: response?.data?.message || error.message || 'An error occurred',
+        |                              ^^^^^^^
+    117 |     timestamp: new Date().toISOString(),
+    118 |     recoverable: response?.status !== 401 && response?.status !== 403,
+    119 |     details: {
+
+ERROR in src/services/websocket/WebSocketService.ts:268:11
+TS2367: This comparison appears to be unintentional because the types '"DASHBOARD_UPDATE" | "JOB_UPDATE" | "ALERT" | "SYSTEM_HEALTH" | "ERROR"' and '"HEARTBEAT"' have no overlap.
+    266 |       
+    267 |       // Handle special message types
+  > 268 |       if (message.type === 'HEARTBEAT') {
+        |           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    269 |         this.handleHeartbeat(message);
+    270 |         return;
+    271 |       }
+
+ERROR in src/services/websocket/WebSocketService.ts:389:7
+TS2322: Type '"HEARTBEAT_ACK"' is not assignable to type '"DASHBOARD_UPDATE" | "JOB_UPDATE" | "ALERT" | "SYSTEM_HEALTH" | "ERROR"'.
+    387 |   private sendHeartbeatAck(correlationId: string): void {
+    388 |     const heartbeatAck: WebSocketMessage = {
+  > 389 |       type: 'HEARTBEAT_ACK',
+        |       ^^^^
+    390 |       payload: { timestamp: new Date().toISOString() },
+    391 |       timestamp: new Date().toISOString(),
+    392 |       correlationId
+
+ERROR in src/services/websocket/WebSocketService.ts:405:11
+TS2322: Type '"HEARTBEAT"' is not assignable to type '"DASHBOARD_UPDATE" | "JOB_UPDATE" | "ALERT" | "SYSTEM_HEALTH" | "ERROR"'.
+    403 |       if (this.state === WebSocketState.CONNECTED) {
+    404 |         const heartbeat: WebSocketMessage = {
+  > 405 |           type: 'HEARTBEAT',
+        |           ^^^^
+    406 |           payload: { clientTime: new Date().toISOString() },
+    407 |           timestamp: new Date().toISOString(),
+    408 |           correlationId: this.generateCorrelationId()
+
+ERROR in src/services/websocket/WebSocketService.ts:527:7
+TS2322: Type '"SUBSCRIBE"' is not assignable to type '"DASHBOARD_UPDATE" | "JOB_UPDATE" | "ALERT" | "SYSTEM_HEALTH" | "ERROR"'.
+    525 |     
+    526 |     const subscribeMessage: WebSocketMessage = {
+  > 527 |       type: 'SUBSCRIBE',
+        |       ^^^^
+    528 |       payload: { topics },
+    529 |       timestamp: new Date().toISOString(),
+    530 |       correlationId: this.generateCorrelationId()
+
+ERROR in src/services/websocket/WebSocketService.ts:543:7
+TS2322: Type '"UNSUBSCRIBE"' is not assignable to type '"DASHBOARD_UPDATE" | "JOB_UPDATE" | "ALERT" | "SYSTEM_HEALTH" | "ERROR"'.
+    541 |     
+    542 |     const unsubscribeMessage: WebSocketMessage = {
+  > 543 |       type: 'UNSUBSCRIBE',
+        |       ^^^^
+    544 |       payload: { topics },
+    545 |       timestamp: new Date().toISOString(),
+    546 |       correlationId: this.generateCorrelationId()
+
+ERROR in src/services/websocket/WebSocketService.ts:696:9
+TS2322: Type '"REAUTH"' is not assignable to type '"DASHBOARD_UPDATE" | "JOB_UPDATE" | "ALERT" | "SYSTEM_HEALTH" | "ERROR"'.
+    694 |     if (this.state === WebSocketState.CONNECTED) {
+    695 |       const authMessage: WebSocketMessage = {
+  > 696 |         type: 'REAUTH',
+        |         ^^^^
+    697 |         payload: { token },
+    698 |         timestamp: new Date().toISOString(),
+    699 |         correlationId: this.generateCorrelationId()
+
+ERROR in src/types/index.ts:52:1
+TS2308: Module './template' has already exported a member named 'PaginatedResponse'. Consider explicitly re-exporting to resolve the ambiguity.
+    50 |
+    51 | export * from './template';
+  > 52 | export * from './monitoring';
+       | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+ERROR in src/types/monitoring.ts:533:3
+TS2484: Export declaration conflicts with exported declaration of 'ActiveJob'.
+    531 | // Export all types for easy importing
+    532 | export type {
+  > 533 |   ActiveJob,
+        |   ^^^^^^^^^
+    534 |   PerformanceMetrics,
+    535 |   SystemHealth,
+    536 |   Alert,
+
+ERROR in src/types/monitoring.ts:534:3
+TS2484: Export declaration conflicts with exported declaration of 'PerformanceMetrics'.
+    532 | export type {
+    533 |   ActiveJob,
+  > 534 |   PerformanceMetrics,
+        |   ^^^^^^^^^^^^^^^^^^
+    535 |   SystemHealth,
+    536 |   Alert,
+    537 |   AlertFilters,
+
+ERROR in src/types/monitoring.ts:535:3
+TS2484: Export declaration conflicts with exported declaration of 'SystemHealth'.
+    533 |   ActiveJob,
+    534 |   PerformanceMetrics,
+  > 535 |   SystemHealth,
+        |   ^^^^^^^^^^^^
+    536 |   Alert,
+    537 |   AlertFilters,
+    538 |   AlertConfiguration,
+
+ERROR in src/types/monitoring.ts:536:3
+TS2484: Export declaration conflicts with exported declaration of 'Alert'.
+    534 |   PerformanceMetrics,
+    535 |   SystemHealth,
+  > 536 |   Alert,
+        |   ^^^^^
+    537 |   AlertFilters,
+    538 |   AlertConfiguration,
+    539 |   JobExecutionDetails,
+
+ERROR in src/types/monitoring.ts:537:3
+TS2484: Export declaration conflicts with exported declaration of 'AlertFilters'.
+    535 |   SystemHealth,
+    536 |   Alert,
+  > 537 |   AlertFilters,
+        |   ^^^^^^^^^^^^
+    538 |   AlertConfiguration,
+    539 |   JobExecutionDetails,
+    540 |   HistoricalMetrics,
+
+ERROR in src/types/monitoring.ts:538:3
+TS2484: Export declaration conflicts with exported declaration of 'AlertConfiguration'.
+    536 |   Alert,
+    537 |   AlertFilters,
+  > 538 |   AlertConfiguration,
+        |   ^^^^^^^^^^^^^^^^^^
+    539 |   JobExecutionDetails,
+    540 |   HistoricalMetrics,
+    541 |   DashboardData,
+
+ERROR in src/types/monitoring.ts:539:3
+TS2484: Export declaration conflicts with exported declaration of 'JobExecutionDetails'.
+    537 |   AlertFilters,
+    538 |   AlertConfiguration,
+  > 539 |   JobExecutionDetails,
+        |   ^^^^^^^^^^^^^^^^^^^
+    540 |   HistoricalMetrics,
+    541 |   DashboardData,
+    542 |   WebSocketMessage,
+
+ERROR in src/types/monitoring.ts:540:3
+TS2484: Export declaration conflicts with exported declaration of 'HistoricalMetrics'.
+    538 |   AlertConfiguration,
+    539 |   JobExecutionDetails,
+  > 540 |   HistoricalMetrics,
+        |   ^^^^^^^^^^^^^^^^^
+    541 |   DashboardData,
+    542 |   WebSocketMessage,
+    543 |   MonitoringConfiguration,
+
+ERROR in src/types/monitoring.ts:541:3
+TS2484: Export declaration conflicts with exported declaration of 'DashboardData'.
+    539 |   JobExecutionDetails,
+    540 |   HistoricalMetrics,
+  > 541 |   DashboardData,
+        |   ^^^^^^^^^^^^^
+    542 |   WebSocketMessage,
+    543 |   MonitoringConfiguration,
+    544 |   MobileOptimizedJob,
+
+ERROR in src/types/monitoring.ts:542:3
+TS2484: Export declaration conflicts with exported declaration of 'WebSocketMessage'.
+    540 |   HistoricalMetrics,
+    541 |   DashboardData,
+  > 542 |   WebSocketMessage,
+        |   ^^^^^^^^^^^^^^^^
+    543 |   MonitoringConfiguration,
+    544 |   MobileOptimizedJob,
+    545 |   ChartDataPoint,
+
+ERROR in src/types/monitoring.ts:543:3
+TS2484: Export declaration conflicts with exported declaration of 'MonitoringConfiguration'.
+    541 |   DashboardData,
+    542 |   WebSocketMessage,
+  > 543 |   MonitoringConfiguration,
+        |   ^^^^^^^^^^^^^^^^^^^^^^^
+    544 |   MobileOptimizedJob,
+    545 |   ChartDataPoint,
+    546 |   ChartConfiguration,
+
+ERROR in src/types/monitoring.ts:544:3
+TS2484: Export declaration conflicts with exported declaration of 'MobileOptimizedJob'.
+    542 |   WebSocketMessage,
+    543 |   MonitoringConfiguration,
+  > 544 |   MobileOptimizedJob,
+        |   ^^^^^^^^^^^^^^^^^^
+    545 |   ChartDataPoint,
+    546 |   ChartConfiguration,
+    547 |   MonitoringError
+
+ERROR in src/types/monitoring.ts:545:3
+TS2484: Export declaration conflicts with exported declaration of 'ChartDataPoint'.
+    543 |   MonitoringConfiguration,
+    544 |   MobileOptimizedJob,
+  > 545 |   ChartDataPoint,
+        |   ^^^^^^^^^^^^^^
+    546 |   ChartConfiguration,
+    547 |   MonitoringError
+    548 | };
+
+ERROR in src/types/monitoring.ts:546:3
+TS2484: Export declaration conflicts with exported declaration of 'ChartConfiguration'.
+    544 |   MobileOptimizedJob,
+    545 |   ChartDataPoint,
+  > 546 |   ChartConfiguration,
+        |   ^^^^^^^^^^^^^^^^^^
+    547 |   MonitoringError
+    548 | };
+
+ERROR in src/types/monitoring.ts:547:3
+TS2484: Export declaration conflicts with exported declaration of 'MonitoringError'.
+    545 |   ChartDataPoint,
+    546 |   ChartConfiguration,
+  > 547 |   MonitoringError
+        |   ^^^^^^^^^^^^^^^
+    548 | };
+
+Compiling...
+Compiled with warnings.
+
+[eslint] 
+src/components/monitoring/JobStatusGrid/JobStatusGrid.tsx
+  Line 38:3:    'Tooltip' is defined but never used               @typescript-eslint/no-unused-vars
+  Line 66:3:    'Schedule' is defined but never used              @typescript-eslint/no-unused-vars
+  Line 68:3:    'Memory' is defined but never used                @typescript-eslint/no-unused-vars
+  Line 70:3:    'FilterList' is defined but never used            @typescript-eslint/no-unused-vars
+  Line 71:3:    'GetApp' is defined but never used                @typescript-eslint/no-unused-vars
+  Line 81:40:   'formatTimestamp' is defined but never used       @typescript-eslint/no-unused-vars
+  Line 168:9:   'isTablet' is assigned a value but never used     @typescript-eslint/no-unused-vars
+  Line 177:20:  'setViewMode' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+src/components/monitoring/PerformanceMetricsChart/PerformanceMetricsChart.tsx
+  Line 21:44:   'useEffect' is defined but never used                @typescript-eslint/no-unused-vars
+  Line 33:3:    'Grid' is defined but never used                     @typescript-eslint/no-unused-vars
+  Line 51:3:    'ReferenceLine' is defined but never used            @typescript-eslint/no-unused-vars
+  Line 56:3:    'PerformanceMetrics' is defined but never used       @typescript-eslint/no-unused-vars
+  Line 57:3:    'HistoricalMetrics' is defined but never used        @typescript-eslint/no-unused-vars
+  Line 58:3:    'TrendData' is defined but never used                @typescript-eslint/no-unused-vars
+  Line 61:24:   'formatTimestamp' is defined but never used          @typescript-eslint/no-unused-vars
+  Line 163:10:  'hoveredData' is assigned a value but never used     @typescript-eslint/no-unused-vars
+  Line 163:23:  'setHoveredData' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  Line 166:9:   'intervalRef' is assigned a value but never used     @typescript-eslint/no-unused-vars
+
+Search for the keywords to learn more about each warning.
+To ignore, add // eslint-disable-next-line to the line before.
+
+WARNING in [eslint] 
+src/components/monitoring/JobStatusGrid/JobStatusGrid.tsx
+  Line 38:3:    'Tooltip' is defined but never used               @typescript-eslint/no-unused-vars
+  Line 66:3:    'Schedule' is defined but never used              @typescript-eslint/no-unused-vars
+  Line 68:3:    'Memory' is defined but never used                @typescript-eslint/no-unused-vars
+  Line 70:3:    'FilterList' is defined but never used            @typescript-eslint/no-unused-vars
+  Line 71:3:    'GetApp' is defined but never used                @typescript-eslint/no-unused-vars
+  Line 81:40:   'formatTimestamp' is defined but never used       @typescript-eslint/no-unused-vars
+  Line 168:9:   'isTablet' is assigned a value but never used     @typescript-eslint/no-unused-vars
+  Line 177:20:  'setViewMode' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+src/components/monitoring/PerformanceMetricsChart/PerformanceMetricsChart.tsx
+  Line 21:44:   'useEffect' is defined but never used                @typescript-eslint/no-unused-vars
+  Line 33:3:    'Grid' is defined but never used                     @typescript-eslint/no-unused-vars
+  Line 51:3:    'ReferenceLine' is defined but never used            @typescript-eslint/no-unused-vars
+  Line 56:3:    'PerformanceMetrics' is defined but never used       @typescript-eslint/no-unused-vars
+  Line 57:3:    'HistoricalMetrics' is defined but never used        @typescript-eslint/no-unused-vars
+  Line 58:3:    'TrendData' is defined but never used                @typescript-eslint/no-unused-vars
+  Line 61:24:   'formatTimestamp' is defined but never used          @typescript-eslint/no-unused-vars
+  Line 163:10:  'hoveredData' is assigned a value but never used     @typescript-eslint/no-unused-vars
+  Line 163:23:  'setHoveredData' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  Line 166:9:   'intervalRef' is assigned a value but never used     @typescript-eslint/no-unused-vars
+
+webpack compiled with 1 warning
+Files successfully emitted, waiting for typecheck results...
+Issues checking in progress...
+ERROR in src/hooks/useWebSocket.ts:122:27
+TS2345: Argument of type '(message: WebSocketMessage) => void' is not assignable to parameter of type 'WebSocketEventListener'.
+  Types of parameters 'message' and 'event' are incompatible.
+    Type 'string' is not assignable to type 'WebSocketMessage'.
+      Type 'string' is not assignable to type 'WebSocketMessage'.
+    120 |     service.on('connect', handleConnect);
+    121 |     service.on('disconnect', handleDisconnect);
+  > 122 |     service.on('message', handleMessage);
+        |                           ^^^^^^^^^^^^^
+    123 |     service.on('error', handleError);
+    124 |     service.on('reconnect', handleReconnect);
+    125 |     
+
+ERROR in src/hooks/useWebSocket.ts:123:25
+TS2345: Argument of type '(error: MonitoringError) => void' is not assignable to parameter of type 'WebSocketEventListener'.
+  Types of parameters 'error' and 'event' are incompatible.
+    Type 'string' is not assignable to type 'MonitoringError'.
+      Type 'string' is not assignable to type 'MonitoringError'.
+    121 |     service.on('disconnect', handleDisconnect);
+    122 |     service.on('message', handleMessage);
+  > 123 |     service.on('error', handleError);
+        |                         ^^^^^^^^^^^
+    124 |     service.on('reconnect', handleReconnect);
+    125 |     
+    126 |     wsServiceRef.current = service;
+
+ERROR in src/hooks/useWebSocket.ts:124:29
+TS2345: Argument of type '(data: {    attempt: number;}) => void' is not assignable to parameter of type 'WebSocketEventListener'.
+  Types of parameters 'data' and 'event' are incompatible.
+    Type 'string' is not assignable to type '{ attempt: number; }'.
+      Type 'string' is not assignable to type '{ attempt: number; }'.
+    122 |     service.on('message', handleMessage);
+    123 |     service.on('error', handleError);
+  > 124 |     service.on('reconnect', handleReconnect);
+        |                             ^^^^^^^^^^^^^^^
+    125 |     
+    126 |     wsServiceRef.current = service;
+    127 |     return service;
+
+ERROR in src/pages/MonitoringDashboard/MonitoringDashboard.tsx:509:19
+TS2322: Type '{ metrics: PerformanceMetrics[]; trends: HistoricalMetrics | undefined; height: number; realTime: boolean; }' is not assignable to type 'IntrinsicAttributes & PerformanceChartProps'.
+  Property 'realTime' does not exist on type 'IntrinsicAttributes & PerformanceChartProps'.
+    507 |                   trends={dashboardData?.trends}
+    508 |                   height={300}
+  > 509 |                   realTime={true}
+        |                   ^^^^^^^^
+    510 |                 />
+    511 |               </CardContent>
+    512 |             </Card>
+
+ERROR in src/services/api/monitoringApi.ts:115:27
+TS2339: Property 'code' does not exist on type '{}'.
+    113 |   
+    114 |   return {
+  > 115 |     code: response?.data?.code || `HTTP_${response?.status}` || 'NETWORK_ERROR',
+        |                           ^^^^
+    116 |     message: response?.data?.message || error.message || 'An error occurred',
+    117 |     timestamp: new Date().toISOString(),
+    118 |     recoverable: response?.status !== 401 && response?.status !== 403,
+
+ERROR in src/services/api/monitoringApi.ts:116:30
+TS2339: Property 'message' does not exist on type '{}'.
+    114 |   return {
+    115 |     code: response?.data?.code || `HTTP_${response?.status}` || 'NETWORK_ERROR',
+  > 116 |     message: response?.data?.message || error.message || 'An error occurred',
+        |                              ^^^^^^^
+    117 |     timestamp: new Date().toISOString(),
+    118 |     recoverable: response?.status !== 401 && response?.status !== 403,
+    119 |     details: {
+
+ERROR in src/types/index.ts:52:1
+TS2308: Module './template' has already exported a member named 'PaginatedResponse'. Consider explicitly re-exporting to resolve the ambiguity.
+    50 |
+    51 | export * from './template';
+  > 52 | export * from './monitoring';
+       | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+ERROR in src/types/monitoring.ts:533:3
+TS2484: Export declaration conflicts with exported declaration of 'ActiveJob'.
+    531 | // Export all types for easy importing
+    532 | export type {
+  > 533 |   ActiveJob,
+        |   ^^^^^^^^^
+    534 |   PerformanceMetrics,
+    535 |   SystemHealth,
+    536 |   Alert,
+
+ERROR in src/types/monitoring.ts:534:3
+TS2484: Export declaration conflicts with exported declaration of 'PerformanceMetrics'.
+    532 | export type {
+    533 |   ActiveJob,
+  > 534 |   PerformanceMetrics,
+        |   ^^^^^^^^^^^^^^^^^^
+    535 |   SystemHealth,
+    536 |   Alert,
+    537 |   AlertFilters,
+
+ERROR in src/types/monitoring.ts:535:3
+TS2484: Export declaration conflicts with exported declaration of 'SystemHealth'.
+    533 |   ActiveJob,
+    534 |   PerformanceMetrics,
+  > 535 |   SystemHealth,
+        |   ^^^^^^^^^^^^
+    536 |   Alert,
+    537 |   AlertFilters,
+    538 |   AlertConfiguration,
+
+ERROR in src/types/monitoring.ts:536:3
+TS2484: Export declaration conflicts with exported declaration of 'Alert'.
+    534 |   PerformanceMetrics,
+    535 |   SystemHealth,
+  > 536 |   Alert,
+        |   ^^^^^
+    537 |   AlertFilters,
+    538 |   AlertConfiguration,
+    539 |   JobExecutionDetails,
+
+ERROR in src/types/monitoring.ts:537:3
+TS2484: Export declaration conflicts with exported declaration of 'AlertFilters'.
+    535 |   SystemHealth,
+    536 |   Alert,
+  > 537 |   AlertFilters,
+        |   ^^^^^^^^^^^^
+    538 |   AlertConfiguration,
+    539 |   JobExecutionDetails,
+    540 |   HistoricalMetrics,
+
+ERROR in src/types/monitoring.ts:538:3
+TS2484: Export declaration conflicts with exported declaration of 'AlertConfiguration'.
+    536 |   Alert,
+    537 |   AlertFilters,
+  > 538 |   AlertConfiguration,
+        |   ^^^^^^^^^^^^^^^^^^
+    539 |   JobExecutionDetails,
+    540 |   HistoricalMetrics,
+    541 |   DashboardData,
+
+ERROR in src/types/monitoring.ts:539:3
+TS2484: Export declaration conflicts with exported declaration of 'JobExecutionDetails'.
+    537 |   AlertFilters,
+    538 |   AlertConfiguration,
+  > 539 |   JobExecutionDetails,
+        |   ^^^^^^^^^^^^^^^^^^^
+    540 |   HistoricalMetrics,
+    541 |   DashboardData,
+    542 |   WebSocketMessage,
+
+ERROR in src/types/monitoring.ts:540:3
+TS2484: Export declaration conflicts with exported declaration of 'HistoricalMetrics'.
+    538 |   AlertConfiguration,
+    539 |   JobExecutionDetails,
+  > 540 |   HistoricalMetrics,
+        |   ^^^^^^^^^^^^^^^^^
+    541 |   DashboardData,
+    542 |   WebSocketMessage,
+    543 |   MonitoringConfiguration,
+
+ERROR in src/types/monitoring.ts:541:3
+TS2484: Export declaration conflicts with exported declaration of 'DashboardData'.
+    539 |   JobExecutionDetails,
+    540 |   HistoricalMetrics,
+  > 541 |   DashboardData,
+        |   ^^^^^^^^^^^^^
+    542 |   WebSocketMessage,
+    543 |   MonitoringConfiguration,
+    544 |   MobileOptimizedJob,
+
+ERROR in src/types/monitoring.ts:542:3
+TS2484: Export declaration conflicts with exported declaration of 'WebSocketMessage'.
+    540 |   HistoricalMetrics,
+    541 |   DashboardData,
+  > 542 |   WebSocketMessage,
+        |   ^^^^^^^^^^^^^^^^
+    543 |   MonitoringConfiguration,
+    544 |   MobileOptimizedJob,
+    545 |   ChartDataPoint,
+
+ERROR in src/types/monitoring.ts:543:3
+TS2484: Export declaration conflicts with exported declaration of 'MonitoringConfiguration'.
+    541 |   DashboardData,
+    542 |   WebSocketMessage,
+  > 543 |   MonitoringConfiguration,
+        |   ^^^^^^^^^^^^^^^^^^^^^^^
+    544 |   MobileOptimizedJob,
+    545 |   ChartDataPoint,
+    546 |   ChartConfiguration,
+
+ERROR in src/types/monitoring.ts:544:3
+TS2484: Export declaration conflicts with exported declaration of 'MobileOptimizedJob'.
+    542 |   WebSocketMessage,
+    543 |   MonitoringConfiguration,
+  > 544 |   MobileOptimizedJob,
+        |   ^^^^^^^^^^^^^^^^^^
+    545 |   ChartDataPoint,
+    546 |   ChartConfiguration,
+    547 |   MonitoringError
+
+ERROR in src/types/monitoring.ts:545:3
+TS2484: Export declaration conflicts with exported declaration of 'ChartDataPoint'.
+    543 |   MonitoringConfiguration,
+    544 |   MobileOptimizedJob,
+  > 545 |   ChartDataPoint,
+        |   ^^^^^^^^^^^^^^
+    546 |   ChartConfiguration,
+    547 |   MonitoringError
+    548 | };
+
+ERROR in src/types/monitoring.ts:546:3
+TS2484: Export declaration conflicts with exported declaration of 'ChartConfiguration'.
+    544 |   MobileOptimizedJob,
+    545 |   ChartDataPoint,
+  > 546 |   ChartConfiguration,
+        |   ^^^^^^^^^^^^^^^^^^
+    547 |   MonitoringError
+    548 | };
+
+ERROR in src/types/monitoring.ts:547:3
+TS2484: Export declaration conflicts with exported declaration of 'MonitoringError'.
+    545 |   ChartDataPoint,
+    546 |   ChartConfiguration,
+  > 547 |   MonitoringError
+        |   ^^^^^^^^^^^^^^^
+    548 | };
+
+Compiling...
+Compiled with warnings.
+
+[eslint] 
+src/components/monitoring/JobStatusGrid/JobStatusGrid.tsx
+  Line 38:3:    'Tooltip' is defined but never used               @typescript-eslint/no-unused-vars
+  Line 66:3:    'Schedule' is defined but never used              @typescript-eslint/no-unused-vars
+  Line 68:3:    'Memory' is defined but never used                @typescript-eslint/no-unused-vars
+  Line 70:3:    'FilterList' is defined but never used            @typescript-eslint/no-unused-vars
+  Line 71:3:    'GetApp' is defined but never used                @typescript-eslint/no-unused-vars
+  Line 81:40:   'formatTimestamp' is defined but never used       @typescript-eslint/no-unused-vars
+  Line 168:9:   'isTablet' is assigned a value but never used     @typescript-eslint/no-unused-vars
+  Line 177:20:  'setViewMode' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+src/components/monitoring/PerformanceMetricsChart/PerformanceMetricsChart.tsx
+  Line 21:44:   'useEffect' is defined but never used                @typescript-eslint/no-unused-vars
+  Line 33:3:    'Grid' is defined but never used                     @typescript-eslint/no-unused-vars
+  Line 51:3:    'ReferenceLine' is defined but never used            @typescript-eslint/no-unused-vars
+  Line 56:3:    'PerformanceMetrics' is defined but never used       @typescript-eslint/no-unused-vars
+  Line 57:3:    'HistoricalMetrics' is defined but never used        @typescript-eslint/no-unused-vars
+  Line 58:3:    'TrendData' is defined but never used                @typescript-eslint/no-unused-vars
+  Line 61:24:   'formatTimestamp' is defined but never used          @typescript-eslint/no-unused-vars
+  Line 163:10:  'hoveredData' is assigned a value but never used     @typescript-eslint/no-unused-vars
+  Line 163:23:  'setHoveredData' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  Line 166:9:   'intervalRef' is assigned a value but never used     @typescript-eslint/no-unused-vars
+
+Search for the keywords to learn more about each warning.
+To ignore, add // eslint-disable-next-line to the line before.
+
+WARNING in [eslint] 
+src/components/monitoring/JobStatusGrid/JobStatusGrid.tsx
+  Line 38:3:    'Tooltip' is defined but never used               @typescript-eslint/no-unused-vars
+  Line 66:3:    'Schedule' is defined but never used              @typescript-eslint/no-unused-vars
+  Line 68:3:    'Memory' is defined but never used                @typescript-eslint/no-unused-vars
+  Line 70:3:    'FilterList' is defined but never used            @typescript-eslint/no-unused-vars
+  Line 71:3:    'GetApp' is defined but never used                @typescript-eslint/no-unused-vars
+  Line 81:40:   'formatTimestamp' is defined but never used       @typescript-eslint/no-unused-vars
+  Line 168:9:   'isTablet' is assigned a value but never used     @typescript-eslint/no-unused-vars
+  Line 177:20:  'setViewMode' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+src/components/monitoring/PerformanceMetricsChart/PerformanceMetricsChart.tsx
+  Line 21:44:   'useEffect' is defined but never used                @typescript-eslint/no-unused-vars
+  Line 33:3:    'Grid' is defined but never used                     @typescript-eslint/no-unused-vars
+  Line 51:3:    'ReferenceLine' is defined but never used            @typescript-eslint/no-unused-vars
+  Line 56:3:    'PerformanceMetrics' is defined but never used       @typescript-eslint/no-unused-vars
+  Line 57:3:    'HistoricalMetrics' is defined but never used        @typescript-eslint/no-unused-vars
+  Line 58:3:    'TrendData' is defined but never used                @typescript-eslint/no-unused-vars
+  Line 61:24:   'formatTimestamp' is defined but never used          @typescript-eslint/no-unused-vars
+  Line 163:10:  'hoveredData' is assigned a value but never used     @typescript-eslint/no-unused-vars
+  Line 163:23:  'setHoveredData' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  Line 166:9:   'intervalRef' is assigned a value but never used     @typescript-eslint/no-unused-vars
+
+webpack compiled with 1 warning
+Files successfully emitted, waiting for typecheck results...
+Issues checking in progress...
+ERROR in src/hooks/useWebSocket.ts:122:27
+TS2345: Argument of type '(message: WebSocketMessage) => void' is not assignable to parameter of type 'WebSocketEventListener'.
+  Types of parameters 'message' and 'event' are incompatible.
+    Type 'string' is not assignable to type 'WebSocketMessage'.
+      Type 'string' is not assignable to type 'WebSocketMessage'.
+    120 |     service.on('connect', handleConnect);
+    121 |     service.on('disconnect', handleDisconnect);
+  > 122 |     service.on('message', handleMessage);
+        |                           ^^^^^^^^^^^^^
+    123 |     service.on('error', handleError);
+    124 |     service.on('reconnect', handleReconnect);
+    125 |     
+
+ERROR in src/hooks/useWebSocket.ts:123:25
+TS2345: Argument of type '(error: MonitoringError) => void' is not assignable to parameter of type 'WebSocketEventListener'.
+  Types of parameters 'error' and 'event' are incompatible.
+    Type 'string' is not assignable to type 'MonitoringError'.
+      Type 'string' is not assignable to type 'MonitoringError'.
+    121 |     service.on('disconnect', handleDisconnect);
+    122 |     service.on('message', handleMessage);
+  > 123 |     service.on('error', handleError);
+        |                         ^^^^^^^^^^^
+    124 |     service.on('reconnect', handleReconnect);
+    125 |     
+    126 |     wsServiceRef.current = service;
+
+ERROR in src/hooks/useWebSocket.ts:124:29
+TS2345: Argument of type '(data: {    attempt: number;}) => void' is not assignable to parameter of type 'WebSocketEventListener'.
+  Types of parameters 'data' and 'event' are incompatible.
+    Type 'string' is not assignable to type '{ attempt: number; }'.
+      Type 'string' is not assignable to type '{ attempt: number; }'.
+    122 |     service.on('message', handleMessage);
+    123 |     service.on('error', handleError);
+  > 124 |     service.on('reconnect', handleReconnect);
+        |                             ^^^^^^^^^^^^^^^
+    125 |     
+    126 |     wsServiceRef.current = service;
+    127 |     return service;
+
+ERROR in src/pages/MonitoringDashboard/MonitoringDashboard.tsx:509:19
+TS2322: Type '{ metrics: PerformanceMetrics[]; trends: HistoricalMetrics | undefined; height: number; realTime: boolean; }' is not assignable to type 'IntrinsicAttributes & PerformanceChartProps'.
+  Property 'realTime' does not exist on type 'IntrinsicAttributes & PerformanceChartProps'.
+    507 |                   trends={dashboardData?.trends}
+    508 |                   height={300}
+  > 509 |                   realTime={true}
+        |                   ^^^^^^^^
+    510 |                 />
+    511 |               </CardContent>
+    512 |             </Card>
+
+ERROR in src/services/api/monitoringApi.ts:115:27
+TS2339: Property 'code' does not exist on type '{}'.
+    113 |   
+    114 |   return {
+  > 115 |     code: response?.data?.code || `HTTP_${response?.status}` || 'NETWORK_ERROR',
+        |                           ^^^^
+    116 |     message: response?.data?.message || error.message || 'An error occurred',
+    117 |     timestamp: new Date().toISOString(),
+    118 |     recoverable: response?.status !== 401 && response?.status !== 403,
+
+ERROR in src/services/api/monitoringApi.ts:116:30
+TS2339: Property 'message' does not exist on type '{}'.
+    114 |   return {
+    115 |     code: response?.data?.code || `HTTP_${response?.status}` || 'NETWORK_ERROR',
+  > 116 |     message: response?.data?.message || error.message || 'An error occurred',
+        |                              ^^^^^^^
+    117 |     timestamp: new Date().toISOString(),
+    118 |     recoverable: response?.status !== 401 && response?.status !== 403,
+    119 |     details: {
+
+ERROR in src/types/index.ts:52:1
+TS2308: Module './template' has already exported a member named 'PaginatedResponse'. Consider explicitly re-exporting to resolve the ambiguity.
+    50 |
+    51 | export * from './template';
+  > 52 | export * from './monitoring';
+       | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Compiling...
+Compiled with warnings.
+
+[eslint] 
+src/components/monitoring/JobStatusGrid/JobStatusGrid.tsx
+  Line 38:3:    'Tooltip' is defined but never used               @typescript-eslint/no-unused-vars
+  Line 66:3:    'Schedule' is defined but never used              @typescript-eslint/no-unused-vars
+  Line 68:3:    'Memory' is defined but never used                @typescript-eslint/no-unused-vars
+  Line 70:3:    'FilterList' is defined but never used            @typescript-eslint/no-unused-vars
+  Line 71:3:    'GetApp' is defined but never used                @typescript-eslint/no-unused-vars
+  Line 81:40:   'formatTimestamp' is defined but never used       @typescript-eslint/no-unused-vars
+  Line 168:9:   'isTablet' is assigned a value but never used     @typescript-eslint/no-unused-vars
+  Line 177:20:  'setViewMode' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+src/components/monitoring/PerformanceMetricsChart/PerformanceMetricsChart.tsx
+  Line 21:44:   'useEffect' is defined but never used                @typescript-eslint/no-unused-vars
+  Line 33:3:    'Grid' is defined but never used                     @typescript-eslint/no-unused-vars
+  Line 51:3:    'ReferenceLine' is defined but never used            @typescript-eslint/no-unused-vars
+  Line 56:3:    'PerformanceMetrics' is defined but never used       @typescript-eslint/no-unused-vars
+  Line 57:3:    'HistoricalMetrics' is defined but never used        @typescript-eslint/no-unused-vars
+  Line 58:3:    'TrendData' is defined but never used                @typescript-eslint/no-unused-vars
+  Line 61:24:   'formatTimestamp' is defined but never used          @typescript-eslint/no-unused-vars
+  Line 163:10:  'hoveredData' is assigned a value but never used     @typescript-eslint/no-unused-vars
+  Line 163:23:  'setHoveredData' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  Line 166:9:   'intervalRef' is assigned a value but never used     @typescript-eslint/no-unused-vars
+
+Search for the keywords to learn more about each warning.
+To ignore, add // eslint-disable-next-line to the line before.
+
+WARNING in [eslint] 
+src/components/monitoring/JobStatusGrid/JobStatusGrid.tsx
+  Line 38:3:    'Tooltip' is defined but never used               @typescript-eslint/no-unused-vars
+  Line 66:3:    'Schedule' is defined but never used              @typescript-eslint/no-unused-vars
+  Line 68:3:    'Memory' is defined but never used                @typescript-eslint/no-unused-vars
+  Line 70:3:    'FilterList' is defined but never used            @typescript-eslint/no-unused-vars
+  Line 71:3:    'GetApp' is defined but never used                @typescript-eslint/no-unused-vars
+  Line 81:40:   'formatTimestamp' is defined but never used       @typescript-eslint/no-unused-vars
+  Line 168:9:   'isTablet' is assigned a value but never used     @typescript-eslint/no-unused-vars
+  Line 177:20:  'setViewMode' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+src/components/monitoring/PerformanceMetricsChart/PerformanceMetricsChart.tsx
+  Line 21:44:   'useEffect' is defined but never used                @typescript-eslint/no-unused-vars
+  Line 33:3:    'Grid' is defined but never used                     @typescript-eslint/no-unused-vars
+  Line 51:3:    'ReferenceLine' is defined but never used            @typescript-eslint/no-unused-vars
+  Line 56:3:    'PerformanceMetrics' is defined but never used       @typescript-eslint/no-unused-vars
+  Line 57:3:    'HistoricalMetrics' is defined but never used        @typescript-eslint/no-unused-vars
+  Line 58:3:    'TrendData' is defined but never used                @typescript-eslint/no-unused-vars
+  Line 61:24:   'formatTimestamp' is defined but never used          @typescript-eslint/no-unused-vars
+  Line 163:10:  'hoveredData' is assigned a value but never used     @typescript-eslint/no-unused-vars
+  Line 163:23:  'setHoveredData' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  Line 166:9:   'intervalRef' is assigned a value but never used     @typescript-eslint/no-unused-vars
+
+webpack compiled with 1 warning
+Files successfully emitted, waiting for typecheck results...
+Issues checking in progress...
+ERROR in src/pages/MonitoringDashboard/MonitoringDashboard.tsx:509:19
+TS2322: Type '{ metrics: PerformanceMetrics[]; trends: HistoricalMetrics | undefined; height: number; realTime: boolean; }' is not assignable to type 'IntrinsicAttributes & PerformanceChartProps'.
+  Property 'realTime' does not exist on type 'IntrinsicAttributes & PerformanceChartProps'.
+    507 |                   trends={dashboardData?.trends}
+    508 |                   height={300}
+  > 509 |                   realTime={true}
+        |                   ^^^^^^^^
+    510 |                 />
+    511 |               </CardContent>
+    512 |             </Card>
+
+ERROR in src/services/api/monitoringApi.ts:115:27
+TS2339: Property 'code' does not exist on type '{}'.
+    113 |   
+    114 |   return {
+  > 115 |     code: response?.data?.code || `HTTP_${response?.status}` || 'NETWORK_ERROR',
+        |                           ^^^^
+    116 |     message: response?.data?.message || error.message || 'An error occurred',
+    117 |     timestamp: new Date().toISOString(),
+    118 |     recoverable: response?.status !== 401 && response?.status !== 403,
+
+ERROR in src/services/api/monitoringApi.ts:116:30
+TS2339: Property 'message' does not exist on type '{}'.
+    114 |   return {
+    115 |     code: response?.data?.code || `HTTP_${response?.status}` || 'NETWORK_ERROR',
+  > 116 |     message: response?.data?.message || error.message || 'An error occurred',
+        |                              ^^^^^^^
+    117 |     timestamp: new Date().toISOString(),
+    118 |     recoverable: response?.status !== 401 && response?.status !== 403,
+    119 |     details: {
+
+ERROR in src/services/websocket/WebSocketService.ts:617:29
+TS2554: Expected 0-1 arguments, but got 2.
+    615 |     listeners.forEach(listener => {
+    616 |       try {
+  > 617 |         listener(eventType, data);
+        |                             ^^^^
+    618 |       } catch (error) {
+    619 |         console.error(`Error in WebSocket event listener:`, error);
+    620 |       }
+
+ERROR in src/types/index.ts:52:1
+TS2308: Module './template' has already exported a member named 'PaginatedResponse'. Consider explicitly re-exporting to resolve the ambiguity.
+    50 |
+    51 | export * from './template';
+  > 52 | export * from './monitoring';
+       | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Compiling...
+Compiled with warnings.
+
+[eslint] 
+src/components/monitoring/JobStatusGrid/JobStatusGrid.tsx
+  Line 38:3:    'Tooltip' is defined but never used               @typescript-eslint/no-unused-vars
+  Line 66:3:    'Schedule' is defined but never used              @typescript-eslint/no-unused-vars
+  Line 68:3:    'Memory' is defined but never used                @typescript-eslint/no-unused-vars
+  Line 70:3:    'FilterList' is defined but never used            @typescript-eslint/no-unused-vars
+  Line 71:3:    'GetApp' is defined but never used                @typescript-eslint/no-unused-vars
+  Line 81:40:   'formatTimestamp' is defined but never used       @typescript-eslint/no-unused-vars
+  Line 168:9:   'isTablet' is assigned a value but never used     @typescript-eslint/no-unused-vars
+  Line 177:20:  'setViewMode' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+src/components/monitoring/PerformanceMetricsChart/PerformanceMetricsChart.tsx
+  Line 21:44:   'useEffect' is defined but never used                @typescript-eslint/no-unused-vars
+  Line 33:3:    'Grid' is defined but never used                     @typescript-eslint/no-unused-vars
+  Line 51:3:    'ReferenceLine' is defined but never used            @typescript-eslint/no-unused-vars
+  Line 56:3:    'PerformanceMetrics' is defined but never used       @typescript-eslint/no-unused-vars
+  Line 57:3:    'HistoricalMetrics' is defined but never used        @typescript-eslint/no-unused-vars
+  Line 58:3:    'TrendData' is defined but never used                @typescript-eslint/no-unused-vars
+  Line 61:24:   'formatTimestamp' is defined but never used          @typescript-eslint/no-unused-vars
+  Line 163:10:  'hoveredData' is assigned a value but never used     @typescript-eslint/no-unused-vars
+  Line 163:23:  'setHoveredData' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  Line 166:9:   'intervalRef' is assigned a value but never used     @typescript-eslint/no-unused-vars
+
+Search for the keywords to learn more about each warning.
+To ignore, add // eslint-disable-next-line to the line before.
+
+WARNING in [eslint] 
+src/components/monitoring/JobStatusGrid/JobStatusGrid.tsx
+  Line 38:3:    'Tooltip' is defined but never used               @typescript-eslint/no-unused-vars
+  Line 66:3:    'Schedule' is defined but never used              @typescript-eslint/no-unused-vars
+  Line 68:3:    'Memory' is defined but never used                @typescript-eslint/no-unused-vars
+  Line 70:3:    'FilterList' is defined but never used            @typescript-eslint/no-unused-vars
+  Line 71:3:    'GetApp' is defined but never used                @typescript-eslint/no-unused-vars
+  Line 81:40:   'formatTimestamp' is defined but never used       @typescript-eslint/no-unused-vars
+  Line 168:9:   'isTablet' is assigned a value but never used     @typescript-eslint/no-unused-vars
+  Line 177:20:  'setViewMode' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+src/components/monitoring/PerformanceMetricsChart/PerformanceMetricsChart.tsx
+  Line 21:44:   'useEffect' is defined but never used                @typescript-eslint/no-unused-vars
+  Line 33:3:    'Grid' is defined but never used                     @typescript-eslint/no-unused-vars
+  Line 51:3:    'ReferenceLine' is defined but never used            @typescript-eslint/no-unused-vars
+  Line 56:3:    'PerformanceMetrics' is defined but never used       @typescript-eslint/no-unused-vars
+  Line 57:3:    'HistoricalMetrics' is defined but never used        @typescript-eslint/no-unused-vars
+  Line 58:3:    'TrendData' is defined but never used                @typescript-eslint/no-unused-vars
+  Line 61:24:   'formatTimestamp' is defined but never used          @typescript-eslint/no-unused-vars
+  Line 163:10:  'hoveredData' is assigned a value but never used     @typescript-eslint/no-unused-vars
+  Line 163:23:  'setHoveredData' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  Line 166:9:   'intervalRef' is assigned a value but never used     @typescript-eslint/no-unused-vars
+
+webpack compiled with 1 warning
+Files successfully emitted, waiting for typecheck results...
+Issues checking in progress...
+ERROR in src/services/api/monitoringApi.ts:115:27
+TS2339: Property 'code' does not exist on type '{}'.
+    113 |   
+    114 |   return {
+  > 115 |     code: response?.data?.code || `HTTP_${response?.status}` || 'NETWORK_ERROR',
+        |                           ^^^^
+    116 |     message: response?.data?.message || error.message || 'An error occurred',
+    117 |     timestamp: new Date().toISOString(),
+    118 |     recoverable: response?.status !== 401 && response?.status !== 403,
+
+ERROR in src/services/api/monitoringApi.ts:116:30
+TS2339: Property 'message' does not exist on type '{}'.
+    114 |   return {
+    115 |     code: response?.data?.code || `HTTP_${response?.status}` || 'NETWORK_ERROR',
+  > 116 |     message: response?.data?.message || error.message || 'An error occurred',
+        |                              ^^^^^^^
+    117 |     timestamp: new Date().toISOString(),
+    118 |     recoverable: response?.status !== 401 && response?.status !== 403,
+    119 |     details: {
+
+ERROR in src/services/websocket/WebSocketService.ts:617:29
+TS2554: Expected 0-1 arguments, but got 2.
+    615 |     listeners.forEach(listener => {
+    616 |       try {
+  > 617 |         listener(eventType, data);
+        |                             ^^^^
+    618 |       } catch (error) {
+    619 |         console.error(`Error in WebSocket event listener:`, error);
+    620 |       }
+
+ERROR in src/types/index.ts:52:1
+TS2308: Module './template' has already exported a member named 'PaginatedResponse'. Consider explicitly re-exporting to resolve the ambiguity.
+    50 |
+    51 | export * from './template';
+  > 52 | export * from './monitoring';
+       | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Compiling...
+Compiled with warnings.
+
+[eslint] 
+src/components/monitoring/JobStatusGrid/JobStatusGrid.tsx
+  Line 38:3:    'Tooltip' is defined but never used               @typescript-eslint/no-unused-vars
+  Line 66:3:    'Schedule' is defined but never used              @typescript-eslint/no-unused-vars
+  Line 68:3:    'Memory' is defined but never used                @typescript-eslint/no-unused-vars
+  Line 70:3:    'FilterList' is defined but never used            @typescript-eslint/no-unused-vars
+  Line 71:3:    'GetApp' is defined but never used                @typescript-eslint/no-unused-vars
+  Line 81:40:   'formatTimestamp' is defined but never used       @typescript-eslint/no-unused-vars
+  Line 168:9:   'isTablet' is assigned a value but never used     @typescript-eslint/no-unused-vars
+  Line 177:20:  'setViewMode' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+src/components/monitoring/PerformanceMetricsChart/PerformanceMetricsChart.tsx
+  Line 21:44:   'useEffect' is defined but never used                @typescript-eslint/no-unused-vars
+  Line 33:3:    'Grid' is defined but never used                     @typescript-eslint/no-unused-vars
+  Line 51:3:    'ReferenceLine' is defined but never used            @typescript-eslint/no-unused-vars
+  Line 56:3:    'PerformanceMetrics' is defined but never used       @typescript-eslint/no-unused-vars
+  Line 57:3:    'HistoricalMetrics' is defined but never used        @typescript-eslint/no-unused-vars
+  Line 58:3:    'TrendData' is defined but never used                @typescript-eslint/no-unused-vars
+  Line 61:24:   'formatTimestamp' is defined but never used          @typescript-eslint/no-unused-vars
+  Line 163:10:  'hoveredData' is assigned a value but never used     @typescript-eslint/no-unused-vars
+  Line 163:23:  'setHoveredData' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  Line 166:9:   'intervalRef' is assigned a value but never used     @typescript-eslint/no-unused-vars
+
+Search for the keywords to learn more about each warning.
+To ignore, add // eslint-disable-next-line to the line before.
+
+WARNING in [eslint] 
+src/components/monitoring/JobStatusGrid/JobStatusGrid.tsx
+  Line 38:3:    'Tooltip' is defined but never used               @typescript-eslint/no-unused-vars
+  Line 66:3:    'Schedule' is defined but never used              @typescript-eslint/no-unused-vars
+  Line 68:3:    'Memory' is defined but never used                @typescript-eslint/no-unused-vars
+  Line 70:3:    'FilterList' is defined but never used            @typescript-eslint/no-unused-vars
+  Line 71:3:    'GetApp' is defined but never used                @typescript-eslint/no-unused-vars
+  Line 81:40:   'formatTimestamp' is defined but never used       @typescript-eslint/no-unused-vars
+  Line 168:9:   'isTablet' is assigned a value but never used     @typescript-eslint/no-unused-vars
+  Line 177:20:  'setViewMode' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+src/components/monitoring/PerformanceMetricsChart/PerformanceMetricsChart.tsx
+  Line 21:44:   'useEffect' is defined but never used                @typescript-eslint/no-unused-vars
+  Line 33:3:    'Grid' is defined but never used                     @typescript-eslint/no-unused-vars
+  Line 51:3:    'ReferenceLine' is defined but never used            @typescript-eslint/no-unused-vars
+  Line 56:3:    'PerformanceMetrics' is defined but never used       @typescript-eslint/no-unused-vars
+  Line 57:3:    'HistoricalMetrics' is defined but never used        @typescript-eslint/no-unused-vars
+  Line 58:3:    'TrendData' is defined but never used                @typescript-eslint/no-unused-vars
+  Line 61:24:   'formatTimestamp' is defined but never used          @typescript-eslint/no-unused-vars
+  Line 163:10:  'hoveredData' is assigned a value but never used     @typescript-eslint/no-unused-vars
+  Line 163:23:  'setHoveredData' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  Line 166:9:   'intervalRef' is assigned a value but never used     @typescript-eslint/no-unused-vars
+
+webpack compiled with 1 warning
+Files successfully emitted, waiting for typecheck results...
+Issues checking in progress...
+ERROR in src/services/websocket/WebSocketService.ts:617:29
+TS2554: Expected 0-1 arguments, but got 2.
+    615 |     listeners.forEach(listener => {
+    616 |       try {
+  > 617 |         listener(eventType, data);
+        |                             ^^^^
+    618 |       } catch (error) {
+    619 |         console.error(`Error in WebSocket event listener:`, error);
+    620 |       }
+
+ERROR in src/types/index.ts:52:1
+TS2308: Module './template' has already exported a member named 'PaginatedResponse'. Consider explicitly re-exporting to resolve the ambiguity.
+    50 |
+    51 | export * from './template';
+  > 52 | export * from './monitoring';
+       | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Compiling...
+Compiled with warnings.
+
+[eslint] 
+src/components/monitoring/JobStatusGrid/JobStatusGrid.tsx
+  Line 38:3:    'Tooltip' is defined but never used               @typescript-eslint/no-unused-vars
+  Line 66:3:    'Schedule' is defined but never used              @typescript-eslint/no-unused-vars
+  Line 68:3:    'Memory' is defined but never used                @typescript-eslint/no-unused-vars
+  Line 70:3:    'FilterList' is defined but never used            @typescript-eslint/no-unused-vars
+  Line 71:3:    'GetApp' is defined but never used                @typescript-eslint/no-unused-vars
+  Line 81:40:   'formatTimestamp' is defined but never used       @typescript-eslint/no-unused-vars
+  Line 168:9:   'isTablet' is assigned a value but never used     @typescript-eslint/no-unused-vars
+  Line 177:20:  'setViewMode' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+src/components/monitoring/PerformanceMetricsChart/PerformanceMetricsChart.tsx
+  Line 21:44:   'useEffect' is defined but never used                @typescript-eslint/no-unused-vars
+  Line 33:3:    'Grid' is defined but never used                     @typescript-eslint/no-unused-vars
+  Line 51:3:    'ReferenceLine' is defined but never used            @typescript-eslint/no-unused-vars
+  Line 56:3:    'PerformanceMetrics' is defined but never used       @typescript-eslint/no-unused-vars
+  Line 57:3:    'HistoricalMetrics' is defined but never used        @typescript-eslint/no-unused-vars
+  Line 58:3:    'TrendData' is defined but never used                @typescript-eslint/no-unused-vars
+  Line 61:24:   'formatTimestamp' is defined but never used          @typescript-eslint/no-unused-vars
+  Line 163:10:  'hoveredData' is assigned a value but never used     @typescript-eslint/no-unused-vars
+  Line 163:23:  'setHoveredData' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  Line 166:9:   'intervalRef' is assigned a value but never used     @typescript-eslint/no-unused-vars
+
+Search for the keywords to learn more about each warning.
+To ignore, add // eslint-disable-next-line to the line before.
+
+WARNING in [eslint] 
+src/components/monitoring/JobStatusGrid/JobStatusGrid.tsx
+  Line 38:3:    'Tooltip' is defined but never used               @typescript-eslint/no-unused-vars
+  Line 66:3:    'Schedule' is defined but never used              @typescript-eslint/no-unused-vars
+  Line 68:3:    'Memory' is defined but never used                @typescript-eslint/no-unused-vars
+  Line 70:3:    'FilterList' is defined but never used            @typescript-eslint/no-unused-vars
+  Line 71:3:    'GetApp' is defined but never used                @typescript-eslint/no-unused-vars
+  Line 81:40:   'formatTimestamp' is defined but never used       @typescript-eslint/no-unused-vars
+  Line 168:9:   'isTablet' is assigned a value but never used     @typescript-eslint/no-unused-vars
+  Line 177:20:  'setViewMode' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+src/components/monitoring/PerformanceMetricsChart/PerformanceMetricsChart.tsx
+  Line 21:44:   'useEffect' is defined but never used                @typescript-eslint/no-unused-vars
+  Line 33:3:    'Grid' is defined but never used                     @typescript-eslint/no-unused-vars
+  Line 51:3:    'ReferenceLine' is defined but never used            @typescript-eslint/no-unused-vars
+  Line 56:3:    'PerformanceMetrics' is defined but never used       @typescript-eslint/no-unused-vars
+  Line 57:3:    'HistoricalMetrics' is defined but never used        @typescript-eslint/no-unused-vars
+  Line 58:3:    'TrendData' is defined but never used                @typescript-eslint/no-unused-vars
+  Line 61:24:   'formatTimestamp' is defined but never used          @typescript-eslint/no-unused-vars
+  Line 163:10:  'hoveredData' is assigned a value but never used     @typescript-eslint/no-unused-vars
+  Line 163:23:  'setHoveredData' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  Line 166:9:   'intervalRef' is assigned a value but never used     @typescript-eslint/no-unused-vars
+
+webpack compiled with 1 warning
+Files successfully emitted, waiting for typecheck results...
+Issues checking in progress...
+ERROR in src/services/api/monitoringApi.ts:36:3
+TS2305: Module '"../../types/monitoring"' has no exported member 'PaginatedResponse'.
+    34 |   MonitoringConfiguration,
+    35 |   MonitoringApiResponse,
+  > 36 |   PaginatedResponse,
+       |   ^^^^^^^^^^^^^^^^^
+    37 |   MonitoringError
+    38 | } from '../../types/monitoring';
+    39 |
+
+ERROR in src/services/websocket/WebSocketService.ts:617:29
+TS2554: Expected 0-1 arguments, but got 2.
+    615 |     listeners.forEach(listener => {
+    616 |       try {
+  > 617 |         listener(eventType, data);
+        |                             ^^^^
+    618 |       } catch (error) {
+    619 |         console.error(`Error in WebSocket event listener:`, error);
+    620 |       }
+
+Compiling...
+Compiled with warnings.
+
+[eslint] 
+src/components/monitoring/JobStatusGrid/JobStatusGrid.tsx
+  Line 38:3:    'Tooltip' is defined but never used               @typescript-eslint/no-unused-vars
+  Line 66:3:    'Schedule' is defined but never used              @typescript-eslint/no-unused-vars
+  Line 68:3:    'Memory' is defined but never used                @typescript-eslint/no-unused-vars
+  Line 70:3:    'FilterList' is defined but never used            @typescript-eslint/no-unused-vars
+  Line 71:3:    'GetApp' is defined but never used                @typescript-eslint/no-unused-vars
+  Line 81:40:   'formatTimestamp' is defined but never used       @typescript-eslint/no-unused-vars
+  Line 168:9:   'isTablet' is assigned a value but never used     @typescript-eslint/no-unused-vars
+  Line 177:20:  'setViewMode' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+src/components/monitoring/PerformanceMetricsChart/PerformanceMetricsChart.tsx
+  Line 21:44:   'useEffect' is defined but never used                @typescript-eslint/no-unused-vars
+  Line 33:3:    'Grid' is defined but never used                     @typescript-eslint/no-unused-vars
+  Line 51:3:    'ReferenceLine' is defined but never used            @typescript-eslint/no-unused-vars
+  Line 56:3:    'PerformanceMetrics' is defined but never used       @typescript-eslint/no-unused-vars
+  Line 57:3:    'HistoricalMetrics' is defined but never used        @typescript-eslint/no-unused-vars
+  Line 58:3:    'TrendData' is defined but never used                @typescript-eslint/no-unused-vars
+  Line 61:24:   'formatTimestamp' is defined but never used          @typescript-eslint/no-unused-vars
+  Line 163:10:  'hoveredData' is assigned a value but never used     @typescript-eslint/no-unused-vars
+  Line 163:23:  'setHoveredData' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  Line 166:9:   'intervalRef' is assigned a value but never used     @typescript-eslint/no-unused-vars
+
+src/types/monitoring.ts
+  Line 21:10:  'PaginatedResponse' is defined but never used  @typescript-eslint/no-unused-vars
+
+Search for the keywords to learn more about each warning.
+To ignore, add // eslint-disable-next-line to the line before.
+
+WARNING in [eslint] 
+src/components/monitoring/JobStatusGrid/JobStatusGrid.tsx
+  Line 38:3:    'Tooltip' is defined but never used               @typescript-eslint/no-unused-vars
+  Line 66:3:    'Schedule' is defined but never used              @typescript-eslint/no-unused-vars
+  Line 68:3:    'Memory' is defined but never used                @typescript-eslint/no-unused-vars
+  Line 70:3:    'FilterList' is defined but never used            @typescript-eslint/no-unused-vars
+  Line 71:3:    'GetApp' is defined but never used                @typescript-eslint/no-unused-vars
+  Line 81:40:   'formatTimestamp' is defined but never used       @typescript-eslint/no-unused-vars
+  Line 168:9:   'isTablet' is assigned a value but never used     @typescript-eslint/no-unused-vars
+  Line 177:20:  'setViewMode' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+src/components/monitoring/PerformanceMetricsChart/PerformanceMetricsChart.tsx
+  Line 21:44:   'useEffect' is defined but never used                @typescript-eslint/no-unused-vars
+  Line 33:3:    'Grid' is defined but never used                     @typescript-eslint/no-unused-vars
+  Line 51:3:    'ReferenceLine' is defined but never used            @typescript-eslint/no-unused-vars
+  Line 56:3:    'PerformanceMetrics' is defined but never used       @typescript-eslint/no-unused-vars
+  Line 57:3:    'HistoricalMetrics' is defined but never used        @typescript-eslint/no-unused-vars
+  Line 58:3:    'TrendData' is defined but never used                @typescript-eslint/no-unused-vars
+  Line 61:24:   'formatTimestamp' is defined but never used          @typescript-eslint/no-unused-vars
+  Line 163:10:  'hoveredData' is assigned a value but never used     @typescript-eslint/no-unused-vars
+  Line 163:23:  'setHoveredData' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  Line 166:9:   'intervalRef' is assigned a value but never used     @typescript-eslint/no-unused-vars
+
+src/types/monitoring.ts
+  Line 21:10:  'PaginatedResponse' is defined but never used  @typescript-eslint/no-unused-vars
+
+webpack compiled with 1 warning
+ERROR in src/services/api/monitoringApi.ts:36:3
+TS2305: Module '"../../types/monitoring"' has no exported member 'PaginatedResponse'.
+    34 |   MonitoringConfiguration,
+    35 |   MonitoringApiResponse,
+  > 36 |   PaginatedResponse,
+       |   ^^^^^^^^^^^^^^^^^
+    37 |   MonitoringError
+    38 | } from '../../types/monitoring';
+    39 |
+
+ERROR in src/services/websocket/WebSocketService.ts:617:29
+TS2554: Expected 0-1 arguments, but got 2.
+    615 |     listeners.forEach(listener => {
+    616 |       try {
+  > 617 |         listener(eventType, data);
+        |                             ^^^^
+    618 |       } catch (error) {
+    619 |         console.error(`Error in WebSocket event listener:`, error);
+    620 |       }
+
+Compiling...
+Failed to compile.
+
+[eslint] 
+src/utils/deviceFingerprint.ts
+  Line 143:16:  Unexpected use of 'screen'  no-restricted-globals
+  Line 143:32:  Unexpected use of 'screen'  no-restricted-globals
+
+Search for the keywords to learn more about each error.
+WARNING in [eslint] 
+src/components/monitoring/JobStatusGrid/JobStatusGrid.tsx
+  Line 38:3:    'Tooltip' is defined but never used               @typescript-eslint/no-unused-vars
+  Line 66:3:    'Schedule' is defined but never used              @typescript-eslint/no-unused-vars
+  Line 68:3:    'Memory' is defined but never used                @typescript-eslint/no-unused-vars
+  Line 70:3:    'FilterList' is defined but never used            @typescript-eslint/no-unused-vars
+  Line 71:3:    'GetApp' is defined but never used                @typescript-eslint/no-unused-vars
+  Line 81:40:   'formatTimestamp' is defined but never used       @typescript-eslint/no-unused-vars
+  Line 168:9:   'isTablet' is assigned a value but never used     @typescript-eslint/no-unused-vars
+  Line 177:20:  'setViewMode' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+src/components/monitoring/PerformanceMetricsChart/PerformanceMetricsChart.tsx
+  Line 21:44:   'useEffect' is defined but never used                @typescript-eslint/no-unused-vars
+  Line 33:3:    'Grid' is defined but never used                     @typescript-eslint/no-unused-vars
+  Line 51:3:    'ReferenceLine' is defined but never used            @typescript-eslint/no-unused-vars
+  Line 56:3:    'PerformanceMetrics' is defined but never used       @typescript-eslint/no-unused-vars
+  Line 57:3:    'HistoricalMetrics' is defined but never used        @typescript-eslint/no-unused-vars
+  Line 58:3:    'TrendData' is defined but never used                @typescript-eslint/no-unused-vars
+  Line 61:24:   'formatTimestamp' is defined but never used          @typescript-eslint/no-unused-vars
+  Line 163:10:  'hoveredData' is assigned a value but never used     @typescript-eslint/no-unused-vars
+  Line 163:23:  'setHoveredData' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  Line 166:9:   'intervalRef' is assigned a value but never used     @typescript-eslint/no-unused-vars
+
+src/types/monitoring.ts
+  Line 21:10:  'PaginatedResponse' is defined but never used  @typescript-eslint/no-unused-vars
+
+ERROR in [eslint] 
+src/utils/deviceFingerprint.ts
+  Line 143:16:  Unexpected use of 'screen'  no-restricted-globals
+  Line 143:32:  Unexpected use of 'screen'  no-restricted-globals
+
+Search for the keywords to learn more about each error.
+
+webpack compiled with 1 error and 1 warning
+Files successfully emitted, waiting for typecheck results...
+Issues checking in progress...
+ERROR in src/services/api/monitoringApi.ts:36:3
+TS2459: Module '"../../types/monitoring"' declares 'PaginatedResponse' locally, but it is not exported.
+    34 |   MonitoringConfiguration,
+    35 |   MonitoringApiResponse,
+  > 36 |   PaginatedResponse,
+       |   ^^^^^^^^^^^^^^^^^
+    37 |   MonitoringError
+    38 | } from '../../types/monitoring';
+    39 |
+
+ERROR in src/services/websocket/WebSocketService.ts:617:29
+TS2554: Expected 0-1 arguments, but got 2.
+    615 |     listeners.forEach(listener => {
+    616 |       try {
+  > 617 |         listener(eventType, data);
+        |                             ^^^^
+    618 |       } catch (error) {
+    619 |         console.error(`Error in WebSocket event listener:`, error);
+    620 |       }
+
+Compiling...
+Compiled with warnings.
+
+[eslint] 
+src/components/monitoring/JobStatusGrid/JobStatusGrid.tsx
+  Line 38:3:    'Tooltip' is defined but never used               @typescript-eslint/no-unused-vars
+  Line 66:3:    'Schedule' is defined but never used              @typescript-eslint/no-unused-vars
+  Line 68:3:    'Memory' is defined but never used                @typescript-eslint/no-unused-vars
+  Line 70:3:    'FilterList' is defined but never used            @typescript-eslint/no-unused-vars
+  Line 71:3:    'GetApp' is defined but never used                @typescript-eslint/no-unused-vars
+  Line 81:40:   'formatTimestamp' is defined but never used       @typescript-eslint/no-unused-vars
+  Line 168:9:   'isTablet' is assigned a value but never used     @typescript-eslint/no-unused-vars
+  Line 177:20:  'setViewMode' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+src/components/monitoring/PerformanceMetricsChart/PerformanceMetricsChart.tsx
+  Line 21:44:   'useEffect' is defined but never used                @typescript-eslint/no-unused-vars
+  Line 33:3:    'Grid' is defined but never used                     @typescript-eslint/no-unused-vars
+  Line 51:3:    'ReferenceLine' is defined but never used            @typescript-eslint/no-unused-vars
+  Line 56:3:    'PerformanceMetrics' is defined but never used       @typescript-eslint/no-unused-vars
+  Line 57:3:    'HistoricalMetrics' is defined but never used        @typescript-eslint/no-unused-vars
+  Line 58:3:    'TrendData' is defined but never used                @typescript-eslint/no-unused-vars
+  Line 61:24:   'formatTimestamp' is defined but never used          @typescript-eslint/no-unused-vars
+  Line 163:10:  'hoveredData' is assigned a value but never used     @typescript-eslint/no-unused-vars
+  Line 163:23:  'setHoveredData' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  Line 166:9:   'intervalRef' is assigned a value but never used     @typescript-eslint/no-unused-vars
+
+src/types/monitoring.ts
+  Line 21:10:  'PaginatedResponse' is defined but never used  @typescript-eslint/no-unused-vars
+
+Search for the keywords to learn more about each warning.
+To ignore, add // eslint-disable-next-line to the line before.
+
+WARNING in [eslint] 
+src/components/monitoring/JobStatusGrid/JobStatusGrid.tsx
+  Line 38:3:    'Tooltip' is defined but never used               @typescript-eslint/no-unused-vars
+  Line 66:3:    'Schedule' is defined but never used              @typescript-eslint/no-unused-vars
+  Line 68:3:    'Memory' is defined but never used                @typescript-eslint/no-unused-vars
+  Line 70:3:    'FilterList' is defined but never used            @typescript-eslint/no-unused-vars
+  Line 71:3:    'GetApp' is defined but never used                @typescript-eslint/no-unused-vars
+  Line 81:40:   'formatTimestamp' is defined but never used       @typescript-eslint/no-unused-vars
+  Line 168:9:   'isTablet' is assigned a value but never used     @typescript-eslint/no-unused-vars
+  Line 177:20:  'setViewMode' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+src/components/monitoring/PerformanceMetricsChart/PerformanceMetricsChart.tsx
+  Line 21:44:   'useEffect' is defined but never used                @typescript-eslint/no-unused-vars
+  Line 33:3:    'Grid' is defined but never used                     @typescript-eslint/no-unused-vars
+  Line 51:3:    'ReferenceLine' is defined but never used            @typescript-eslint/no-unused-vars
+  Line 56:3:    'PerformanceMetrics' is defined but never used       @typescript-eslint/no-unused-vars
+  Line 57:3:    'HistoricalMetrics' is defined but never used        @typescript-eslint/no-unused-vars
+  Line 58:3:    'TrendData' is defined but never used                @typescript-eslint/no-unused-vars
+  Line 61:24:   'formatTimestamp' is defined but never used          @typescript-eslint/no-unused-vars
+  Line 163:10:  'hoveredData' is assigned a value but never used     @typescript-eslint/no-unused-vars
+  Line 163:23:  'setHoveredData' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  Line 166:9:   'intervalRef' is assigned a value but never used     @typescript-eslint/no-unused-vars
+
+src/types/monitoring.ts
+  Line 21:10:  'PaginatedResponse' is defined but never used  @typescript-eslint/no-unused-vars
+
+webpack compiled with 1 warning
+ERROR in src/services/api/monitoringApi.ts:36:3
+TS2459: Module '"../../types/monitoring"' declares 'PaginatedResponse' locally, but it is not exported.
+    34 |   MonitoringConfiguration,
+    35 |   MonitoringApiResponse,
+  > 36 |   PaginatedResponse,
+       |   ^^^^^^^^^^^^^^^^^
+    37 |   MonitoringError
+    38 | } from '../../types/monitoring';
+    39 |
+
+ERROR in src/services/websocket/WebSocketService.ts:617:29
+TS2554: Expected 0-1 arguments, but got 2.
+    615 |     listeners.forEach(listener => {
+    616 |       try {
+  > 617 |         listener(eventType, data);
+        |                             ^^^^
+    618 |       } catch (error) {
+    619 |         console.error(`Error in WebSocket event listener:`, error);
+    620 |       }
+
+Compiling...
+Failed to compile.
+
+export 'PaginatedResponse' (reexported as 'PaginatedResponse') was not found in './template' (possible exports: DATA_TYPES, ENABLED_OPTIONS, REQUIRED_OPTIONS, default, isFieldTemplate, isFileType)
+WARNING in [eslint] 
+src/components/monitoring/JobStatusGrid/JobStatusGrid.tsx
+  Line 38:3:    'Tooltip' is defined but never used               @typescript-eslint/no-unused-vars
+  Line 66:3:    'Schedule' is defined but never used              @typescript-eslint/no-unused-vars
+  Line 68:3:    'Memory' is defined but never used                @typescript-eslint/no-unused-vars
+  Line 70:3:    'FilterList' is defined but never used            @typescript-eslint/no-unused-vars
+  Line 71:3:    'GetApp' is defined but never used                @typescript-eslint/no-unused-vars
+  Line 81:40:   'formatTimestamp' is defined but never used       @typescript-eslint/no-unused-vars
+  Line 168:9:   'isTablet' is assigned a value but never used     @typescript-eslint/no-unused-vars
+  Line 177:20:  'setViewMode' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+src/components/monitoring/PerformanceMetricsChart/PerformanceMetricsChart.tsx
+  Line 21:44:   'useEffect' is defined but never used                @typescript-eslint/no-unused-vars
+  Line 33:3:    'Grid' is defined but never used                     @typescript-eslint/no-unused-vars
+  Line 51:3:    'ReferenceLine' is defined but never used            @typescript-eslint/no-unused-vars
+  Line 56:3:    'PerformanceMetrics' is defined but never used       @typescript-eslint/no-unused-vars
+  Line 57:3:    'HistoricalMetrics' is defined but never used        @typescript-eslint/no-unused-vars
+  Line 58:3:    'TrendData' is defined but never used                @typescript-eslint/no-unused-vars
+  Line 61:24:   'formatTimestamp' is defined but never used          @typescript-eslint/no-unused-vars
+  Line 163:10:  'hoveredData' is assigned a value but never used     @typescript-eslint/no-unused-vars
+  Line 163:23:  'setHoveredData' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  Line 166:9:   'intervalRef' is assigned a value but never used     @typescript-eslint/no-unused-vars
+
+src/types/template.ts
+  Line 366:1:  Assign object to a variable before exporting as module default  import/no-anonymous-default-export
+
+ERROR in ./src/types/monitoring.ts 24:0-47
+export 'PaginatedResponse' (reexported as 'PaginatedResponse') was not found in './template' (possible exports: DATA_TYPES, ENABLED_OPTIONS, REQUIRED_OPTIONS, default, isFieldTemplate, isFileType)
+
+webpack compiled with 1 error and 1 warning
+Files successfully emitted, waiting for typecheck results...
+Issues checking in progress...
+ERROR in src/services/websocket/WebSocketService.ts:617:29
+TS2554: Expected 0-1 arguments, but got 2.
+    615 |     listeners.forEach(listener => {
+    616 |       try {
+  > 617 |         listener(eventType, data);
+        |                             ^^^^
+    618 |       } catch (error) {
+    619 |         console.error(`Error in WebSocket event listener:`, error);
+    620 |       }
+
+ERROR in src/types/monitoring.ts:22:10
+TS1205: Re-exporting a type when the '--isolatedModules' flag is provided requires using 'export type'.
+    20 |
+    21 | // Import PaginatedResponse from template
+  > 22 | export { PaginatedResponse } from './template';
+       |          ^^^^^^^^^^^^^^^^^
+    23 |
+    24 | // Job Status Enums
+    25 | export enum JobStatus {
+
+Compiling...
+Failed to compile.
+
+export 'PaginatedResponse' (reexported as 'PaginatedResponse') was not found in './template' (possible exports: DATA_TYPES, ENABLED_OPTIONS, REQUIRED_OPTIONS, default, isFieldTemplate, isFileType)
+WARNING in [eslint] 
+src/components/monitoring/JobStatusGrid/JobStatusGrid.tsx
+  Line 38:3:    'Tooltip' is defined but never used               @typescript-eslint/no-unused-vars
+  Line 66:3:    'Schedule' is defined but never used              @typescript-eslint/no-unused-vars
+  Line 68:3:    'Memory' is defined but never used                @typescript-eslint/no-unused-vars
+  Line 70:3:    'FilterList' is defined but never used            @typescript-eslint/no-unused-vars
+  Line 71:3:    'GetApp' is defined but never used                @typescript-eslint/no-unused-vars
+  Line 81:40:   'formatTimestamp' is defined but never used       @typescript-eslint/no-unused-vars
+  Line 168:9:   'isTablet' is assigned a value but never used     @typescript-eslint/no-unused-vars
+  Line 177:20:  'setViewMode' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+src/components/monitoring/PerformanceMetricsChart/PerformanceMetricsChart.tsx
+  Line 21:44:   'useEffect' is defined but never used                @typescript-eslint/no-unused-vars
+  Line 33:3:    'Grid' is defined but never used                     @typescript-eslint/no-unused-vars
+  Line 51:3:    'ReferenceLine' is defined but never used            @typescript-eslint/no-unused-vars
+  Line 56:3:    'PerformanceMetrics' is defined but never used       @typescript-eslint/no-unused-vars
+  Line 57:3:    'HistoricalMetrics' is defined but never used        @typescript-eslint/no-unused-vars
+  Line 58:3:    'TrendData' is defined but never used                @typescript-eslint/no-unused-vars
+  Line 61:24:   'formatTimestamp' is defined but never used          @typescript-eslint/no-unused-vars
+  Line 163:10:  'hoveredData' is assigned a value but never used     @typescript-eslint/no-unused-vars
+  Line 163:23:  'setHoveredData' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  Line 166:9:   'intervalRef' is assigned a value but never used     @typescript-eslint/no-unused-vars
+
+src/types/template.ts
+  Line 366:1:  Assign object to a variable before exporting as module default  import/no-anonymous-default-export
+
+ERROR in ./src/types/monitoring.ts 24:0-47
+export 'PaginatedResponse' (reexported as 'PaginatedResponse') was not found in './template' (possible exports: DATA_TYPES, ENABLED_OPTIONS, REQUIRED_OPTIONS, default, isFieldTemplate, isFileType)
+
+webpack compiled with 1 error and 1 warning
+ERROR in src/types/monitoring.ts:22:10
+TS1205: Re-exporting a type when the '--isolatedModules' flag is provided requires using 'export type'.
+    20 |
+    21 | // Import PaginatedResponse from template
+  > 22 | export { PaginatedResponse } from './template';
+       |          ^^^^^^^^^^^^^^^^^
+    23 |
+    24 | // Job Status Enums
+    25 | export enum JobStatus {
+
+Compiling...
+Compiled with warnings.
+
+[eslint] 
+src/components/monitoring/JobStatusGrid/JobStatusGrid.tsx
+  Line 38:3:    'Tooltip' is defined but never used               @typescript-eslint/no-unused-vars
+  Line 66:3:    'Schedule' is defined but never used              @typescript-eslint/no-unused-vars
+  Line 68:3:    'Memory' is defined but never used                @typescript-eslint/no-unused-vars
+  Line 70:3:    'FilterList' is defined but never used            @typescript-eslint/no-unused-vars
+  Line 71:3:    'GetApp' is defined but never used                @typescript-eslint/no-unused-vars
+  Line 81:40:   'formatTimestamp' is defined but never used       @typescript-eslint/no-unused-vars
+  Line 168:9:   'isTablet' is assigned a value but never used     @typescript-eslint/no-unused-vars
+  Line 177:20:  'setViewMode' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+src/components/monitoring/PerformanceMetricsChart/PerformanceMetricsChart.tsx
+  Line 21:44:   'useEffect' is defined but never used                @typescript-eslint/no-unused-vars
+  Line 33:3:    'Grid' is defined but never used                     @typescript-eslint/no-unused-vars
+  Line 51:3:    'ReferenceLine' is defined but never used            @typescript-eslint/no-unused-vars
+  Line 56:3:    'PerformanceMetrics' is defined but never used       @typescript-eslint/no-unused-vars
+  Line 57:3:    'HistoricalMetrics' is defined but never used        @typescript-eslint/no-unused-vars
+  Line 58:3:    'TrendData' is defined but never used                @typescript-eslint/no-unused-vars
+  Line 61:24:   'formatTimestamp' is defined but never used          @typescript-eslint/no-unused-vars
+  Line 163:10:  'hoveredData' is assigned a value but never used     @typescript-eslint/no-unused-vars
+  Line 163:23:  'setHoveredData' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  Line 166:9:   'intervalRef' is assigned a value but never used     @typescript-eslint/no-unused-vars
+
+src/types/template.ts
+  Line 366:1:  Assign object to a variable before exporting as module default  import/no-anonymous-default-export
+
+Search for the keywords to learn more about each warning.
+To ignore, add // eslint-disable-next-line to the line before.
+
+WARNING in [eslint] 
+src/components/monitoring/JobStatusGrid/JobStatusGrid.tsx
+  Line 38:3:    'Tooltip' is defined but never used               @typescript-eslint/no-unused-vars
+  Line 66:3:    'Schedule' is defined but never used              @typescript-eslint/no-unused-vars
+  Line 68:3:    'Memory' is defined but never used                @typescript-eslint/no-unused-vars
+  Line 70:3:    'FilterList' is defined but never used            @typescript-eslint/no-unused-vars
+  Line 71:3:    'GetApp' is defined but never used                @typescript-eslint/no-unused-vars
+  Line 81:40:   'formatTimestamp' is defined but never used       @typescript-eslint/no-unused-vars
+  Line 168:9:   'isTablet' is assigned a value but never used     @typescript-eslint/no-unused-vars
+  Line 177:20:  'setViewMode' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+src/components/monitoring/PerformanceMetricsChart/PerformanceMetricsChart.tsx
+  Line 21:44:   'useEffect' is defined but never used                @typescript-eslint/no-unused-vars
+  Line 33:3:    'Grid' is defined but never used                     @typescript-eslint/no-unused-vars
+  Line 51:3:    'ReferenceLine' is defined but never used            @typescript-eslint/no-unused-vars
+  Line 56:3:    'PerformanceMetrics' is defined but never used       @typescript-eslint/no-unused-vars
+  Line 57:3:    'HistoricalMetrics' is defined but never used        @typescript-eslint/no-unused-vars
+  Line 58:3:    'TrendData' is defined but never used                @typescript-eslint/no-unused-vars
+  Line 61:24:   'formatTimestamp' is defined but never used          @typescript-eslint/no-unused-vars
+  Line 163:10:  'hoveredData' is assigned a value but never used     @typescript-eslint/no-unused-vars
+  Line 163:23:  'setHoveredData' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  Line 166:9:   'intervalRef' is assigned a value but never used     @typescript-eslint/no-unused-vars
+
+src/types/template.ts
+  Line 366:1:  Assign object to a variable before exporting as module default  import/no-anonymous-default-export
+
+webpack compiled with 1 warning
+Files successfully emitted, waiting for typecheck results...
+Issues checking in progress...
+ERROR in src/types/index.ts:52:1
+TS2308: Module './template' has already exported a member named 'PaginatedResponse'. Consider explicitly re-exporting to resolve the ambiguity.
+    50 |
+    51 | export * from './template';
+  > 52 | export * from './monitoring';
+       | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The build failed because the process exited too early. This probably means the system ran out of memory or someone called `kill -9` on the process.

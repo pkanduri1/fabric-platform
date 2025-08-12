@@ -2,7 +2,7 @@ package com.truist.batch.audit;
 
 import com.truist.batch.entity.DataLoadAuditEntity;
 import com.truist.batch.entity.ProcessingJobEntity;
-import com.truist.batch.repository.DataLoadAuditRepository;
+import com.truist.batch.repository.DataLoadAuditRepositoryBridge;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -27,7 +27,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class AuditTrailManager {
     
     @Autowired
-    private DataLoadAuditRepository auditRepository;
+    private DataLoadAuditRepositoryBridge auditRepository;
     
     @Value("${application.name:fabric-data-loader}")
     private String applicationName;

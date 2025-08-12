@@ -98,7 +98,7 @@ type JobAction = 'view' | 'pause' | 'resume' | 'cancel' | 'retry';
 /**
  * Get status color based on job status
  */
-function getStatusColor(status: JobStatus): 'success' | 'warning' | 'error' | 'info' | 'default' {
+function getStatusColor(status: JobStatus): 'success' | 'warning' | 'error' | 'info' | 'primary' {
   switch (status) {
     case JobStatus.RUNNING:
       return 'success';
@@ -114,14 +114,14 @@ function getStatusColor(status: JobStatus): 'success' | 'warning' | 'error' | 'i
       return 'info';
     case JobStatus.PENDING:
     default:
-      return 'default';
+      return 'primary';
   }
 }
 
 /**
  * Get priority color based on job priority
  */
-function getPriorityColor(priority: JobPriority): 'error' | 'warning' | 'info' | 'default' {
+function getPriorityColor(priority: JobPriority): 'error' | 'warning' | 'info' | 'primary' {
   switch (priority) {
     case JobPriority.CRITICAL:
       return 'error';
@@ -131,7 +131,7 @@ function getPriorityColor(priority: JobPriority): 'error' | 'warning' | 'info' |
       return 'info';
     case JobPriority.LOW:
     default:
-      return 'default';
+      return 'primary';
   }
 }
 
@@ -194,7 +194,7 @@ export const JobStatusGrid: React.FC<JobGridProps> = ({
     }
     
     if (filters.jobTypes && filters.jobTypes.length > 0) {
-      filtered = filtered.filter(job => filters.jobTypes!.some(type => job.jobName.includes(type)));
+      filtered = filtered.filter(job => filters.jobTypes!.some((type: string) => job.jobName.includes(type)));
     }
     
     if (filters.status && filters.status.length > 0) {

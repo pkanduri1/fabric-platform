@@ -170,7 +170,7 @@ public class EnhancedControlFileGenerator {
                     "SECURE_CONTROL_FILE_GENERATED",
                     "Generated secure control file with PII protection",
                     "SYSTEM",
-                    Map.of("configId", configId, "piiFields", piiFields.size(), "encrypted", true)
+                    Map.of("configId", configId, "piiFields", String.valueOf(piiFields.size()), "encrypted", "true")
             );
             
             log.info("Successfully generated secure control file: {}", controlFilePath);

@@ -8,6 +8,7 @@ import com.truist.batch.service.AuditService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -42,6 +43,7 @@ public class SqlLoaderConfigServiceImpl implements SqlLoaderConfigService {
     private final AuditService auditService;
     
     // Inject the existing control file generator (enhanced)
+    @Qualifier("localControlFileGenerator")
     private final EnhancedControlFileGenerator controlFileGenerator;
 
     // ==================== CONFIGURATION MANAGEMENT ====================
@@ -57,11 +59,13 @@ public class SqlLoaderConfigServiceImpl implements SqlLoaderConfigService {
             
             // Step 2: Convert request to entity
             var configEntity = convertRequestToEntity(request);
-            var fieldEntities = convertFieldRequestsToEntities(request.getFieldConfigurations());
+            var fieldEntitiesTyped = convertFieldRequestsToEntities(request.getFieldConfigurations());
+            var fieldEntities = new ArrayList<Object>(fieldEntitiesTyped);
             
             // Step 3: Create configuration via management service
-            var savedConfig = configurationManagementService.createConfiguration(
+            var savedConfigObj = configurationManagementService.createConfiguration(
                     configEntity, fieldEntities, request.getCreatedBy(), request.getReason());
+            var savedConfig = (com.truist.batch.entity.SqlLoaderConfigEntity) savedConfigObj;
             
             // Step 4: Generate control file template
             generateInitialControlFileTemplate(savedConfig);
@@ -97,11 +101,13 @@ public class SqlLoaderConfigServiceImpl implements SqlLoaderConfigService {
             
             // Convert request to entity
             var configEntity = convertRequestToEntity(request);
-            var fieldEntities = convertFieldRequestsToEntities(request.getFieldConfigurations());
+            var fieldEntitiesTyped = convertFieldRequestsToEntities(request.getFieldConfigurations());
+            var fieldEntities = new ArrayList<Object>(fieldEntitiesTyped);
             
             // Update via management service
-            var updatedConfig = configurationManagementService.updateConfiguration(
+            var updatedConfigObj = configurationManagementService.updateConfiguration(
                     configId, configEntity, fieldEntities, request.getCreatedBy(), request.getReason());
+            var updatedConfig = (com.truist.batch.entity.SqlLoaderConfigEntity) updatedConfigObj;
             
             // Update control file template if needed
             updateControlFileTemplate(updatedConfig);
@@ -111,7 +117,7 @@ public class SqlLoaderConfigServiceImpl implements SqlLoaderConfigService {
                     "SQL_LOADER_CONFIG_UPDATED",
                     "Updated SQL*Loader configuration: " + configId,
                     request.getCreatedBy(),
-                    Map.of("configId", configId, "version", updatedConfig.getVersion())
+                    Map.of("configId", configId, "version", String.valueOf(updatedConfig.getVersion()))
             );
             
             // Convert to response
@@ -132,7 +138,8 @@ public class SqlLoaderConfigServiceImpl implements SqlLoaderConfigService {
         log.debug("Retrieving SQL*Loader configuration: {}", configId);
         
         try {
-            var configEntity = configurationManagementService.getConfigurationById(configId);
+            var configEntityObj = configurationManagementService.getConfigurationById(configId);
+            var configEntity = (com.truist.batch.entity.SqlLoaderConfigEntity) configEntityObj;
             var response = convertEntityToResponse(configEntity);
             
             // Enrich with analysis information
@@ -158,7 +165,8 @@ public class SqlLoaderConfigServiceImpl implements SqlLoaderConfigService {
             var configEntity = configurationManagementService.getConfigurationBySourceAndJob(sourceSystem, jobName);
             
             if (configEntity.isPresent()) {
-                var response = convertEntityToResponse(configEntity.get());
+                var configEntityCasted = (com.truist.batch.entity.SqlLoaderConfigEntity) configEntity.get();
+                var response = convertEntityToResponse(configEntityCasted);
                 enrichWithAnalysis(response);
                 return Optional.of(response);
             }
@@ -237,7 +245,8 @@ public class SqlLoaderConfigServiceImpl implements SqlLoaderConfigService {
         
         try {
             // Get configuration
-            var configEntity = configurationManagementService.getConfigurationById(configId);
+            var configEntityObj = configurationManagementService.getConfigurationById(configId);
+            var configEntity = (com.truist.batch.entity.SqlLoaderConfigEntity) configEntityObj;
             
             // Convert to execution config
             var executionConfig = configurationManagementService.convertToExecutionConfig(configId);
@@ -465,7 +474,8 @@ public class SqlLoaderConfigServiceImpl implements SqlLoaderConfigService {
         log.debug("Generating security assessment for configuration: {}", configId);
         
         try {
-            var configEntity = configurationManagementService.getConfigurationById(configId);
+            var configEntityObj = configurationManagementService.getConfigurationById(configId);
+            var configEntity = (com.truist.batch.entity.SqlLoaderConfigEntity) configEntityObj;
             
             List<String> warnings = new ArrayList<>();
             List<String> recommendations = new ArrayList<>();
@@ -794,15 +804,4 @@ public class SqlLoaderConfigServiceImpl implements SqlLoaderConfigService {
         response.setOptimizationRecommendations(validationResult.getRecommendations());
     }
 
-    // Placeholder for enhanced control file generator
-    private static class EnhancedControlFileGenerator {
-        public java.nio.file.Path generateControlFile(com.truist.batch.sqlloader.SqlLoaderConfig config) throws Exception {
-            // Placeholder - would use the actual ControlFileGenerator from data-loader module
-            return java.nio.file.Paths.get("/tmp/test.ctl");
-        }
-
-        public String generateTemplateControlFile(String targetTable, List<String> columns) {
-            return "-- Template control file for " + targetTable;
-        }
-    }
 }

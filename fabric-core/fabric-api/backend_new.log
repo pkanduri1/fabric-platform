@@ -1,0 +1,444 @@
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] -----------------------< com.truist:fabric-api >------------------------
+[INFO] Building fabric-api 0.0.1-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] >>> spring-boot:3.4.6:run (default-cli) > test-compile @ fabric-api >>>
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ fabric-api ---
+[INFO] Copying 2 resources from src/main/resources to target/classes
+[INFO] Copying 34 resources from src/main/resources to target/classes
+[INFO] 
+[INFO] --- compiler:3.13.0:compile (default-compile) @ fabric-api ---
+[INFO] Recompiling the module because of changed source code.
+[INFO] Compiling 116 source files with javac [debug parameters release 17] to target/classes
+[WARNING] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/websocket/service/RealTimeMonitoringService.java:[477,25] @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
+[WARNING] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/websocket/service/RealTimeMonitoringService.java:[478,24] @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
+[WARNING] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/websocket/service/RealTimeMonitoringService.java:[479,24] @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
+[WARNING] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/websocket/service/RealTimeMonitoringService.java:[480,24] @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
+[WARNING] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/websocket/service/RealTimeMonitoringService.java:[481,24] @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
+[WARNING] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/websocket/service/RealTimeMonitoringService.java:[482,24] @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
+[WARNING] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/websocket/service/RealTimeMonitoringService.java:[483,24] @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
+[WARNING] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/websocket/service/RealTimeMonitoringService.java:[484,34] @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
+[WARNING] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/websocket/service/RealTimeMonitoringService.java:[532,24] @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
+[WARNING] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/websocket/service/RealTimeMonitoringService.java:[533,24] @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
+[WARNING] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/websocket/service/RealTimeMonitoringService.java:[534,24] @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
+[WARNING] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/monitor/Epic2PerformanceMonitor.java:[98,35] @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
+[WARNING] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/audit/NoOpAuditTrailManager.java:[24,1] Field 'log' already exists.
+[WARNING] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/websocket/handler/EnterpriseWebSocketHandler.java:[43,1] Field 'log' already exists.
+[WARNING] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/security/config/SecurityConfig.java:[123,17] frameOptions() in org.springframework.security.config.annotation.web.configurers.HeadersConfigurer has been deprecated and marked for removal
+[WARNING] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/security/config/SecurityConfig.java:[124,17] contentTypeOptions() in org.springframework.security.config.annotation.web.configurers.HeadersConfigurer has been deprecated and marked for removal
+[WARNING] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/security/config/SecurityConfig.java:[124,38] and() in org.springframework.security.config.annotation.web.configurers.HeadersConfigurer.ContentTypeOptionsConfig has been deprecated and marked for removal
+[WARNING] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/security/config/SecurityConfig.java:[128,17] referrerPolicy(org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter.ReferrerPolicy) in org.springframework.security.config.annotation.web.configurers.HeadersConfigurer has been deprecated and marked for removal
+[WARNING] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/security/config/SecurityConfig.java:[129,17] and() in org.springframework.security.config.annotation.web.configurers.HeadersConfigurer.ReferrerPolicyConfig has been deprecated and marked for removal
+[INFO] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/security/jwt/JwtTokenService.java: /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/security/jwt/JwtTokenService.java uses or overrides a deprecated API.
+[INFO] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/security/jwt/JwtTokenService.java: Recompile with -Xlint:deprecation for details.
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ fabric-api ---
+[INFO] Copying 1 resource from src/test/resources to target/test-classes
+[INFO] 
+[INFO] --- compiler:3.13.0:testCompile (default-testCompile) @ fabric-api ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 33 source files with javac [debug parameters release 17] to target/test-classes
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/test/java/com/truist/batch/integration/RealTimeMonitoringIntegrationTest.java:[511,94] illegal text block open delimiter sequence, missing line terminator
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/test/java/com/truist/batch/integration/RealTimeMonitoringIntegrationTest.java:[512,24] illegal text block open delimiter sequence, missing line terminator
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/test/java/com/truist/batch/integration/RealTimeMonitoringIntegrationTest.java:[517,25] <identifier> expected
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/test/java/com/truist/batch/integration/RealTimeMonitoringIntegrationTest.java:[517,26] illegal start of type
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/test/java/com/truist/batch/integration/RealTimeMonitoringIntegrationTest.java:[520,13] illegal start of type
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/test/java/com/truist/batch/integration/RealTimeMonitoringIntegrationTest.java:[520,28] <identifier> expected
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/test/java/com/truist/batch/integration/RealTimeMonitoringIntegrationTest.java:[529,26] <identifier> expected
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/test/java/com/truist/batch/integration/RealTimeMonitoringIntegrationTest.java:[751,13] class, interface, enum, or record expected
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/test/java/com/truist/batch/integration/RealTimeMonitoringIntegrationTest.java:[768,9] class, interface, enum, or record expected
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/test/java/com/truist/batch/integration/RealTimeMonitoringIntegrationTest.java:[782,9] class, interface, enum, or record expected
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/test/java/com/truist/batch/integration/RealTimeMonitoringIntegrationTest.java:[783,5] class, interface, enum, or record expected
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/test/java/com/truist/batch/integration/RealTimeMonitoringIntegrationTest.java:[787,5] class, interface, enum, or record expected
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/test/java/com/truist/batch/integration/RealTimeMonitoringIntegrationTest.java:[806,9] class, interface, enum, or record expected
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/test/java/com/truist/batch/integration/RealTimeMonitoringIntegrationTest.java:[807,5] class, interface, enum, or record expected
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/test/java/com/truist/batch/integration/RealTimeMonitoringIntegrationTest.java:[823,9] class, interface, enum, or record expected
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/test/java/com/truist/batch/integration/RealTimeMonitoringIntegrationTest.java:[824,5] class, interface, enum, or record expected
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/test/java/com/truist/batch/integration/RealTimeMonitoringIntegrationTest.java:[841,9] class, interface, enum, or record expected
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/test/java/com/truist/batch/integration/RealTimeMonitoringIntegrationTest.java:[842,5] class, interface, enum, or record expected
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/test/java/com/truist/batch/integration/RealTimeMonitoringIntegrationTest.java:[889,1] class, interface, enum, or record expected
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/test/java/com/truist/batch/integration/WebSocketSessionManagementIntegrationTest.java:[779,72] illegal text block open delimiter sequence, missing line terminator
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/test/java/com/truist/batch/integration/WebSocketSessionManagementIntegrationTest.java:[781,32] illegal text block open delimiter sequence, missing line terminator
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/test/java/com/truist/batch/integration/WebSocketSessionManagementIntegrationTest.java:[774,21] 'try' without 'catch', 'finally' or resource declarations
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/test/java/com/truist/batch/integration/WebSocketSessionManagementIntegrationTest.java:[782,22] ')' expected
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/test/java/com/truist/batch/integration/WebSocketSessionManagementIntegrationTest.java:[782,23] 'catch' without 'try'
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/test/java/com/truist/batch/integration/WebSocketSessionManagementIntegrationTest.java:[785,18] illegal start of expression
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/test/java/com/truist/batch/integration/WebSocketSessionManagementIntegrationTest.java:[788,13] illegal start of type
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/test/java/com/truist/batch/integration/WebSocketSessionManagementIntegrationTest.java:[788,31] ';' expected
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/test/java/com/truist/batch/integration/WebSocketSessionManagementIntegrationTest.java:[788,41] <identifier> expected
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/test/java/com/truist/batch/integration/WebSocketSessionManagementIntegrationTest.java:[792,13] illegal start of type
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/test/java/com/truist/batch/integration/WebSocketSessionManagementIntegrationTest.java:[792,31] ';' expected
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/test/java/com/truist/batch/integration/WebSocketSessionManagementIntegrationTest.java:[792,41] <identifier> expected
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/test/java/com/truist/batch/integration/WebSocketSessionManagementIntegrationTest.java:[797,13] invalid method declaration; return type required
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/test/java/com/truist/batch/integration/WebSocketSessionManagementIntegrationTest.java:[797,38] <identifier> expected
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/test/java/com/truist/batch/integration/WebSocketSessionManagementIntegrationTest.java:[801,13] illegal start of type
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/test/java/com/truist/batch/integration/WebSocketSessionManagementIntegrationTest.java:[801,37] <identifier> expected
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/test/java/com/truist/batch/integration/WebSocketSessionManagementIntegrationTest.java:[801,39] ';' expected
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/test/java/com/truist/batch/integration/WebSocketSessionManagementIntegrationTest.java:[809,26] <identifier> expected
+[ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/test/java/com/truist/batch/integration/WebSocketSessionManagementIntegrationTest.java:[862,1] class, interface, enum, or record expected
+[INFO] 
+[INFO] <<< spring-boot:3.4.6:run (default-cli) < test-compile @ fabric-api <<<
+[INFO] 
+[INFO] 
+[INFO] --- spring-boot:3.4.6:run (default-cli) @ fabric-api ---
+[INFO] Attaching agents: []
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v3.4.6)
+
+2025-08-11T18:51:32.675-04:00  INFO 14095 --- [fabric-platform] [           main] c.t.batch.InterfaceBatchApplication      : Starting InterfaceBatchApplication using Java 17.0.14 with PID 14095 (/Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/target/classes started by pavankanduri in /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api)
+2025-08-11T18:51:32.677-04:00  INFO 14095 --- [fabric-platform] [           main] c.t.batch.InterfaceBatchApplication      : The following 1 profile is active: "local"
+2025-08-11T18:51:33.190-04:00  INFO 14095 --- [fabric-platform] [           main] o.s.b.f.s.DefaultListableBeanFactory     : Overriding bean definition for bean 'transactionManager' with a different definition: replacing [Root bean: class=null; scope=; abstract=false; lazyInit=null; autowireMode=3; dependencyCheck=0; autowireCandidate=true; primary=true; fallback=false; factoryBeanName=localDataSourceConfig; factoryMethodName=transactionManager; initMethodNames=null; destroyMethodNames=[(inferred)]; defined in class path resource [com/truist/batch/config/LocalDataSourceConfig.class]] with [Root bean: class=null; scope=; abstract=false; lazyInit=null; autowireMode=3; dependencyCheck=0; autowireCandidate=true; primary=false; fallback=false; factoryBeanName=localTransactionConfig; factoryMethodName=transactionManager; initMethodNames=null; destroyMethodNames=[(inferred)]; defined in class path resource [com/truist/batch/config/LocalTransactionConfig.class]]
+2025-08-11T18:51:33.192-04:00  INFO 14095 --- [fabric-platform] [           main] o.s.b.f.s.DefaultListableBeanFactory     : Overriding bean definition for bean 'dataSource' with a different definition: replacing [Root bean: class=null; scope=; abstract=false; lazyInit=null; autowireMode=3; dependencyCheck=0; autowireCandidate=true; primary=true; fallback=false; factoryBeanName=localDataSourceConfig; factoryMethodName=dataSource; initMethodNames=null; destroyMethodNames=[(inferred)]; defined in class path resource [com/truist/batch/config/LocalDataSourceConfig.class]] with [Root bean: class=null; scope=; abstract=false; lazyInit=null; autowireMode=3; dependencyCheck=0; autowireCandidate=true; primary=true; fallback=false; factoryBeanName=databaseConfig; factoryMethodName=dataSource; initMethodNames=null; destroyMethodNames=[(inferred)]; defined in class path resource [com/truist/batch/config/DatabaseConfig.class]]
+2025-08-11T18:51:33.192-04:00  INFO 14095 --- [fabric-platform] [           main] o.s.b.f.s.DefaultListableBeanFactory     : Overriding bean definition for bean 'transactionManager' with a different definition: replacing [Root bean: class=null; scope=; abstract=false; lazyInit=null; autowireMode=3; dependencyCheck=0; autowireCandidate=true; primary=false; fallback=false; factoryBeanName=localTransactionConfig; factoryMethodName=transactionManager; initMethodNames=null; destroyMethodNames=[(inferred)]; defined in class path resource [com/truist/batch/config/LocalTransactionConfig.class]] with [Root bean: class=null; scope=; abstract=false; lazyInit=null; autowireMode=3; dependencyCheck=0; autowireCandidate=true; primary=true; fallback=false; factoryBeanName=databaseConfig; factoryMethodName=transactionManager; initMethodNames=null; destroyMethodNames=[(inferred)]; defined in class path resource [com/truist/batch/config/DatabaseConfig.class]]
+2025-08-11T18:51:33.194-04:00  INFO 14095 --- [fabric-platform] [           main] o.s.b.c.c.annotation.BatchRegistrar      : Bean jobRepository already defined in the application context, skipping the registration of a jobRepository
+2025-08-11T18:51:33.197-04:00  INFO 14095 --- [fabric-platform] [           main] o.s.b.c.c.annotation.BatchRegistrar      : Finished Spring Batch infrastructure beans configuration in 3 ms.
+2025-08-11T18:51:33.197-04:00  INFO 14095 --- [fabric-platform] [           main] o.s.b.c.c.annotation.BatchRegistrar      : Bean jobRepository already defined in the application context, skipping the registration of a jobRepository
+2025-08-11T18:51:33.197-04:00  INFO 14095 --- [fabric-platform] [           main] o.s.b.c.c.annotation.BatchRegistrar      : Bean jobExplorer already defined in the application context, skipping the registration of a jobExplorer
+2025-08-11T18:51:33.197-04:00  INFO 14095 --- [fabric-platform] [           main] o.s.b.c.c.annotation.BatchRegistrar      : Bean jobLauncher already defined in the application context, skipping the registration of a jobLauncher
+2025-08-11T18:51:33.197-04:00  INFO 14095 --- [fabric-platform] [           main] o.s.b.c.c.annotation.BatchRegistrar      : Bean jobRegistry already defined in the application context, skipping the registration of a jobRegistry
+2025-08-11T18:51:33.197-04:00  INFO 14095 --- [fabric-platform] [           main] o.s.b.c.c.annotation.BatchRegistrar      : Bean jobRegistrySmartInitializingSingleton already defined in the application context, skipping the registration of a jobRegistrySmartInitializingSingleton
+2025-08-11T18:51:33.197-04:00  INFO 14095 --- [fabric-platform] [           main] o.s.b.c.c.annotation.BatchRegistrar      : Bean jobOperator already defined in the application context, skipping the registration of a jobOperator
+2025-08-11T18:51:33.197-04:00  INFO 14095 --- [fabric-platform] [           main] o.s.b.c.c.annotation.BatchRegistrar      : Finished Spring Batch infrastructure beans configuration in 0 ms.
+2025-08-11T18:51:33.198-04:00  INFO 14095 --- [fabric-platform] [           main] o.s.b.c.c.annotation.BatchRegistrar      : Bean jobRepository already defined in the application context, skipping the registration of a jobRepository
+2025-08-11T18:51:33.198-04:00  INFO 14095 --- [fabric-platform] [           main] o.s.b.c.c.annotation.BatchRegistrar      : Bean jobExplorer already defined in the application context, skipping the registration of a jobExplorer
+2025-08-11T18:51:33.198-04:00  INFO 14095 --- [fabric-platform] [           main] o.s.b.c.c.annotation.BatchRegistrar      : Bean jobLauncher already defined in the application context, skipping the registration of a jobLauncher
+2025-08-11T18:51:33.198-04:00  INFO 14095 --- [fabric-platform] [           main] o.s.b.c.c.annotation.BatchRegistrar      : Bean jobRegistry already defined in the application context, skipping the registration of a jobRegistry
+2025-08-11T18:51:33.198-04:00  INFO 14095 --- [fabric-platform] [           main] o.s.b.c.c.annotation.BatchRegistrar      : Bean jobRegistrySmartInitializingSingleton already defined in the application context, skipping the registration of a jobRegistrySmartInitializingSingleton
+2025-08-11T18:51:33.198-04:00  INFO 14095 --- [fabric-platform] [           main] o.s.b.c.c.annotation.BatchRegistrar      : Bean jobOperator already defined in the application context, skipping the registration of a jobOperator
+2025-08-11T18:51:33.198-04:00  INFO 14095 --- [fabric-platform] [           main] o.s.b.c.c.annotation.BatchRegistrar      : Finished Spring Batch infrastructure beans configuration in 0 ms.
+2025-08-11T18:51:33.965-04:00  INFO 14095 --- [fabric-platform] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8080 (http)
+2025-08-11T18:51:33.971-04:00  INFO 14095 --- [fabric-platform] [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2025-08-11T18:51:33.971-04:00  INFO 14095 --- [fabric-platform] [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.41]
+2025-08-11T18:51:33.999-04:00  INFO 14095 --- [fabric-platform] [           main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2025-08-11T18:51:33.999-04:00  INFO 14095 --- [fabric-platform] [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 1299 ms
+2025-08-11T18:51:34.282-04:00 DEBUG 14095 --- [fabric-platform] [           main] o.s.jdbc.datasource.DataSourceUtils      : Fetching JDBC Connection from DataSource
+2025-08-11T18:51:34.283-04:00  INFO 14095 --- [fabric-platform] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2025-08-11T18:51:34.596-04:00  INFO 14095 --- [fabric-platform] [           main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection oracle.jdbc.driver.T4CConnection@26291192
+2025-08-11T18:51:34.597-04:00  INFO 14095 --- [fabric-platform] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2025-08-11T18:51:34.604-04:00 DEBUG 14095 --- [fabric-platform] [           main] o.s.jdbc.datasource.DataSourceUtils      : Fetching JDBC Connection from DataSource
+2025-08-11T18:51:34.709-04:00  INFO 14095 --- [fabric-platform] [           main] c.t.b.i.config.IdempotencyConfiguration  : Initializing Fabric Platform Idempotency Framework with properties: IdempotencyProperties[enabled=true, ttl=24h, retries=3, cache=true, cleanup=true, dev=false]
+2025-08-11T18:51:34.796-04:00  INFO 14095 --- [fabric-platform] [           main] c.t.b.service.impl.TemplateServiceImpl   : TemplateServiceImpl initialized with repositories: field=true, fileType=true
+2025-08-11T18:51:34.923-04:00  INFO 14095 --- [fabric-platform] [           main] c.t.b.c.DataLoadConfigurationService     : Loading JSON fallback configurations from: classpath:config/data-loader-configs.json
+2025-08-11T18:51:34.934-04:00 ERROR 14095 --- [fabric-platform] [           main] c.t.b.c.DataLoadConfigurationService     : Error loading JSON fallback configurations: null
+🚀 FIXED DataSourceAdapterRegistry constructor called with 2 adapters
+2025-08-11T18:51:34.965-04:00  INFO 14095 --- [fabric-platform] [           main] c.t.b.adapter.DataSourceAdapterRegistry  : 🔌 Discovered 2 data source adapters:
+2025-08-11T18:51:34.965-04:00  INFO 14095 --- [fabric-platform] [           main] c.t.b.adapter.DataSourceAdapterRegistry  :   📌 JdbcDataSourceAdapter (priority: 100)
+🔍 FIXED Testing adapter JdbcDataSourceAdapter against 15 formats
+  JdbcDataSourceAdapter supports 'jdbc': true
+  ✅ FIXED Registered JdbcDataSourceAdapter for format 'jdbc'
+  JdbcDataSourceAdapter supports 'database': true
+  ✅ FIXED Registered JdbcDataSourceAdapter for format 'database'
+  JdbcDataSourceAdapter supports 'sql': true
+  ✅ FIXED Registered JdbcDataSourceAdapter for format 'sql'
+  JdbcDataSourceAdapter supports 'rest': false
+  JdbcDataSourceAdapter supports 'api': false
+  JdbcDataSourceAdapter supports 'http': false
+  JdbcDataSourceAdapter supports 'https': false
+  JdbcDataSourceAdapter supports 'kafka': false
+  JdbcDataSourceAdapter supports 'stream': false
+  JdbcDataSourceAdapter supports 's3': false
+  JdbcDataSourceAdapter supports 'aws': false
+  JdbcDataSourceAdapter supports 'csv': false
+  JdbcDataSourceAdapter supports 'excel': false
+  JdbcDataSourceAdapter supports 'json': false
+  JdbcDataSourceAdapter supports 'xml': false
+🎯 FIXED Adapter JdbcDataSourceAdapter registration complete
+2025-08-11T18:51:34.966-04:00  INFO 14095 --- [fabric-platform] [           main] c.t.b.adapter.DataSourceAdapterRegistry  :   📌 RestApiDataSourceAdapter (priority: 50)
+🔍 FIXED Testing adapter RestApiDataSourceAdapter against 15 formats
+  RestApiDataSourceAdapter supports 'jdbc': false
+  RestApiDataSourceAdapter supports 'database': false
+  RestApiDataSourceAdapter supports 'sql': false
+  RestApiDataSourceAdapter supports 'rest': true
+  ✅ FIXED Registered RestApiDataSourceAdapter for format 'rest'
+  RestApiDataSourceAdapter supports 'api': true
+  ✅ FIXED Registered RestApiDataSourceAdapter for format 'api'
+  RestApiDataSourceAdapter supports 'http': true
+  ✅ FIXED Registered RestApiDataSourceAdapter for format 'http'
+  RestApiDataSourceAdapter supports 'https': true
+  ✅ FIXED Registered RestApiDataSourceAdapter for format 'https'
+  RestApiDataSourceAdapter supports 'kafka': false
+  RestApiDataSourceAdapter supports 'stream': false
+  RestApiDataSourceAdapter supports 's3': false
+  RestApiDataSourceAdapter supports 'aws': false
+  RestApiDataSourceAdapter supports 'csv': false
+  RestApiDataSourceAdapter supports 'excel': false
+  RestApiDataSourceAdapter supports 'json': false
+  RestApiDataSourceAdapter supports 'xml': false
+🎯 FIXED Adapter RestApiDataSourceAdapter registration complete
+🎯 FIXED Adapter registry initialized with 7 format mappings: [rest, database, http, jdbc, api, https, sql]
+2025-08-11T18:51:34.967-04:00  INFO 14095 --- [fabric-platform] [           main] c.t.b.adapter.DataSourceAdapterRegistry  : 🎯 Adapter registry initialized with 7 format mappings
+No batch-source files found: class path resource [batch-sources/] cannot be resolved to URL because it does not exist
+2025-08-11T18:51:34.974-04:00  INFO 14095 --- [fabric-platform] [           main] com.truist.batch.config.DatabaseConfig   : 🕒 Transaction timeout set to 300 seconds (NORMAL MODE)
+2025-08-11T18:51:34.985-04:00 DEBUG 14095 --- [fabric-platform] [           main] o.s.jdbc.datasource.DataSourceUtils      : Fetching JDBC Connection from DataSource
+2025-08-11T18:51:34.985-04:00  INFO 14095 --- [fabric-platform] [           main] o.s.b.c.r.s.JobRepositoryFactoryBean     : No database type set, using meta data indicating: ORACLE
+2025-08-11T18:51:35.005-04:00  INFO 14095 --- [fabric-platform] [           main] c.t.batch.config.TaskExecutorConfig      : 🚀 PRODUCTION MODE: Using ThreadPoolTaskExecutor (parallel execution)
+2025-08-11T18:51:35.042-04:00  INFO 14095 --- [fabric-platform] [           main] o.s.b.c.l.s.TaskExecutorJobLauncher      : No TaskExecutor has been set, defaulting to synchronous executor.
+2025-08-11T18:51:35.233-04:00  WARN 14095 --- [fabric-platform] [           main] .s.s.UserDetailsServiceAutoConfiguration : 
+
+Using generated security password: 2c77ce81-895a-448c-b1d8-ff2d8bfded96
+
+This generated password is for development use only. Your security configuration must be updated before running your application in production.
+
+2025-08-11T18:51:35.244-04:00  INFO 14095 --- [fabric-platform] [           main] r$InitializeUserDetailsManagerConfigurer : Global AuthenticationManager configured with UserDetailsService bean with name inMemoryUserDetailsManager
+2025-08-11T18:51:35.505-04:00  INFO 14095 --- [fabric-platform] [           main] o.s.l.c.support.AbstractContextSource    : Property 'userDn' not set - anonymous context will be used for read-only operations
+2025-08-11T18:51:35.587-04:00  INFO 14095 --- [fabric-platform] [           main] o.s.b.a.e.web.EndpointLinksResolver      : Exposing 3 endpoints beneath base path '/actuator'
+2025-08-11T18:51:35.707-04:00  INFO 14095 --- [fabric-platform] [           main] c.t.b.i.config.IdempotencyConfiguration  : Configured cache manager for idempotency framework
+2025-08-11T18:51:35.710-04:00  INFO 14095 --- [fabric-platform] [           main] c.t.b.i.c.IdempotencyMetricsCollector    : Initialized idempotency metrics collector with properties: IdempotencyProperties[enabled=true, ttl=24h, retries=3, cache=true, cleanup=true, dev=false]
+2025-08-11T18:51:35.712-04:00  INFO 14095 --- [fabric-platform] [           main] c.t.b.i.config.IdempotencyConfiguration  : Creating idempotent job template with idempotency framework integration
+2025-08-11T18:51:36.285-04:00  INFO 14095 --- [fabric-platform] [localhost:27017] org.mongodb.driver.cluster               : Exception in monitor thread while connecting to server localhost:27017
+
+com.mongodb.MongoSocketOpenException: Exception opening socket
+	at com.mongodb.internal.connection.SocketStream.lambda$open$0(SocketStream.java:85) ~[mongodb-driver-core-5.2.1.jar:na]
+	at java.base/java.util.Optional.orElseThrow(Optional.java:403) ~[na:na]
+	at com.mongodb.internal.connection.SocketStream.open(SocketStream.java:85) ~[mongodb-driver-core-5.2.1.jar:na]
+	at com.mongodb.internal.connection.InternalStreamConnection.open(InternalStreamConnection.java:233) ~[mongodb-driver-core-5.2.1.jar:na]
+	at com.mongodb.internal.connection.DefaultServerMonitor$ServerMonitor.lookupServerDescription(DefaultServerMonitor.java:219) ~[mongodb-driver-core-5.2.1.jar:na]
+	at com.mongodb.internal.connection.DefaultServerMonitor$ServerMonitor.run(DefaultServerMonitor.java:176) ~[mongodb-driver-core-5.2.1.jar:na]
+Caused by: java.net.ConnectException: Connection refused
+	at java.base/sun.nio.ch.Net.pollConnect(Native Method) ~[na:na]
+	at java.base/sun.nio.ch.Net.pollConnectNow(Net.java:672) ~[na:na]
+	at java.base/sun.nio.ch.NioSocketImpl.timedFinishConnect(NioSocketImpl.java:554) ~[na:na]
+	at java.base/sun.nio.ch.NioSocketImpl.connect(NioSocketImpl.java:602) ~[na:na]
+	at java.base/java.net.SocksSocketImpl.connect(SocksSocketImpl.java:327) ~[na:na]
+	at java.base/java.net.Socket.connect(Socket.java:633) ~[na:na]
+	at com.mongodb.internal.connection.SocketStreamHelper.initialize(SocketStreamHelper.java:76) ~[mongodb-driver-core-5.2.1.jar:na]
+	at com.mongodb.internal.connection.SocketStream.initializeSocket(SocketStream.java:104) ~[mongodb-driver-core-5.2.1.jar:na]
+	at com.mongodb.internal.connection.SocketStream.open(SocketStream.java:79) ~[mongodb-driver-core-5.2.1.jar:na]
+	... 3 common frames omitted
+
+2025-08-11T18:51:36.287-04:00  INFO 14095 --- [fabric-platform] [           main] org.mongodb.driver.client                : MongoClient with metadata {"driver": {"name": "mongo-java-driver|sync|spring-boot", "version": "5.2.1"}, "os": {"type": "Darwin", "name": "Mac OS X", "architecture": "aarch64", "version": "15.5"}, "platform": "Java/Homebrew/17.0.14+0"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=null, transportSettings=null, commandListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsCommandListener@257de910], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, EnumCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@7306f65f, com.mongodb.Jep395RecordCodecProvider@50ade311, com.mongodb.KotlinCodecProvider@191d69a]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:27017], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='30000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=10000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, password=null}}, heartbeatSocketSettings=SocketSettings{connectTimeoutMS=10000, readTimeoutMS=10000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, password=null}}, connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=120000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsConnectionPoolListener@67599bae], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverMonitoringMode=AUTO, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=JAVA_LEGACY, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null, timeoutMS=null}
+2025-08-11T18:51:36.482-04:00  INFO 14095 --- [fabric-platform] [           main] c.t.b.p.TransactionTypePartitioner       : 🎯 Initializing TransactionTypePartitioner for 1000.1000 with executionId: 1000_1000_1754952696482
+2025-08-11T18:51:36.527-04:00  INFO 14095 --- [fabric-platform] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 8080 (http) with context path '/'
+2025-08-11T18:51:36.541-04:00  INFO 14095 --- [fabric-platform] [           main] c.t.batch.InterfaceBatchApplication      : Started InterfaceBatchApplication in 4.066 seconds (process running for 4.222)
+2025-08-11T18:51:36.547-04:00  INFO 14095 --- [fabric-platform] [           main] c.t.batch.launcher.ManualJobLauncher     : No sourceSystem or jobName provided. Skipping job execution.
+2025-08-11T18:51:44.086-04:00  INFO 14095 --- [fabric-platform] [nio-8080-exec-1] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2025-08-11T18:51:44.087-04:00  INFO 14095 --- [fabric-platform] [nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2025-08-11T18:51:44.088-04:00  INFO 14095 --- [fabric-platform] [nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 1 ms
+2025-08-11T18:51:44.123-04:00 DEBUG 14095 --- [fabric-platform] [nio-8080-exec-1] o.s.j.d.DataSourceTransactionManager     : Creating new transaction with name [com.truist.batch.service.impl.TemplateServiceImpl.getFieldTemplatesByFileTypeAndTransactionType]: PROPAGATION_REQUIRED,ISOLATION_DEFAULT
+2025-08-11T18:51:44.128-04:00 DEBUG 14095 --- [fabric-platform] [nio-8080-exec-1] o.s.j.d.DataSourceTransactionManager     : Acquired Connection [HikariProxyConnection@521490910 wrapping oracle.jdbc.driver.T4CConnection@26291192] for JDBC transaction
+2025-08-11T18:51:44.129-04:00 DEBUG 14095 --- [fabric-platform] [nio-8080-exec-1] o.s.j.d.DataSourceTransactionManager     : Switching JDBC Connection [HikariProxyConnection@521490910 wrapping oracle.jdbc.driver.T4CConnection@26291192] to manual commit
+2025-08-11T18:51:44.130-04:00 DEBUG 14095 --- [fabric-platform] [nio-8080-exec-1] o.s.jdbc.core.JdbcTemplate               : Executing SQL query [SELECT COUNT(*) FROM cm3int.field_templates]
+2025-08-11T18:51:44.212-04:00  INFO 14095 --- [fabric-platform] [nio-8080-exec-1] c.t.b.r.FieldTemplateRepository          : ✅ Table access test: field_templates table exists with 370 records
+2025-08-11T18:51:44.212-04:00 DEBUG 14095 --- [fabric-platform] [nio-8080-exec-1] o.s.jdbc.core.JdbcTemplate               : Executing SQL query [SELECT DISTINCT FILE_TYPE FROM cm3int.field_templates]
+2025-08-11T18:51:44.253-04:00  INFO 14095 --- [fabric-platform] [nio-8080-exec-1] c.t.b.r.FieldTemplateRepository          : 📋 Available file types in field_templates: [p327, tranert, atoctran]
+2025-08-11T18:51:44.254-04:00 DEBUG 14095 --- [fabric-platform] [nio-8080-exec-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-08-11T18:51:44.254-04:00 DEBUG 14095 --- [fabric-platform] [nio-8080-exec-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM cm3int.field_templates WHERE FILE_TYPE = ? AND TRANSACTION_TYPE = ? AND ENABLED = ? ORDER BY TARGET_POSITION]
+2025-08-11T18:51:44.281-04:00 DEBUG 14095 --- [fabric-platform] [nio-8080-exec-1] o.s.j.s.SQLStateSQLExceptionTranslator   : Extracted SQL state class '99' from value '99999'
+2025-08-11T18:51:44.282-04:00 ERROR 14095 --- [fabric-platform] [nio-8080-exec-1] c.t.b.r.FieldTemplateRepository          : Error querying field_templates table for atoctran/200/Y: PreparedStatementCallback; uncategorized SQLException for SQL [SELECT * FROM cm3int.field_templates WHERE FILE_TYPE = ? AND TRANSACTION_TYPE = ? AND ENABLED = ? ORDER BY TARGET_POSITION]; SQL state [99999]; error code [17006]; ORA-17006: Invalid column name
+https://docs.oracle.com/error-help/db/ora-17006/
+2025-08-11T18:51:44.282-04:00  INFO 14095 --- [fabric-platform] [nio-8080-exec-1] c.t.b.r.FieldTemplateRepository          : Assuming field_templates table doesn't exist or has different schema, returning empty list
+2025-08-11T18:51:44.283-04:00  INFO 14095 --- [fabric-platform] [nio-8080-exec-1] c.t.b.service.impl.TemplateServiceImpl   : No field templates found for fileType: atoctran, transactionType: 200
+2025-08-11T18:51:44.283-04:00 DEBUG 14095 --- [fabric-platform] [nio-8080-exec-1] o.s.j.d.DataSourceTransactionManager     : Initiating transaction commit
+2025-08-11T18:51:44.283-04:00 DEBUG 14095 --- [fabric-platform] [nio-8080-exec-1] o.s.j.d.DataSourceTransactionManager     : Committing JDBC transaction on Connection [HikariProxyConnection@521490910 wrapping oracle.jdbc.driver.T4CConnection@26291192]
+2025-08-11T18:51:44.283-04:00 DEBUG 14095 --- [fabric-platform] [nio-8080-exec-1] o.s.j.d.DataSourceTransactionManager     : Releasing JDBC Connection [HikariProxyConnection@521490910 wrapping oracle.jdbc.driver.T4CConnection@26291192] after transaction
+2025-08-11T18:51:54.924-04:00 DEBUG 14095 --- [fabric-platform] [nio-8080-exec-3] o.s.j.d.DataSourceTransactionManager     : Creating new transaction with name [com.truist.batch.service.impl.TemplateServiceImpl.getTransactionTypesByFileType]: PROPAGATION_REQUIRED,ISOLATION_DEFAULT
+2025-08-11T18:51:54.930-04:00 DEBUG 14095 --- [fabric-platform] [nio-8080-exec-3] o.s.j.d.DataSourceTransactionManager     : Acquired Connection [HikariProxyConnection@182661047 wrapping oracle.jdbc.driver.T4CConnection@26291192] for JDBC transaction
+2025-08-11T18:51:54.930-04:00 DEBUG 14095 --- [fabric-platform] [nio-8080-exec-3] o.s.j.d.DataSourceTransactionManager     : Switching JDBC Connection [HikariProxyConnection@182661047 wrapping oracle.jdbc.driver.T4CConnection@26291192] to manual commit
+2025-08-11T18:51:54.930-04:00 DEBUG 14095 --- [fabric-platform] [nio-8080-exec-3] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-08-11T18:51:54.930-04:00 DEBUG 14095 --- [fabric-platform] [nio-8080-exec-3] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT DISTINCT TRANSACTION_TYPE FROM cm3int.field_templates WHERE FILE_TYPE = ? AND ENABLED = 'Y' ORDER BY TRANSACTION_TYPE]
+2025-08-11T18:51:54.936-04:00 DEBUG 14095 --- [fabric-platform] [nio-8080-exec-3] o.s.j.d.DataSourceTransactionManager     : Initiating transaction commit
+2025-08-11T18:51:54.936-04:00 DEBUG 14095 --- [fabric-platform] [nio-8080-exec-3] o.s.j.d.DataSourceTransactionManager     : Committing JDBC transaction on Connection [HikariProxyConnection@182661047 wrapping oracle.jdbc.driver.T4CConnection@26291192]
+2025-08-11T18:51:54.936-04:00 DEBUG 14095 --- [fabric-platform] [nio-8080-exec-3] o.s.j.d.DataSourceTransactionManager     : Releasing JDBC Connection [HikariProxyConnection@182661047 wrapping oracle.jdbc.driver.T4CConnection@26291192] after transaction
+2025-08-11T18:54:47.393-04:00 DEBUG 14095 --- [fabric-platform] [nio-8080-exec-1] o.s.jdbc.datasource.DataSourceUtils      : Fetching JDBC Connection from DataSource
+2025-08-11T18:54:47.403-04:00 DEBUG 14095 --- [fabric-platform] [nio-8080-exec-1] o.s.jdbc.datasource.DataSourceUtils      : Fetching JDBC Connection from DataSource
+2025-08-11T18:54:47.421-04:00  WARN 14095 --- [fabric-platform] [nio-8080-exec-1] o.s.b.actuate.ldap.LdapHealthIndicator   : LDAP health check failed
+
+org.springframework.ldap.CommunicationException: localhost:389
+	at org.springframework.ldap.support.LdapUtils.convertLdapException(LdapUtils.java:107) ~[spring-ldap-core-3.2.12.jar:3.2.12]
+	at org.springframework.ldap.core.support.AbstractContextSource.createContext(AbstractContextSource.java:362) ~[spring-ldap-core-3.2.12.jar:3.2.12]
+	at org.springframework.ldap.core.support.AbstractContextSource.getReadOnlyContext(AbstractContextSource.java:172) ~[spring-ldap-core-3.2.12.jar:3.2.12]
+	at org.springframework.ldap.core.LdapTemplate.executeReadOnly(LdapTemplate.java:789) ~[spring-ldap-core-3.2.12.jar:3.2.12]
+	at org.springframework.boot.actuate.ldap.LdapHealthIndicator.doHealthCheck(LdapHealthIndicator.java:50) ~[spring-boot-actuator-3.4.6.jar:3.4.6]
+	at org.springframework.boot.actuate.health.AbstractHealthIndicator.health(AbstractHealthIndicator.java:82) ~[spring-boot-actuator-3.4.6.jar:3.4.6]
+	at org.springframework.boot.actuate.health.HealthIndicator.getHealth(HealthIndicator.java:37) ~[spring-boot-actuator-3.4.6.jar:3.4.6]
+	at org.springframework.boot.actuate.health.HealthEndpointWebExtension.getHealth(HealthEndpointWebExtension.java:94) ~[spring-boot-actuator-3.4.6.jar:3.4.6]
+	at org.springframework.boot.actuate.health.HealthEndpointWebExtension.getHealth(HealthEndpointWebExtension.java:47) ~[spring-boot-actuator-3.4.6.jar:3.4.6]
+	at org.springframework.boot.actuate.health.HealthEndpointSupport.getLoggedHealth(HealthEndpointSupport.java:172) ~[spring-boot-actuator-3.4.6.jar:3.4.6]
+	at org.springframework.boot.actuate.health.HealthEndpointSupport.getContribution(HealthEndpointSupport.java:145) ~[spring-boot-actuator-3.4.6.jar:3.4.6]
+	at org.springframework.boot.actuate.health.HealthEndpointSupport.getAggregateContribution(HealthEndpointSupport.java:156) ~[spring-boot-actuator-3.4.6.jar:3.4.6]
+	at org.springframework.boot.actuate.health.HealthEndpointSupport.getContribution(HealthEndpointSupport.java:141) ~[spring-boot-actuator-3.4.6.jar:3.4.6]
+	at org.springframework.boot.actuate.health.HealthEndpointSupport.getHealth(HealthEndpointSupport.java:110) ~[spring-boot-actuator-3.4.6.jar:3.4.6]
+	at org.springframework.boot.actuate.health.HealthEndpointSupport.getHealth(HealthEndpointSupport.java:81) ~[spring-boot-actuator-3.4.6.jar:3.4.6]
+	at org.springframework.boot.actuate.health.HealthEndpointWebExtension.health(HealthEndpointWebExtension.java:80) ~[spring-boot-actuator-3.4.6.jar:3.4.6]
+	at org.springframework.boot.actuate.health.HealthEndpointWebExtension.health(HealthEndpointWebExtension.java:69) ~[spring-boot-actuator-3.4.6.jar:3.4.6]
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method) ~[na:na]
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77) ~[na:na]
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43) ~[na:na]
+	at java.base/java.lang.reflect.Method.invoke(Method.java:569) ~[na:na]
+	at org.springframework.util.ReflectionUtils.invokeMethod(ReflectionUtils.java:281) ~[spring-core-6.2.7.jar:6.2.7]
+	at org.springframework.boot.actuate.endpoint.invoke.reflect.ReflectiveOperationInvoker.invoke(ReflectiveOperationInvoker.java:74) ~[spring-boot-actuator-3.4.6.jar:3.4.6]
+	at org.springframework.boot.actuate.endpoint.annotation.AbstractDiscoveredOperation.invoke(AbstractDiscoveredOperation.java:60) ~[spring-boot-actuator-3.4.6.jar:3.4.6]
+	at org.springframework.boot.actuate.endpoint.web.servlet.AbstractWebMvcEndpointHandlerMapping$ServletWebOperationAdapter.handle(AbstractWebMvcEndpointHandlerMapping.java:327) ~[spring-boot-actuator-3.4.6.jar:3.4.6]
+	at org.springframework.boot.actuate.endpoint.web.servlet.AbstractWebMvcEndpointHandlerMapping$OperationHandler.handle(AbstractWebMvcEndpointHandlerMapping.java:434) ~[spring-boot-actuator-3.4.6.jar:3.4.6]
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method) ~[na:na]
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77) ~[na:na]
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43) ~[na:na]
+	at java.base/java.lang.reflect.Method.invoke(Method.java:569) ~[na:na]
+	at org.springframework.web.method.support.InvocableHandlerMethod.doInvoke(InvocableHandlerMethod.java:258) ~[spring-web-6.2.7.jar:6.2.7]
+	at org.springframework.web.method.support.InvocableHandlerMethod.invokeForRequest(InvocableHandlerMethod.java:191) ~[spring-web-6.2.7.jar:6.2.7]
+	at org.springframework.web.servlet.mvc.method.annotation.ServletInvocableHandlerMethod.invokeAndHandle(ServletInvocableHandlerMethod.java:118) ~[spring-webmvc-6.2.7.jar:6.2.7]
+	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.invokeHandlerMethod(RequestMappingHandlerAdapter.java:986) ~[spring-webmvc-6.2.7.jar:6.2.7]
+	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.handleInternal(RequestMappingHandlerAdapter.java:891) ~[spring-webmvc-6.2.7.jar:6.2.7]
+	at org.springframework.web.servlet.mvc.method.AbstractHandlerMethodAdapter.handle(AbstractHandlerMethodAdapter.java:87) ~[spring-webmvc-6.2.7.jar:6.2.7]
+	at org.springframework.web.servlet.DispatcherServlet.doDispatch(DispatcherServlet.java:1089) ~[spring-webmvc-6.2.7.jar:6.2.7]
+	at org.springframework.web.servlet.DispatcherServlet.doService(DispatcherServlet.java:979) ~[spring-webmvc-6.2.7.jar:6.2.7]
+	at org.springframework.web.servlet.FrameworkServlet.processRequest(FrameworkServlet.java:1014) ~[spring-webmvc-6.2.7.jar:6.2.7]
+	at org.springframework.web.servlet.FrameworkServlet.doGet(FrameworkServlet.java:903) ~[spring-webmvc-6.2.7.jar:6.2.7]
+	at jakarta.servlet.http.HttpServlet.service(HttpServlet.java:564) ~[tomcat-embed-core-10.1.41.jar:6.0]
+	at org.springframework.web.servlet.FrameworkServlet.service(FrameworkServlet.java:885) ~[spring-webmvc-6.2.7.jar:6.2.7]
+	at jakarta.servlet.http.HttpServlet.service(HttpServlet.java:658) ~[tomcat-embed-core-10.1.41.jar:6.0]
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:195) ~[tomcat-embed-core-10.1.41.jar:10.1.41]
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:140) ~[tomcat-embed-core-10.1.41.jar:10.1.41]
+	at org.springframework.web.filter.CorsFilter.doFilterInternal(CorsFilter.java:91) ~[spring-web-6.2.7.jar:6.2.7]
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116) ~[spring-web-6.2.7.jar:6.2.7]
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:164) ~[tomcat-embed-core-10.1.41.jar:10.1.41]
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:140) ~[tomcat-embed-core-10.1.41.jar:10.1.41]
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:101) ~[spring-web-6.2.7.jar:6.2.7]
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:164) ~[tomcat-embed-core-10.1.41.jar:10.1.41]
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:140) ~[tomcat-embed-core-10.1.41.jar:10.1.41]
+	at org.springframework.web.filter.CompositeFilter$VirtualFilterChain.doFilter(CompositeFilter.java:108) ~[spring-web-6.2.7.jar:6.2.7]
+	at org.springframework.security.web.FilterChainProxy.lambda$doFilterInternal$3(FilterChainProxy.java:231) ~[spring-security-web-6.4.6.jar:6.4.6]
+	at org.springframework.security.web.ObservationFilterChainDecorator$FilterObservation$SimpleFilterObservation.lambda$wrap$1(ObservationFilterChainDecorator.java:479) ~[spring-security-web-6.4.6.jar:6.4.6]
+	at org.springframework.security.web.ObservationFilterChainDecorator$AroundFilterObservation$SimpleAroundFilterObservation.lambda$wrap$1(ObservationFilterChainDecorator.java:340) ~[spring-security-web-6.4.6.jar:6.4.6]
+	at org.springframework.security.web.ObservationFilterChainDecorator.lambda$wrapSecured$0(ObservationFilterChainDecorator.java:82) ~[spring-security-web-6.4.6.jar:6.4.6]
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:128) ~[spring-security-web-6.4.6.jar:6.4.6]
+	at org.springframework.security.web.access.intercept.AuthorizationFilter.doFilter(AuthorizationFilter.java:101) ~[spring-security-web-6.4.6.jar:6.4.6]
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:240) ~[spring-security-web-6.4.6.jar:6.4.6]
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:227) ~[spring-security-web-6.4.6.jar:6.4.6]
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:137) ~[spring-security-web-6.4.6.jar:6.4.6]
+	at org.springframework.security.web.access.ExceptionTranslationFilter.doFilter(ExceptionTranslationFilter.java:126) ~[spring-security-web-6.4.6.jar:6.4.6]
+	at org.springframework.security.web.access.ExceptionTranslationFilter.doFilter(ExceptionTranslationFilter.java:120) ~[spring-security-web-6.4.6.jar:6.4.6]
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:240) ~[spring-security-web-6.4.6.jar:6.4.6]
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:227) ~[spring-security-web-6.4.6.jar:6.4.6]
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:137) ~[spring-security-web-6.4.6.jar:6.4.6]
+	at org.springframework.security.web.authentication.AnonymousAuthenticationFilter.doFilter(AnonymousAuthenticationFilter.java:100) ~[spring-security-web-6.4.6.jar:6.4.6]
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:240) ~[spring-security-web-6.4.6.jar:6.4.6]
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:227) ~[spring-security-web-6.4.6.jar:6.4.6]
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:137) ~[spring-security-web-6.4.6.jar:6.4.6]
+	at org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter.doFilter(SecurityContextHolderAwareRequestFilter.java:179) ~[spring-security-web-6.4.6.jar:6.4.6]
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:240) ~[spring-security-web-6.4.6.jar:6.4.6]
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:227) ~[spring-security-web-6.4.6.jar:6.4.6]
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:137) ~[spring-security-web-6.4.6.jar:6.4.6]
+	at org.springframework.security.web.savedrequest.RequestCacheAwareFilter.doFilter(RequestCacheAwareFilter.java:63) ~[spring-security-web-6.4.6.jar:6.4.6]
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:240) ~[spring-security-web-6.4.6.jar:6.4.6]
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:227) ~[spring-security-web-6.4.6.jar:6.4.6]
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:137) ~[spring-security-web-6.4.6.jar:6.4.6]
+	at org.springframework.security.web.authentication.logout.LogoutFilter.doFilter(LogoutFilter.java:107) ~[spring-security-web-6.4.6.jar:6.4.6]
+	at org.springframework.security.web.authentication.logout.LogoutFilter.doFilter(LogoutFilter.java:93) ~[spring-security-web-6.4.6.jar:6.4.6]
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:240) ~[spring-security-web-6.4.6.jar:6.4.6]
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:227) ~[spring-security-web-6.4.6.jar:6.4.6]
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:137) ~[spring-security-web-6.4.6.jar:6.4.6]
+	at org.springframework.security.web.header.HeaderWriterFilter.doHeadersAfter(HeaderWriterFilter.java:90) ~[spring-security-web-6.4.6.jar:6.4.6]
+	at org.springframework.security.web.header.HeaderWriterFilter.doFilterInternal(HeaderWriterFilter.java:75) ~[spring-security-web-6.4.6.jar:6.4.6]
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116) ~[spring-web-6.2.7.jar:6.2.7]
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:240) ~[spring-security-web-6.4.6.jar:6.4.6]
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:227) ~[spring-security-web-6.4.6.jar:6.4.6]
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:137) ~[spring-security-web-6.4.6.jar:6.4.6]
+	at org.springframework.security.web.context.SecurityContextHolderFilter.doFilter(SecurityContextHolderFilter.java:82) ~[spring-security-web-6.4.6.jar:6.4.6]
+	at org.springframework.security.web.context.SecurityContextHolderFilter.doFilter(SecurityContextHolderFilter.java:69) ~[spring-security-web-6.4.6.jar:6.4.6]
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:240) ~[spring-security-web-6.4.6.jar:6.4.6]
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:227) ~[spring-security-web-6.4.6.jar:6.4.6]
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:137) ~[spring-security-web-6.4.6.jar:6.4.6]
+	at org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter.doFilterInternal(WebAsyncManagerIntegrationFilter.java:62) ~[spring-security-web-6.4.6.jar:6.4.6]
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116) ~[spring-web-6.2.7.jar:6.2.7]
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:240) ~[spring-security-web-6.4.6.jar:6.4.6]
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:227) ~[spring-security-web-6.4.6.jar:6.4.6]
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:137) ~[spring-security-web-6.4.6.jar:6.4.6]
+	at org.springframework.security.web.session.DisableEncodeUrlFilter.doFilterInternal(DisableEncodeUrlFilter.java:42) ~[spring-security-web-6.4.6.jar:6.4.6]
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116) ~[spring-web-6.2.7.jar:6.2.7]
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:240) ~[spring-security-web-6.4.6.jar:6.4.6]
+	at org.springframework.security.web.ObservationFilterChainDecorator$AroundFilterObservation$SimpleAroundFilterObservation.lambda$wrap$0(ObservationFilterChainDecorator.java:323) ~[spring-security-web-6.4.6.jar:6.4.6]
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:224) ~[spring-security-web-6.4.6.jar:6.4.6]
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:137) ~[spring-security-web-6.4.6.jar:6.4.6]
+	at org.springframework.security.web.FilterChainProxy.doFilterInternal(FilterChainProxy.java:233) ~[spring-security-web-6.4.6.jar:6.4.6]
+	at org.springframework.security.web.FilterChainProxy.doFilter(FilterChainProxy.java:191) ~[spring-security-web-6.4.6.jar:6.4.6]
+	at org.springframework.web.filter.CompositeFilter$VirtualFilterChain.doFilter(CompositeFilter.java:113) ~[spring-web-6.2.7.jar:6.2.7]
+	at org.springframework.web.servlet.handler.HandlerMappingIntrospector.lambda$createCacheFilter$3(HandlerMappingIntrospector.java:243) ~[spring-webmvc-6.2.7.jar:6.2.7]
+	at org.springframework.web.filter.CompositeFilter$VirtualFilterChain.doFilter(CompositeFilter.java:113) ~[spring-web-6.2.7.jar:6.2.7]
+	at org.springframework.web.filter.CompositeFilter.doFilter(CompositeFilter.java:74) ~[spring-web-6.2.7.jar:6.2.7]
+	at org.springframework.security.config.annotation.web.configuration.WebMvcSecurityConfiguration$CompositeFilterChainProxy.doFilter(WebMvcSecurityConfiguration.java:238) ~[spring-security-config-6.4.6.jar:6.4.6]
+	at org.springframework.web.filter.DelegatingFilterProxy.invokeDelegate(DelegatingFilterProxy.java:362) ~[spring-web-6.2.7.jar:6.2.7]
+	at org.springframework.web.filter.DelegatingFilterProxy.doFilter(DelegatingFilterProxy.java:278) ~[spring-web-6.2.7.jar:6.2.7]
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:164) ~[tomcat-embed-core-10.1.41.jar:10.1.41]
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:140) ~[tomcat-embed-core-10.1.41.jar:10.1.41]
+	at org.springframework.web.filter.RequestContextFilter.doFilterInternal(RequestContextFilter.java:100) ~[spring-web-6.2.7.jar:6.2.7]
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116) ~[spring-web-6.2.7.jar:6.2.7]
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:164) ~[tomcat-embed-core-10.1.41.jar:10.1.41]
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:140) ~[tomcat-embed-core-10.1.41.jar:10.1.41]
+	at org.springframework.web.filter.FormContentFilter.doFilterInternal(FormContentFilter.java:93) ~[spring-web-6.2.7.jar:6.2.7]
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116) ~[spring-web-6.2.7.jar:6.2.7]
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:164) ~[tomcat-embed-core-10.1.41.jar:10.1.41]
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:140) ~[tomcat-embed-core-10.1.41.jar:10.1.41]
+	at org.springframework.web.filter.ServerHttpObservationFilter.doFilterInternal(ServerHttpObservationFilter.java:114) ~[spring-web-6.2.7.jar:6.2.7]
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116) ~[spring-web-6.2.7.jar:6.2.7]
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:164) ~[tomcat-embed-core-10.1.41.jar:10.1.41]
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:140) ~[tomcat-embed-core-10.1.41.jar:10.1.41]
+	at org.springframework.web.filter.CharacterEncodingFilter.doFilterInternal(CharacterEncodingFilter.java:201) ~[spring-web-6.2.7.jar:6.2.7]
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116) ~[spring-web-6.2.7.jar:6.2.7]
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:164) ~[tomcat-embed-core-10.1.41.jar:10.1.41]
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:140) ~[tomcat-embed-core-10.1.41.jar:10.1.41]
+	at org.apache.catalina.core.StandardWrapperValve.invoke(StandardWrapperValve.java:167) ~[tomcat-embed-core-10.1.41.jar:10.1.41]
+	at org.apache.catalina.core.StandardContextValve.invoke(StandardContextValve.java:90) ~[tomcat-embed-core-10.1.41.jar:10.1.41]
+	at org.apache.catalina.authenticator.AuthenticatorBase.invoke(AuthenticatorBase.java:483) ~[tomcat-embed-core-10.1.41.jar:10.1.41]
+	at org.apache.catalina.core.StandardHostValve.invoke(StandardHostValve.java:116) ~[tomcat-embed-core-10.1.41.jar:10.1.41]
+	at org.apache.catalina.valves.ErrorReportValve.invoke(ErrorReportValve.java:93) ~[tomcat-embed-core-10.1.41.jar:10.1.41]
+	at org.apache.catalina.core.StandardEngineValve.invoke(StandardEngineValve.java:74) ~[tomcat-embed-core-10.1.41.jar:10.1.41]
+	at org.apache.catalina.connector.CoyoteAdapter.service(CoyoteAdapter.java:344) ~[tomcat-embed-core-10.1.41.jar:10.1.41]
+	at org.apache.coyote.http11.Http11Processor.service(Http11Processor.java:398) ~[tomcat-embed-core-10.1.41.jar:10.1.41]
+	at org.apache.coyote.AbstractProcessorLight.process(AbstractProcessorLight.java:63) ~[tomcat-embed-core-10.1.41.jar:10.1.41]
+	at org.apache.coyote.AbstractProtocol$ConnectionHandler.process(AbstractProtocol.java:903) ~[tomcat-embed-core-10.1.41.jar:10.1.41]
+	at org.apache.tomcat.util.net.NioEndpoint$SocketProcessor.doRun(NioEndpoint.java:1740) ~[tomcat-embed-core-10.1.41.jar:10.1.41]
+	at org.apache.tomcat.util.net.SocketProcessorBase.run(SocketProcessorBase.java:52) ~[tomcat-embed-core-10.1.41.jar:10.1.41]
+	at org.apache.tomcat.util.threads.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1189) ~[tomcat-embed-core-10.1.41.jar:10.1.41]
+	at org.apache.tomcat.util.threads.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:658) ~[tomcat-embed-core-10.1.41.jar:10.1.41]
+	at org.apache.tomcat.util.threads.TaskThread$WrappingRunnable.run(TaskThread.java:63) ~[tomcat-embed-core-10.1.41.jar:10.1.41]
+	at java.base/java.lang.Thread.run(Thread.java:840) ~[na:na]
+Caused by: javax.naming.CommunicationException: localhost:389
+	at java.naming/com.sun.jndi.ldap.Connection.<init>(Connection.java:251) ~[na:na]
+	at java.naming/com.sun.jndi.ldap.LdapClient.<init>(LdapClient.java:137) ~[na:na]
+	at java.naming/com.sun.jndi.ldap.LdapClient.getInstance(LdapClient.java:1616) ~[na:na]
+	at java.naming/com.sun.jndi.ldap.LdapCtx.connect(LdapCtx.java:2848) ~[na:na]
+	at java.naming/com.sun.jndi.ldap.LdapCtx.<init>(LdapCtx.java:348) ~[na:na]
+	at java.naming/com.sun.jndi.ldap.LdapCtxFactory.getLdapCtxFromUrl(LdapCtxFactory.java:229) ~[na:na]
+	at java.naming/com.sun.jndi.ldap.LdapCtxFactory.getUsingURL(LdapCtxFactory.java:189) ~[na:na]
+	at java.naming/com.sun.jndi.ldap.LdapCtxFactory.getUsingURLs(LdapCtxFactory.java:247) ~[na:na]
+	at java.naming/com.sun.jndi.ldap.LdapCtxFactory.getLdapCtxInstance(LdapCtxFactory.java:154) ~[na:na]
+	at java.naming/com.sun.jndi.ldap.LdapCtxFactory.getInitialContext(LdapCtxFactory.java:84) ~[na:na]
+	at java.naming/javax.naming.spi.NamingManager.getInitialContext(NamingManager.java:732) ~[na:na]
+	at java.naming/javax.naming.InitialContext.getDefaultInitCtx(InitialContext.java:305) ~[na:na]
+	at java.naming/javax.naming.InitialContext.init(InitialContext.java:236) ~[na:na]
+	at java.naming/javax.naming.ldap.InitialLdapContext.<init>(InitialLdapContext.java:154) ~[na:na]
+	at org.springframework.ldap.core.support.LdapContextSource.getDirContextInstance(LdapContextSource.java:44) ~[spring-ldap-core-3.2.12.jar:3.2.12]
+	at org.springframework.ldap.core.support.AbstractContextSource.createContext(AbstractContextSource.java:350) ~[spring-ldap-core-3.2.12.jar:3.2.12]
+	... 147 common frames omitted
+Caused by: java.net.ConnectException: Connection refused
+	at java.base/sun.nio.ch.Net.connect0(Native Method) ~[na:na]
+	at java.base/sun.nio.ch.Net.connect(Net.java:579) ~[na:na]
+	at java.base/sun.nio.ch.Net.connect(Net.java:568) ~[na:na]
+	at java.base/sun.nio.ch.NioSocketImpl.connect(NioSocketImpl.java:593) ~[na:na]
+	at java.base/java.net.SocksSocketImpl.connect(SocksSocketImpl.java:327) ~[na:na]
+	at java.base/java.net.Socket.connect(Socket.java:633) ~[na:na]
+	at java.base/java.net.Socket.connect(Socket.java:583) ~[na:na]
+	at java.base/java.net.Socket.<init>(Socket.java:507) ~[na:na]
+	at java.base/java.net.Socket.<init>(Socket.java:287) ~[na:na]
+	at java.base/javax.net.DefaultSocketFactory.createSocket(SocketFactory.java:271) ~[na:na]
+	at java.naming/com.sun.jndi.ldap.Connection.createConnectionSocket(Connection.java:350) ~[na:na]
+	at java.naming/com.sun.jndi.ldap.Connection.createSocket(Connection.java:283) ~[na:na]
+	at java.naming/com.sun.jndi.ldap.Connection.<init>(Connection.java:230) ~[na:na]
+	... 162 common frames omitted
+
+2025-08-11T18:55:13.879-04:00  INFO 14095 --- [fabric-platform] [ionShutdownHook] o.s.b.w.e.tomcat.GracefulShutdown        : Commencing graceful shutdown. Waiting for active requests to complete
+2025-08-11T18:55:13.886-04:00  INFO 14095 --- [fabric-platform] [tomcat-shutdown] o.s.b.w.e.tomcat.GracefulShutdown        : Graceful shutdown complete
+2025-08-11T18:55:13.899-04:00  INFO 14095 --- [fabric-platform] [ionShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown initiated...
+2025-08-11T18:55:13.966-04:00  INFO 14095 --- [fabric-platform] [ionShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown completed.

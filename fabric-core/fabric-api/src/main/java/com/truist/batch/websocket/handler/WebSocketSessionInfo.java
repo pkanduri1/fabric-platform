@@ -339,19 +339,19 @@ public class WebSocketSessionInfo {
      * Convert to audit-friendly map
      */
     public Map<String, Object> toAuditMap() {
-        return Map.of(
-            "sessionId", sessionId,
-            "userId", userId,
-            "clientIp", clientIp,
-            "connectedAt", connectedAt != null ? connectedAt.toString() : null,
-            "lastActivity", lastActivity != null ? lastActivity.toString() : null,
-            "connectionStatus", connectionStatus.toString(),
-            "messagesSent", messagesSent.get(),
-            "messagesReceived", messagesReceived.get(),
-            "errorCount", errorCount.get(),
-            "connectionDuration", getConnectionDurationSeconds(),
-            "subscriptions", subscriptions.keySet()
-        );
+        Map<String, Object> auditMap = new java.util.HashMap<>();
+        auditMap.put("sessionId", sessionId);
+        auditMap.put("userId", userId);
+        auditMap.put("clientIp", clientIp);
+        auditMap.put("connectedAt", connectedAt != null ? connectedAt.toString() : null);
+        auditMap.put("lastActivity", lastActivity != null ? lastActivity.toString() : null);
+        auditMap.put("connectionStatus", connectionStatus.toString());
+        auditMap.put("messagesSent", messagesSent.get());
+        auditMap.put("messagesReceived", messagesReceived.get());
+        auditMap.put("errorCount", errorCount.get());
+        auditMap.put("connectionDuration", getConnectionDurationSeconds());
+        auditMap.put("subscriptions", subscriptions.keySet());
+        return auditMap;
     }
     
     /**

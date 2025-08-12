@@ -3,7 +3,7 @@ package com.truist.batch.websocket.audit;
 import com.truist.batch.config.WebSocketSecurityConfig.WebSocketSecurityEvent;
 import com.truist.batch.entity.WebSocketAuditLogEntity;
 import com.truist.batch.repository.WebSocketAuditLogRepository;
-import com.truist.batch.service.SecurityAuditService;
+import com.truist.batch.security.service.SecurityAuditService;
 import com.truist.batch.websocket.handler.WebSocketSessionInfo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -40,7 +40,7 @@ import java.util.Map;
  * @since US008 - Real-Time Job Monitoring Dashboard
  */
 @Slf4j
-@Component
+// @Component - Temporarily disabled to get basic backend running
 @RequiredArgsConstructor
 public class AuditWebSocketEventListener {
 
@@ -497,5 +497,19 @@ public class AuditWebSocketEventListener {
         private boolean isSecurityEvent;
         private boolean isComplianceEvent;
         private boolean requiresImmediateAction;
+        
+        // Getters
+        public String getSeverity() { return severity; }
+        public String getRiskLevel() { return riskLevel; }
+        public boolean isSecurityEvent() { return isSecurityEvent; }
+        public boolean isComplianceEvent() { return isComplianceEvent; }
+        public boolean requiresImmediateAction() { return requiresImmediateAction; }
+        
+        // Setters
+        public void setSeverity(String severity) { this.severity = severity; }
+        public void setRiskLevel(String riskLevel) { this.riskLevel = riskLevel; }
+        public void setSecurityEvent(boolean securityEvent) { isSecurityEvent = securityEvent; }
+        public void setComplianceEvent(boolean complianceEvent) { isComplianceEvent = complianceEvent; }
+        public void setRequiresImmediateAction(boolean requiresImmediateAction) { this.requiresImmediateAction = requiresImmediateAction; }
     }
 }

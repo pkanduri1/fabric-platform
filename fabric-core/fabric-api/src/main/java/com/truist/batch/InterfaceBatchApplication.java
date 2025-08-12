@@ -2,11 +2,32 @@ package com.truist.batch;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.FilterType;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
-@SpringBootApplication
-@EnableJpaRepositories("com.truist.batch.repository")
+import com.truist.batch.config.DatabaseConfig;
+
+@SpringBootApplication(
+    exclude = {
+        // Exclude auto-configurations handled in application.properties
+    }
+)
+@ComponentScan(
+    basePackages = "com.truist.batch",
+    excludeFilters = {
+        @ComponentScan.Filter(
+            type = FilterType.ASSIGNABLE_TYPE, 
+            classes = DatabaseConfig.class
+        ),
+        @ComponentScan.Filter(
+            type = FilterType.REGEX, 
+            pattern = ".*\\.SqlLoaderConfigurationManagementService$"
+        )
+    }
+)
+// JPA configuration removed - now using JdbcTemplate-based repositories
+// @EnableJpaRepositories removed as we no longer use JPA repositories
 @EnableTransactionManagement
 public class InterfaceBatchApplication {
 	public static void main(String[] args) {

@@ -18,6 +18,16 @@
  * - Security-compliant role-based access
  */
 
+// Paginated response interface for API endpoints
+export interface PaginatedResponse<T> {
+  data: T[];
+  total: number;
+  page: number;
+  size: number;
+  hasNext: boolean;
+  hasPrevious: boolean;
+}
+
 // Job Status Enums
 export enum JobStatus {
   PENDING = 'PENDING',
@@ -356,7 +366,7 @@ export interface DashboardData {
 
 // WebSocket Message Types
 export interface WebSocketMessage {
-  type: 'DASHBOARD_UPDATE' | 'JOB_UPDATE' | 'ALERT' | 'SYSTEM_HEALTH' | 'ERROR';
+  type: 'DASHBOARD_UPDATE' | 'JOB_UPDATE' | 'ALERT' | 'SYSTEM_HEALTH' | 'ERROR' | 'CLIENT_MESSAGE' | 'HEARTBEAT' | 'HEARTBEAT_ACK' | 'SUBSCRIBE' | 'UNSUBSCRIBE' | 'REAUTH';
   payload: any;
   timestamp: string;
   correlationId: string;
@@ -421,15 +431,7 @@ export interface MonitoringApiResponse<T> {
   correlationId: string;
 }
 
-export interface PaginatedResponse<T> {
-  content: T[];
-  totalElements: number;
-  totalPages: number;
-  pageNumber: number;
-  pageSize: number;
-  hasNext: boolean;
-  hasPrevious: boolean;
-}
+// Note: PaginatedResponse is imported from template.ts to avoid duplication
 
 // Chart Data Types
 export interface ChartDataPoint {
@@ -474,6 +476,7 @@ export interface JobGridProps {
   sortBy?: string;
   sortDirection?: 'asc' | 'desc';
   filters?: Record<string, any>;
+  compactView?: boolean;
 }
 
 export interface AlertPanelProps {
@@ -491,6 +494,9 @@ export interface PerformanceChartProps {
   timeRange?: string;
   refreshInterval?: number;
   onTimeRangeChange?: (range: string) => void;
+  trends?: any; // TODO: Define proper trends interface
+  height?: number;
+  realTime?: boolean;
 }
 
 export interface JobDetailsModalProps {
@@ -509,6 +515,8 @@ export interface UseWebSocketReturn {
   disconnect: () => void;
   reconnect: () => void;
   lastMessage: WebSocketMessage | null;
+  subscribe: (topics: string[]) => void;
+  unsubscribe: (topics: string[]) => void;
 }
 
 export interface UseRealTimeMonitoringReturn {
@@ -519,23 +527,9 @@ export interface UseRealTimeMonitoringReturn {
   refresh: () => Promise<void>;
   subscribe: (topics: string[]) => void;
   unsubscribe: (topics: string[]) => void;
+  getCachedData: () => DashboardData | null;
+  isDataFresh: () => boolean;
 }
 
-// Export all types for easy importing
-export type {
-  ActiveJob,
-  PerformanceMetrics,
-  SystemHealth,
-  Alert,
-  AlertFilters,
-  AlertConfiguration,
-  JobExecutionDetails,
-  HistoricalMetrics,
-  DashboardData,
-  WebSocketMessage,
-  MonitoringConfiguration,
-  MobileOptimizedJob,
-  ChartDataPoint,
-  ChartConfiguration,
-  MonitoringError
-};
+// Note: All types are already exported as named exports above
+// No need for additional export statements since interfaces and types are already exported with their definitions

@@ -34,7 +34,7 @@ import java.util.stream.Collectors;
  * @since US008 - Real-Time Job Monitoring Dashboard
  */
 @Slf4j
-@Service
+// @Service - Temporarily disabled to get basic backend running
 @RequiredArgsConstructor
 public class RealTimeMonitoringService extends Epic2PerformanceMonitor {
 
@@ -458,16 +458,32 @@ public class RealTimeMonitoringService extends Epic2PerformanceMonitor {
     private JobsDelta sanitizeJobsForMinimalAccess(JobsDelta delta) { return delta; }
     private Object sanitizeBusinessMetricsForMinimalAccess(Object metrics) { return metrics; }
     
+    // Placeholder method for performance dashboard
+    private PerformanceDashboard getPerformanceDashboard() {
+        return PerformanceDashboard.builder()
+            .performanceMetrics(new Object())
+            .systemHealth(new Object())
+            .executionStats(new Object())
+            .build();
+    }
+    
+    
     // Placeholder classes - would be fully implemented
+    @lombok.Data
+    @lombok.Builder
+    @lombok.NoArgsConstructor
+    @lombok.AllArgsConstructor
     public static class MonitoringSnapshot { 
-        public Instant getTimestamp() { return Instant.now(); }
-        public Object getSystemMetrics() { return new Object(); }
-        public Object getBusinessMetrics() { return new Object(); }
-        public Object getThreadPoolMetrics() { return new Object(); }
-        public Object getExecutionMetrics() { return new Object(); }
-        public Object getAlerts() { return new Object(); }
-        public Object getComplianceMetrics() { return new Object(); }
-        public WebSocketMetrics getWebSocketMetrics() { return new WebSocketMetrics(); }
+        private Instant timestamp = Instant.now();
+        private Object systemMetrics = new Object();
+        private Object businessMetrics = new Object();
+        private Object threadPoolMetrics = new Object();
+        private Object executionMetrics = new Object();
+        private Object alerts = new Object();
+        private Object complianceMetrics = new Object();
+        private WebSocketMetrics webSocketMetrics = WebSocketMetrics.builder().build();
+        private int activeJobCount;
+        private int totalSubscribers;
     }
     
     @lombok.Data
@@ -482,6 +498,7 @@ public class RealTimeMonitoringService extends Epic2PerformanceMonitor {
         private Object webSocketMetricsChanges;
         
         public boolean isEmpty() { return !hasChanges; }
+        public boolean hasChanges() { return this.hasChanges; }
         
         public static MonitoringDelta fromCompleteSnapshot(MonitoringSnapshot snapshot) {
             return MonitoringDelta.builder()
@@ -504,6 +521,25 @@ public class RealTimeMonitoringService extends Epic2PerformanceMonitor {
         private int messagesReceivedPerMinute;
         private double averageResponseTime;
         private double errorRate;
+    }
+    
+    // Placeholder PerformanceDashboard class
+    @lombok.Data
+    @lombok.Builder
+    @lombok.NoArgsConstructor 
+    @lombok.AllArgsConstructor
+    public static class PerformanceDashboard {
+        private Object performanceMetrics = new Object();
+        private Object systemHealth = new Object();
+        private Object executionStats = new Object();
+        
+        // Additional getter methods needed by the builder
+        public Object getSystemMetrics() { return performanceMetrics; }
+        public Object getBusinessMetrics() { return systemHealth; }
+        public Object getThreadPoolMetrics() { return executionStats; }
+        public Object getExecutionMetrics() { return executionStats; }
+        public Object getAlerts() { return new Object(); }
+        public Object getCompliance() { return new Object(); }
     }
     
     public static class JobsDelta { 
