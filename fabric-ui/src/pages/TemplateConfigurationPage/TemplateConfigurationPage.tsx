@@ -24,9 +24,16 @@ import {
     Step,
     StepLabel,
     Grid,
-    Paper
+    Paper,
+    Autocomplete,
+    Accordion,
+    AccordionSummary,
+    AccordionDetails,
+    IconButton,
+    Tooltip,
+    Divider
 } from '@mui/material';
-import { Download, Upload, Save, Settings, OpenInNew } from '@mui/icons-material';
+import { Download, Upload, Save, Settings, OpenInNew, ExpandMore, Help, Preview, Code, Psychology } from '@mui/icons-material';
 import { useConfigurationContext } from '../../contexts/ConfigurationContext';
 import { templateApiService } from '../../services/api/templateApi';
 import { FileTypeTemplate, FieldTemplate, FieldMappingConfig, TemplateToConfigurationResult } from '../../types/template';
@@ -50,6 +57,8 @@ export const TemplateConfigurationPage: React.FC = () => {
     const [generatedConfig, setGeneratedConfig] = useState<any>(null);
     const [localSelectedSourceSystem, setLocalSelectedSourceSystem] = useState<SourceSystem | null>(null);
     const [uploadedFileName, setUploadedFileName] = useState<string | null>(null);
+    const [availableSourceFields, setAvailableSourceFields] = useState<Array<{ name: string; type: string; sample?: string }>>([]);
+    const [conditionSuggestions, setConditionSuggestions] = useState<string[]>([]);
 
     const navigate = useNavigate();
     
@@ -85,9 +94,17 @@ export const TemplateConfigurationPage: React.FC = () => {
     useEffect(() => {
         if (selectedFileType && selectedTransactionType) {
             fetchTemplateFields(selectedFileType, selectedTransactionType);
+            fetchAvailableSourceFields();
             setActiveStep(1);
         }
     }, [selectedFileType, selectedTransactionType]);
+
+    // Load available source fields when source system changes
+    useEffect(() => {
+        if (localSelectedSourceSystem) {
+            fetchAvailableSourceFields();
+        }
+    }, [localSelectedSourceSystem]);
 
     // Auto-generate job name when template selection changes
     useEffect(() => {
@@ -140,6 +157,135 @@ export const TemplateConfigurationPage: React.FC = () => {
             console.error('Error fetching template fields:', error);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const fetchAvailableSourceFields = async () => {
+        if (!localSelectedSourceSystem) {
+            setAvailableSourceFields([]);
+            return;
+        }
+
+        try {
+            // Mock source fields - in real implementation, this would fetch from the source system schema
+            const mockSourceFields = [
+                { name: 'employee_id', type: 'string', sample: '12345' },
+                { name: 'first_name', type: 'string', sample: 'John' },
+                { name: 'last_name', type: 'string', sample: 'Doe' },
+                { name: 'department', type: 'string', sample: 'IT' },
+                { name: 'status_code', type: 'string', sample: 'A' },
+                { name: 'hire_date', type: 'date', sample: '2020-01-15' },
+                { name: 'annual_salary', type: 'number', sample: '75000' },
+                { name: 'performance_rating', type: 'number', sample: '4.2' },
+                { name: 'manager_flag', type: 'boolean', sample: 'Y' },
+                { name: 'years_experience', type: 'number', sample: '5' },
+                { name: 'termination_date', type: 'date', sample: undefined },
+                { name: 'dept_code', type: 'string', sample: 'IT' },
+                { name: 'office_location', type: 'string', sample: 'New York' }
+            ];
+            
+            setAvailableSourceFields(mockSourceFields);
+            generateConditionSuggestions(mockSourceFields);
+        } catch (error) {
+            console.error('Error fetching source fields:', error);
+        }
+    };
+
+    const generateConditionSuggestions = (sourceFields: Array<{ name: string; type: string; sample?: string }>) => {
+        const suggestions: string[] = [];
+        
+        sourceFields.forEach(field => {
+            switch (field.type) {
+                case 'string':
+                    suggestions.push(`${field.name} == "${field.sample || 'value'}"`);        
+                    suggestions.push(`${field.name} != "${field.sample || 'value'}"`);                    
+                    suggestions.push(`${field.name}.contains("substring")`);                    
+                    suggestions.push(`${field.name} == null || ${field.name} == ""`);                                     
+                    break;
+                case 'number':
+                    suggestions.push(`${field.name} >= ${field.sample || '0'}`);
+                    suggestions.push(`${field.name} <= ${field.sample || '100'}`);
+                    suggestions.push(`${field.name} > ${field.sample || '0'}`);
+                    suggestions.push(`${field.name} < ${field.sample || '100'}`);
+                    break;
+                case 'date':
+                    suggestions.push(`${field.name} >= "2020-01-01"`);
+                    suggestions.push(`${field.name} <= "2024-12-31"`);
+                    suggestions.push(`${field.name} == null`);
+                    break;
+                case 'boolean':
+                    suggestions.push(`${field.name} == "Y"`);
+                    suggestions.push(`${field.name} == "N"`);
+                    suggestions.push(`${field.name} == true`);
+                    suggestions.push(`${field.name} == false`);
+                    break;
+            }
+        });
+        
+        // Add complex conditions
+        if (sourceFields.length >= 2) {
+            const field1 = sourceFields[0];
+            const field2 = sourceFields[1];
+            suggestions.push(`${field1.name} == "${field1.sample}" && ${field2.name} >= ${field2.sample || '0'}`);
+            suggestions.push(`${field1.name} != null && ${field2.name} != null`);
+        }
+        
+        setConditionSuggestions(suggestions.slice(0, 20)); // Limit to 20 suggestions
+    };
+
+    const testCondition = (conditionExpr: string, fieldIndex: number, condIndex: number) => {
+        if (!conditionExpr || availableSourceFields.length === 0) {
+            alert('Please enter a condition expression first');
+            return;
+        }
+
+        try {
+            // Create mock data using sample values from available source fields
+            const mockData: Record<string, any> = {};
+            availableSourceFields.forEach(field => {
+                switch (field.type) {
+                    case 'string':
+                        mockData[field.name] = field.sample || 'sample_value';
+                        break;
+                    case 'number':
+                        mockData[field.name] = parseFloat(field.sample || '0');
+                        break;
+                    case 'date':
+                        mockData[field.name] = field.sample;
+                        break;
+                    case 'boolean':
+                        mockData[field.name] = field.sample === 'Y' || field.sample === 'true';
+                        break;
+                    default:
+                        mockData[field.name] = field.sample;
+                }
+            });
+
+            // Simple condition evaluation (in production, use a proper expression evaluator)
+            let result = false;
+            try {
+                // Replace field names with actual values for testing
+                let testExpression = conditionExpr;
+                Object.keys(mockData).forEach(fieldName => {
+                    const value = mockData[fieldName];
+                    const valueStr = typeof value === 'string' ? `"${value}"` : String(value);
+                    testExpression = testExpression.replace(new RegExp(`\\b${fieldName}\\b`, 'g'), valueStr);
+                });
+                
+                // Simple evaluation (note: in production, use a safe expression evaluator)
+                result = eval(testExpression);
+                
+                const mockDataStr = Object.entries(mockData)
+                    .map(([key, val]) => `${key}: ${val}`)
+                    .join('\n');
+                
+                alert(`Condition Test Result:\n\nCondition: ${conditionExpr}\n\nMock Data:\n${mockDataStr}\n\nResult: ${result ? '✅ TRUE' : '❌ FALSE'}\n\nThis means the condition would ${result ? 'MATCH' : 'NOT MATCH'} with this sample data.`);
+            } catch (evalError) {
+                alert(`Condition syntax error: ${evalError}\n\nPlease check your condition syntax.`);
+            }
+        } catch (error) {
+            console.error('Error testing condition:', error);
+            alert('Error testing condition. Please check the syntax.');
         }
     };
 
@@ -1038,94 +1184,193 @@ Fields prepared: ${enhancedFields.length}
                                                             </Box>
                                                         )}
                                                         
-                                                        {/* Conditional Configuration */}
+                                                        {/* Enhanced Conditional Configuration */}
                                                         {field.transformationType === 'conditional' && (
-                                                            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
-                                                                <Typography variant="caption" color="text.secondary">
-                                                                    Conditions:
-                                                                </Typography>
-                                                                {(field.conditions || [{ ifExpr: '', then: '', elseExpr: '' }]).map((condition: { ifExpr: string; then: string; elseExpr?: string }, condIndex: number) => (
-                                                                    <Box key={condIndex} sx={{ display: 'flex', flexDirection: 'column', gap: 0.5, p: 1, border: '1px solid #ddd', borderRadius: 1 }}>
-                                                                        <TextField
-                                                                            size="small"
-                                                                            placeholder="If condition (e.g., field == 'value')"
-                                                                            value={condition.ifExpr || ''}
-                                                                            onChange={(e) => {
-                                                                                const updated = [...templateFields];
-                                                                                if (!updated[index].conditions) updated[index].conditions = [];
-                                                                                updated[index].conditions![condIndex] = {
-                                                                                    ...updated[index].conditions![condIndex],
-                                                                                    ifExpr: e.target.value
-                                                                                };
-                                                                                setTemplateFields(updated);
-                                                                            }}
-                                                                            label="If"
-                                                                            sx={{ width: 150 }}
-                                                                        />
-                                                                        <TextField
-                                                                            size="small"
-                                                                            placeholder="Then value"
-                                                                            value={condition.then || ''}
-                                                                            onChange={(e) => {
-                                                                                const updated = [...templateFields];
-                                                                                if (!updated[index].conditions) updated[index].conditions = [];
-                                                                                updated[index].conditions![condIndex] = {
-                                                                                    ...updated[index].conditions![condIndex],
-                                                                                    then: e.target.value
-                                                                                };
-                                                                                setTemplateFields(updated);
-                                                                            }}
-                                                                            label="Then"
-                                                                            sx={{ width: 150 }}
-                                                                        />
-                                                                        <TextField
-                                                                            size="small"
-                                                                            placeholder="Else value (optional)"
-                                                                            value={condition.elseExpr || ''}
-                                                                            onChange={(e) => {
-                                                                                const updated = [...templateFields];
-                                                                                if (!updated[index].conditions) updated[index].conditions = [];
-                                                                                updated[index].conditions![condIndex] = {
-                                                                                    ...updated[index].conditions![condIndex],
-                                                                                    elseExpr: e.target.value
-                                                                                };
-                                                                                setTemplateFields(updated);
-                                                                            }}
-                                                                            label="Else"
-                                                                            sx={{ width: 150 }}
-                                                                        />
-                                                                        {field.conditions && field.conditions.length > 1 && (
-                                                                            <Button
+                                                            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                                                                <Accordion defaultExpanded sx={{ boxShadow: 1 }}>
+                                                                    <AccordionSummary expandIcon={<ExpandMore />} sx={{ bgcolor: 'primary.main', color: 'white' }}>
+                                                                        <Typography variant="subtitle2">
+                                                                            🧠 Smart Conditional Logic Builder
+                                                                        </Typography>
+                                                                    </AccordionSummary>
+                                                                    <AccordionDetails sx={{ bgcolor: 'grey.50' }}>
+                                                                        {/* Available Source Fields */}
+                                                                        <Box sx={{ mb: 2 }}>
+                                                                            <Typography variant="caption" color="text.secondary" sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                                                                <Code fontSize="small" /> Available Source Fields:
+                                                                            </Typography>
+                                                                            <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap', mt: 0.5 }}>
+                                                                                {availableSourceFields.map((sourceField, sfIndex) => (
+                                                                                    <Tooltip key={sfIndex} title={`Type: ${sourceField.type}, Sample: ${sourceField.sample || 'N/A'}`}>
+                                                                                        <Chip 
+                                                                                            size="small" 
+                                                                                            label={sourceField.name}
+                                                                                            variant="outlined"
+                                                                                            color={sourceField.type === 'string' ? 'primary' : sourceField.type === 'number' ? 'secondary' : 'default'}
+                                                                                            onClick={() => {
+                                                                                                // Add field to condition input
+                                                                                                const updated = [...templateFields];
+                                                                                                if (!updated[index].conditions) updated[index].conditions = [{ ifExpr: '', then: '', elseExpr: '' }];
+                                                                                                const currentCondition = updated[index].conditions![0].ifExpr || '';
+                                                                                                updated[index].conditions![0].ifExpr = currentCondition + (currentCondition ? ' && ' : '') + sourceField.name;
+                                                                                                setTemplateFields(updated);
+                                                                                            }}
+                                                                                        />
+                                                                                    </Tooltip>
+                                                                                ))}
+                                                                            </Box>
+                                                                        </Box>
+                                                                        
+                                                                        {/* Condition Suggestions */}
+                                                                        <Box sx={{ mb: 2 }}>
+                                                                            <Typography variant="caption" color="text.secondary" sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                                                                <Psychology fontSize="small" /> Smart Suggestions:
+                                                                            </Typography>
+                                                                            <Autocomplete
                                                                                 size="small"
-                                                                                variant="outlined"
-                                                                                color="error"
-                                                                                onClick={() => {
-                                                                                    const updated = [...templateFields];
-                                                                                    if (updated[index].conditions) {
-                                                                                        updated[index].conditions!.splice(condIndex, 1);
+                                                                                options={conditionSuggestions}
+                                                                                freeSolo
+                                                                                renderInput={(params) => (
+                                                                                    <TextField 
+                                                                                        {...params} 
+                                                                                        label="Quick condition templates"
+                                                                                        placeholder="Type or select a condition template"
+                                                                                    />
+                                                                                )}
+                                                                                onChange={(event, value) => {
+                                                                                    if (value) {
+                                                                                        const updated = [...templateFields];
+                                                                                        if (!updated[index].conditions) updated[index].conditions = [{ ifExpr: '', then: '', elseExpr: '' }];
+                                                                                        updated[index].conditions![0].ifExpr = value;
+                                                                                        setTemplateFields(updated);
                                                                                     }
-                                                                                    setTemplateFields(updated);
                                                                                 }}
-                                                                                sx={{ width: 'fit-content', alignSelf: 'flex-end' }}
-                                                                            >
-                                                                                Remove Condition
-                                                                            </Button>
-                                                                        )}
-                                                                    </Box>
-                                                                ))}
-                                                                <Button
-                                                                    size="small"
-                                                                    variant="outlined"
-                                                                    onClick={() => {
-                                                                        const updated = [...templateFields];
-                                                                        if (!updated[index].conditions) updated[index].conditions = [];
-                                                                        updated[index].conditions!.push({ ifExpr: '', then: '', elseExpr: '' });
-                                                                        setTemplateFields(updated);
-                                                                    }}
-                                                                    sx={{ width: 'fit-content' }}
-                                                                >
-                                                                    Add Condition
-                                                                </Button>
+                                                                                sx={{ mt: 0.5 }}
+                                                                            />
+                                                                        </Box>
+                                                                        
+                                                                        <Divider sx={{ my: 1 }} />
+                                                                        
+                                                                        {/* Condition Builder */}
+                                                                        <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>
+                                                                            Build Your Conditions:
+                                                                        </Typography>
+                                                                        {(field.conditions || [{ ifExpr: '', then: '', elseExpr: '' }]).map((condition: { ifExpr: string; then: string; elseExpr?: string }, condIndex: number) => (
+                                                                            <Box key={condIndex} sx={{ display: 'flex', flexDirection: 'column', gap: 1, p: 2, border: '2px solid #e0e0e0', borderRadius: 2, bgcolor: 'white', mb: 1 }}>
+                                                                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                                                                    <Typography variant="body2" fontWeight="bold" color="primary.main">
+                                                                                        Condition #{condIndex + 1}
+                                                                                    </Typography>
+                                                                                    <Tooltip title="Test this condition with sample data">
+                                                                                        <IconButton size="small" onClick={() => testCondition(condition.ifExpr, index, condIndex)}>
+                                                                                            <Preview fontSize="small" />
+                                                                                        </IconButton>
+                                                                                    </Tooltip>
+                                                                                </Box>
+                                                                                
+                                                                                <TextField
+                                                                                    size="small"
+                                                                                    placeholder="If condition (e.g., status_code == 'A' && department == 'IT')"
+                                                                                    value={condition.ifExpr || ''}
+                                                                                    onChange={(e) => {
+                                                                                        const updated = [...templateFields];
+                                                                                        if (!updated[index].conditions) updated[index].conditions = [];
+                                                                                        updated[index].conditions![condIndex] = {
+                                                                                            ...updated[index].conditions![condIndex],
+                                                                                            ifExpr: e.target.value
+                                                                                        };
+                                                                                        setTemplateFields(updated);
+                                                                                    }}
+                                                                                    label="If Expression"
+                                                                                    multiline
+                                                                                    rows={2}
+                                                                                    fullWidth
+                                                                                    helperText="Use source field names in your condition (e.g., field_name == 'value')"
+                                                                                />
+                                                                                
+                                                                                <Box sx={{ display: 'flex', gap: 1 }}>
+                                                                                    <TextField
+                                                                                        size="small"
+                                                                                        placeholder="Value if TRUE"
+                                                                                        value={condition.then || ''}
+                                                                                        onChange={(e) => {
+                                                                                            const updated = [...templateFields];
+                                                                                            if (!updated[index].conditions) updated[index].conditions = [];
+                                                                                            updated[index].conditions![condIndex] = {
+                                                                                                ...updated[index].conditions![condIndex],
+                                                                                                then: e.target.value
+                                                                                            };
+                                                                                            setTemplateFields(updated);
+                                                                                        }}
+                                                                                        label="Then (True Result)"
+                                                                                        sx={{ flex: 1 }}
+                                                                                        helperText="Output when condition is TRUE"
+                                                                                    />
+                                                                                    
+                                                                                    <TextField
+                                                                                        size="small"
+                                                                                        placeholder="Value if FALSE (optional)"
+                                                                                        value={condition.elseExpr || ''}
+                                                                                        onChange={(e) => {
+                                                                                            const updated = [...templateFields];
+                                                                                            if (!updated[index].conditions) updated[index].conditions = [];
+                                                                                            updated[index].conditions![condIndex] = {
+                                                                                                ...updated[index].conditions![condIndex],
+                                                                                                elseExpr: e.target.value
+                                                                                            };
+                                                                                            setTemplateFields(updated);
+                                                                                        }}
+                                                                                        label="Else (False Result)"
+                                                                                        sx={{ flex: 1 }}
+                                                                                        helperText="Output when condition is FALSE"
+                                                                                    />
+                                                                                </Box>
+                                                                                
+                                                                                {/* Condition Preview */}
+                                                                                {condition.ifExpr && (
+                                                                                    <Box sx={{ p: 1, bgcolor: 'info.main', color: 'white', borderRadius: 1, fontSize: '0.75rem' }}>
+                                                                                        <Typography variant="caption">
+                                                                                            🔍 Preview: IF ({condition.ifExpr}) THEN "{condition.then || 'not set'}" ELSE "{condition.elseExpr || field.defaultValue || 'not set'}"
+                                                                                        </Typography>
+                                                                                    </Box>
+                                                                                )}
+                                                                                
+                                                                                {field.conditions && field.conditions.length > 1 && (
+                                                                                    <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+                                                                                        <Button
+                                                                                            size="small"
+                                                                                            variant="outlined"
+                                                                                            color="error"
+                                                                                            onClick={() => {
+                                                                                                const updated = [...templateFields];
+                                                                                                if (updated[index].conditions) {
+                                                                                                    updated[index].conditions!.splice(condIndex, 1);
+                                                                                                }
+                                                                                                setTemplateFields(updated);
+                                                                                            }}
+                                                                                        >
+                                                                                            Remove Condition
+                                                                                        </Button>
+                                                                                    </Box>
+                                                                                )}
+                                                                            </Box>
+                                                                        ))}
+                                                                        
+                                                                        <Button
+                                                                            size="small"
+                                                                            variant="outlined"
+                                                                            onClick={() => {
+                                                                                const updated = [...templateFields];
+                                                                                if (!updated[index].conditions) updated[index].conditions = [];
+                                                                                updated[index].conditions!.push({ ifExpr: '', then: '', elseExpr: '' });
+                                                                                setTemplateFields(updated);
+                                                                            }}
+                                                                            sx={{ width: 'fit-content' }}
+                                                                        >
+                                                                            + Add Another Condition
+                                                                        </Button>
+                                                                    </AccordionDetails>
+                                                                </Accordion>
                                                             </Box>
                                                         )}
                                                     </Box>
