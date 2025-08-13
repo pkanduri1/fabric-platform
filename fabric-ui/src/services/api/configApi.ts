@@ -64,6 +64,77 @@ export const configApi = {
     }
   },
 
+  addSourceSystem: async (sourceSystem: Omit<SourceSystem, 'id'>): Promise<SourceSystem> => {
+    try {
+      // Map system type to backend expected format
+      const mapSystemType = (type: string): string => {
+        const typeMap: Record<string, string> = {
+          'oracle': 'ORACLE',
+          'mssql': 'SQLSERVER',
+          'mysql': 'SQLSERVER', // Map mysql to SQLSERVER as backend doesn't have MYSQL
+          'file': 'FILE',
+          'api': 'API'
+        };
+        return typeMap[type.toLowerCase()] || 'FILE';
+      };
+
+      // Generate ID from name (uppercase with underscores)
+      const generatedId = sourceSystem.name
+        .toUpperCase()
+        .replace(/[^A-Z0-9]+/g, '_')
+        .replace(/^_|_$/g, ''); // Remove leading/trailing underscores
+
+      // Map the frontend SourceSystem to backend CreateSourceSystemRequest format
+      const requestPayload = {
+        id: generatedId,
+        name: sourceSystem.name,
+        type: mapSystemType(sourceSystem.systemType),
+        description: sourceSystem.description || '',
+        connectionString: sourceSystem.systemType === 'oracle' ? 
+          `jdbc:oracle:thin:@localhost:1521:XE` : '', // Example connection string
+        enabled: true,
+        jobs: sourceSystem.jobs?.map(job => ({
+          name: job.jobName || job.name,
+          description: job.description || '',
+          transactionTypes: 'default' // Default transaction type for now
+        })) || []
+      };
+      
+      console.log('Creating source system with payload:', requestPayload);
+      
+      // POST to the admin endpoint
+      const response = await axios.post<any>(
+        'http://localhost:8080/api/admin/source-systems', 
+        requestPayload
+      );
+      
+      // Map the response back to SourceSystem format
+      const createdSystem: SourceSystem = {
+        id: response.data.id || generatedId,
+        name: response.data.name || sourceSystem.name,
+        description: response.data.description || sourceSystem.description,
+        systemType: sourceSystem.systemType,
+        inputBasePath: sourceSystem.inputBasePath || '',
+        outputBasePath: sourceSystem.outputBasePath || '',
+        jobs: sourceSystem.jobs || [],
+        supportedFileTypes: sourceSystem.supportedFileTypes || ['CSV', 'EXCEL', 'PIPE_DELIMITED'],
+        supportedTransactionTypes: sourceSystem.supportedTransactionTypes || ['default', '200', '900']
+      };
+      
+      return createdSystem;
+    } catch (error: any) {
+      if (error.response?.status === 409) {
+        throw new Error('Source system with this name already exists');
+      }
+      if (error.response?.status === 400) {
+        const validationError = error.response.data?.message || 'Invalid source system data';
+        throw new Error(validationError);
+      }
+      console.error('Failed to add source system:', error);
+      throw new Error('Failed to add source system');
+    }
+  },
+
   getJobsForSourceSystem: async (sourceSystem: string): Promise<JobConfigResponse[]> => {
   try {
     const response = await axios.get<JobConfigResponse[]>(`${API_BASE_URL}/source-systems/${sourceSystem}/jobs`);

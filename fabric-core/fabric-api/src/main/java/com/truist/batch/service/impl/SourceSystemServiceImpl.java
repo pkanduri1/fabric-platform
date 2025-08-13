@@ -4,7 +4,9 @@ import com.truist.batch.dto.CreateSourceSystemRequest;
 import com.truist.batch.dto.SourceSystemInfo;
 import com.truist.batch.dto.SourceSystemWithUsage;
 import com.truist.batch.entity.SourceSystemEntity;
+import com.truist.batch.entity.JobDefinitionEntity;
 import com.truist.batch.repository.SourceSystemRepository;
+import com.truist.batch.repository.JobDefinitionRepository;
 import com.truist.batch.service.SourceSystemService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,6 +30,9 @@ public class SourceSystemServiceImpl implements SourceSystemService {
 
     @Autowired
     private SourceSystemRepository sourceSystemRepository;
+
+    @Autowired
+    private JobDefinitionRepository jobDefinitionRepository;
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
@@ -122,14 +127,40 @@ public class SourceSystemServiceImpl implements SourceSystemService {
                     request.getConnectionString(),
                     request.isEnabled() ? "Y" : "N",
                     createdDate,
-                    0
+                    request.getJobs() != null ? request.getJobs().size() : 0
             );
 
             if (rowsAffected == 1) {
                 logger.info("Successfully created source system: {}", request.getId());
                 
-                // Instead of querying the database again, construct the DTO directly
-                // This avoids potential transaction/caching issues
+                // Create associated jobs
+                int jobsCreated = 0;
+                if (request.getJobs() != null && !request.getJobs().isEmpty()) {
+                    for (CreateSourceSystemRequest.JobRequest jobRequest : request.getJobs()) {
+                        try {
+                            JobDefinitionEntity jobEntity = new JobDefinitionEntity();
+                            jobEntity.setSourceSystemId(request.getId());
+                            jobEntity.setJobName(jobRequest.getName());
+                            jobEntity.setDescription(jobRequest.getDescription());
+                            jobEntity.setTransactionTypes(jobRequest.getTransactionTypes());
+                            jobEntity.setEnabled("Y");
+                            
+                            jobDefinitionRepository.save(jobEntity);
+                            jobsCreated++;
+                            logger.info("Created job definition: {}-{}", request.getId(), jobRequest.getName());
+                        } catch (Exception e) {
+                            logger.warn("Failed to create job definition {}-{}: {}", request.getId(), jobRequest.getName(), e.getMessage());
+                        }
+                    }
+                    
+                    // Update job count in source system
+                    if (jobsCreated > 0) {
+                        String updateJobCountSql = "UPDATE CM3INT.SOURCE_SYSTEMS SET JOB_COUNT = ? WHERE ID = ?";
+                        jdbcTemplate.update(updateJobCountSql, jobsCreated, request.getId());
+                    }
+                }
+                
+                // Construct the response DTO
                 SourceSystemInfo createdSystem = new SourceSystemInfo();
                 createdSystem.setId(request.getId());
                 createdSystem.setName(request.getName());
@@ -138,7 +169,7 @@ public class SourceSystemServiceImpl implements SourceSystemService {
                 createdSystem.setConnectionString(request.getConnectionString());
                 createdSystem.setEnabled(request.isEnabled());
                 createdSystem.setCreatedDate(createdDate);
-                createdSystem.setJobCount(0);
+                createdSystem.setJobCount(jobsCreated);
                 
                 return createdSystem;
             } else {

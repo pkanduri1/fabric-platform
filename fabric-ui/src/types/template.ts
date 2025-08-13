@@ -16,6 +16,17 @@ export interface FieldTemplate {
   enabled?: 'Y' | 'N';
   sourceField?: string;
   transformationType?: 'source' | 'constant' | 'composite' | 'conditional';
+  // Enhanced transformation properties
+  value?: string;  // For constant transformations
+  defaultValue?: string;  // Default value for the field
+  delimiter?: string;  // For composite transformations (how to join fields)
+  sources?: Array<{ field: string }>;  // For composite transformations (source fields to combine)
+  conditions?: Array<{  // For conditional transformations
+    ifExpr: string;  // Condition expression
+    then: string;    // Value if condition is true
+    elseExpr?: string;  // Value if condition is false
+    elseIfExprs?: Array<{ condition: string; value: string }>;  // Additional conditions
+  }>;
   createdBy?: string;
   createdDate?: string;
   modifiedBy?: string;

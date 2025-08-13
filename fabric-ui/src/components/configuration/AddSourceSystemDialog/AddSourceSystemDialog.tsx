@@ -16,7 +16,8 @@ import {
   Box,
   Chip,
   IconButton,
-  Alert
+  Alert,
+  CircularProgress
 } from '@mui/material';
 import { Add, Delete } from '@mui/icons-material';
 import { SourceSystem, JobConfig } from '../../../types/configuration';
@@ -48,8 +49,13 @@ export const AddSourceSystemDialog: React.FC<AddSourceSystemDialogProps> = ({
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [apiError, setApiError] = useState<string | null>(null);
 
   const handleClose = () => {
+    // Don't close if submitting
+    if (isSubmitting) return;
+    
     // Reset form
     setFormData({
       name: '',
@@ -65,6 +71,8 @@ export const AddSourceSystemDialog: React.FC<AddSourceSystemDialogProps> = ({
       multiTxn: false
     });
     setErrors({});
+    setApiError(null);
+    setIsSubmitting(false);
     onClose();
   };
 
@@ -108,8 +116,11 @@ export const AddSourceSystemDialog: React.FC<AddSourceSystemDialogProps> = ({
     }));
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     const newErrors: Record<string, string> = {};
+
+    // Clear previous API error
+    setApiError(null);
 
     // Validation
     if (!formData.name.trim()) {
@@ -144,8 +155,15 @@ export const AddSourceSystemDialog: React.FC<AddSourceSystemDialogProps> = ({
       supportedTransactionTypes: ['default', '200', '900']
     };
 
-    onAdd(newSourceSystem);
-    handleClose();
+    try {
+      setIsSubmitting(true);
+      await onAdd(newSourceSystem);
+      handleClose(); // Close on success
+    } catch (error: any) {
+      // Handle error - dialog stays open
+      setApiError(error.message || 'Failed to create source system');
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -153,6 +171,15 @@ export const AddSourceSystemDialog: React.FC<AddSourceSystemDialogProps> = ({
       <DialogTitle>Add New Source System</DialogTitle>
       <DialogContent>
         <Grid container spacing={2} sx={{ mt: 1 }}>
+          {/* API Error Display */}
+          {apiError && (
+            <Grid item xs={12}>
+              <Alert severity="error" onClose={() => setApiError(null)}>
+                {apiError}
+              </Alert>
+            </Grid>
+          )}
+          
           {/* Basic Information */}
           <Grid item xs={12}>
             <Typography variant="h6" gutterBottom>Basic Information</Typography>
@@ -301,13 +328,16 @@ export const AddSourceSystemDialog: React.FC<AddSourceSystemDialogProps> = ({
       </DialogContent>
       
       <DialogActions>
-        <Button onClick={handleClose}>Cancel</Button>
+        <Button onClick={handleClose} disabled={isSubmitting}>
+          Cancel
+        </Button>
         <Button 
           onClick={handleSubmit} 
           variant="contained"
-          disabled={!formData.name || !formData.description || formData.jobs.length === 0}
+          disabled={!formData.name || !formData.description || formData.jobs.length === 0 || isSubmitting}
+          startIcon={isSubmitting ? <CircularProgress size={20} /> : null}
         >
-          Add Source System
+          {isSubmitting ? 'Creating...' : 'Add Source System'}
         </Button>
       </DialogActions>
     </Dialog>

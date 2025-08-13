@@ -19,6 +19,7 @@ import { useNavigate } from 'react-router-dom';
 import { useSourceSystemsState } from '../../contexts/ConfigurationContext';
 import { AddSourceSystemDialog } from '../../components/configuration/AddSourceSystemDialog/AddSourceSystemDialog';
 import { SourceSystem } from '../../types/configuration';
+import { configApi } from '../../services/api/configApi';
 
 export const HomePage: React.FC = () => {
   const navigate = useNavigate();
@@ -59,22 +60,24 @@ export const HomePage: React.FC = () => {
       setIsLoading(true);
       setError(null);
       
-      // Generate a unique ID
-      const systemWithId: SourceSystem = {
-        ...newSystem,
-        id: `system_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-      };
+      // Call the API to add the source system
+      const createdSystem = await configApi.addSourceSystem(newSystem);
       
-      // TODO: Call your API to add the source system
-      // await configApi.addSourceSystem(systemWithId);
+      console.log('Successfully created source system:', createdSystem);
       
-      // For now, we'll refresh the source systems to get updated data
+      // Refresh the source systems list to show the new system
       await refreshSourceSystems();
       
-      console.log('Added new source system:', systemWithId);
-    } catch (err) {
-      setError('Failed to add source system');
+      // Show success message (optional)
+      // You could add a success snackbar/toast here
+      
+    } catch (err: any) {
+      const errorMessage = err.message || 'Failed to add source system';
+      setError(errorMessage);
       console.error('Error adding source system:', err);
+      
+      // Don't close the dialog on error so user can fix the issue
+      throw err; // Re-throw to keep dialog open
     } finally {
       setIsLoading(false);
     }

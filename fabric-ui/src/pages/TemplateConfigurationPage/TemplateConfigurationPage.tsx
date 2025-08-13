@@ -49,6 +49,7 @@ export const TemplateConfigurationPage: React.FC = () => {
     const [success, setSuccess] = useState<string | null>(null);
     const [generatedConfig, setGeneratedConfig] = useState<any>(null);
     const [localSelectedSourceSystem, setLocalSelectedSourceSystem] = useState<SourceSystem | null>(null);
+    const [uploadedFileName, setUploadedFileName] = useState<string | null>(null);
 
     const navigate = useNavigate();
     
@@ -151,6 +152,29 @@ export const TemplateConfigurationPage: React.FC = () => {
     const handleTransformationChange = (fieldIndex: number, transformationType: string) => {
         const updated = [...templateFields];
         updated[fieldIndex].transformationType = transformationType as any;
+        
+        // Reset transformation-specific fields when type changes
+        if (transformationType === 'source') {
+            updated[fieldIndex].value = undefined;
+            updated[fieldIndex].sources = undefined;
+            updated[fieldIndex].conditions = [];
+        } else if (transformationType === 'constant') {
+            updated[fieldIndex].sources = undefined;
+            updated[fieldIndex].conditions = [];
+        } else if (transformationType === 'composite') {
+            updated[fieldIndex].value = undefined;
+            updated[fieldIndex].conditions = [];
+            if (!updated[fieldIndex].sources) {
+                updated[fieldIndex].sources = [{ field: '' }];
+            }
+        } else if (transformationType === 'conditional') {
+            updated[fieldIndex].value = undefined;
+            updated[fieldIndex].sources = undefined;
+            if (!updated[fieldIndex].conditions || updated[fieldIndex].conditions?.length === 0) {
+                updated[fieldIndex].conditions = [{ ifExpr: '', then: '', elseExpr: '' }];
+            }
+        }
+        
         setTemplateFields(updated);
     };
 
@@ -347,6 +371,324 @@ Fields prepared: ${enhancedFields.length}
         }
     };
 
+    const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (!file) return;
+
+        setLoading(true);
+        setError(null);
+        setUploadedFileName(file.name);
+
+        try {
+            // Validate file type
+            const allowedTypes = ['.xlsx', '.xls', '.csv'];
+            const fileExtension = file.name.toLowerCase().substring(file.name.lastIndexOf('.'));
+            
+            if (!allowedTypes.includes(fileExtension)) {
+                throw new Error('Invalid file type. Please upload Excel (.xlsx, .xls) or CSV (.csv) files only.');
+            }
+
+            // Validate file size (max 5MB)
+            if (file.size > 5 * 1024 * 1024) {
+                throw new Error('File size too large. Please upload files smaller than 5MB.');
+            }
+
+            // Parse the file based on type
+            let parsedData: any[] = [];
+            
+            if (fileExtension === '.csv') {
+                parsedData = await parseCSVFile(file);
+            } else {
+                parsedData = await parseExcelFile(file);
+            }
+
+            // Validate parsed data
+            if (!parsedData || parsedData.length === 0) {
+                throw new Error('No data found in the uploaded file.');
+            }
+
+            // Map the parsed data to template fields
+            const mappedFields = mapUploadedDataToFields(parsedData);
+            
+            if (mappedFields.length > 0) {
+                // Update template fields with uploaded configuration
+                const updatedFields = templateFields.map((field, index) => {
+                    const mappedField = mappedFields.find(m => 
+                        m.fieldName?.toLowerCase() === field.fieldName?.toLowerCase() ||
+                        m.targetField?.toLowerCase() === field.fieldName?.toLowerCase()
+                    );
+                    
+                    if (mappedField) {
+                        return {
+                            ...field,
+                            sourceField: mappedField.sourceField || field.sourceField,
+                            transformationType: mappedField.transformationType || field.transformationType,
+                            value: mappedField.value || field.value,
+                            defaultValue: mappedField.defaultValue || field.defaultValue,
+                            delimiter: mappedField.delimiter || field.delimiter,
+                            sources: mappedField.sources || field.sources,
+                            conditions: mappedField.conditions || field.conditions
+                        };
+                    }
+                    return field;
+                });
+                
+                setTemplateFields(updatedFields);
+                setSuccess(`Successfully imported configuration from ${file.name}. ${mappedFields.length} field mappings were applied.`);
+            } else {
+                setError('No matching fields found in the uploaded file. Please ensure the file contains columns like "fieldName", "sourceField", "transformationType", etc.');
+            }
+
+        } catch (error) {
+            console.error('File upload error:', error);
+            const errorMessage = error instanceof Error ? error.message : 'Failed to parse uploaded file';
+            setError(`Upload failed: ${errorMessage}`);
+            setUploadedFileName(null);
+        } finally {
+            setLoading(false);
+            // Reset file input
+            event.target.value = '';
+        }
+    };
+
+    const parseCSVFile = (file: File): Promise<any[]> => {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const text = e.target?.result as string;
+                    const lines = text.split('\n').filter(line => line.trim());
+                    
+                    if (lines.length < 2) {
+                        reject(new Error('CSV file must contain at least a header row and one data row.'));
+                        return;
+                    }
+
+                    const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
+                    const data = lines.slice(1).map(line => {
+                        const values = line.split(',').map(v => v.trim().replace(/"/g, ''));
+                        const row: any = {};
+                        headers.forEach((header, index) => {
+                            row[header] = values[index] || '';
+                        });
+                        return row;
+                    });
+                    
+                    resolve(data);
+                } catch (error) {
+                    reject(new Error('Failed to parse CSV file. Please ensure it is properly formatted.'));
+                }
+            };
+            reader.onerror = () => reject(new Error('Failed to read CSV file.'));
+            reader.readAsText(file);
+        });
+    };
+
+    const parseExcelFile = (file: File): Promise<any[]> => {
+        return new Promise((resolve, reject) => {
+            // For now, we'll show an informative error since we need a library like xlsx to parse Excel
+            reject(new Error('Excel file parsing requires additional library. Please use CSV format for now, or implement xlsx library support.'));
+        });
+    };
+
+    const mapUploadedDataToFields = (data: any[]): any[] => {
+        const mappedFields: any[] = [];
+        
+        data.forEach(row => {
+            // Common column name variations
+            const fieldName = row.fieldName || row.field_name || row.FieldName || row['Field Name'] || '';
+            const sourceField = row.sourceField || row.source_field || row.SourceField || row['Source Field'] || '';
+            const transformationType = row.transformationType || row.transformation_type || row.TransformationType || row['Transformation Type'] || row.type || 'source';
+            const value = row.value || row.constantValue || row.constant_value || row.Value || row['Constant Value'] || '';
+            const defaultValue = row.defaultValue || row.default_value || row.DefaultValue || row['Default Value'] || '';
+            
+            // Enhanced: Handle transformation-specific fields
+            const delimiter = row.delimiter || row.Delimiter || '';
+            const conditionIf = row.condition_if || row.conditionIf || row.ConditionIf || row['Condition If'] || '';
+            const conditionThen = row.condition_then || row.conditionThen || row.ConditionThen || row['Condition Then'] || '';
+            const conditionElse = row.condition_else || row.conditionElse || row.ConditionElse || row['Condition Else'] || '';
+            
+            if (fieldName) {
+                const mappedField: any = {
+                    fieldName,
+                    sourceField,
+                    transformationType: transformationType.toLowerCase(),
+                    value,
+                    defaultValue
+                };
+                
+                // Add transformation-specific configurations
+                if (transformationType.toLowerCase() === 'composite') {
+                    mappedField.delimiter = delimiter || ' ';
+                    if (sourceField) {
+                        // Parse comma-separated source fields for composite
+                        mappedField.sources = sourceField.split(',').map((field: string) => ({ field: field.trim() }));
+                    }
+                }
+                
+                if (transformationType.toLowerCase() === 'conditional') {
+                    if (conditionIf && conditionThen) {
+                        mappedField.conditions = [{
+                            ifExpr: conditionIf,
+                            then: conditionThen,
+                            elseExpr: conditionElse || ''
+                        }];
+                    }
+                }
+                
+                mappedFields.push(mappedField);
+            }
+        });
+        
+        return mappedFields;
+    };
+
+    const exportCurrentTemplate = () => {
+        if (!templateFields || templateFields.length === 0) {
+            setError('No template fields available to export.');
+            return;
+        }
+
+        const csvContent = generateCSVFromTemplate(templateFields);
+        downloadCSV(csvContent, `template_${selectedFileType}_${selectedTransactionType}_${new Date().toISOString().split('T')[0]}.csv`);
+    };
+
+    const downloadSampleCSV = () => {
+        const sampleData = [
+            {
+                fieldName: 'emp_id',
+                sourceField: 'employee_id',
+                transformationType: 'source',
+                value: '',
+                defaultValue: '',
+                delimiter: '',
+                condition_if: '',
+                condition_then: '',
+                condition_else: '',
+                description: 'Direct mapping from source field'
+            },
+            {
+                fieldName: 'location_code',
+                sourceField: '',
+                transformationType: 'constant',
+                value: '100020',
+                defaultValue: '100020',
+                delimiter: '',
+                condition_if: '',
+                condition_then: '',
+                condition_else: '',
+                description: 'Fixed constant value'
+            },
+            {
+                fieldName: 'full_name',
+                sourceField: 'first_name,last_name',
+                transformationType: 'composite',
+                value: '',
+                defaultValue: '',
+                delimiter: ' ',
+                condition_if: '',
+                condition_then: '',
+                condition_else: '',
+                description: 'Combine first_name and last_name with space delimiter'
+            },
+            {
+                fieldName: 'employee_status',
+                sourceField: 'status_code',
+                transformationType: 'conditional',
+                value: '',
+                defaultValue: 'UNKNOWN',
+                delimiter: '',
+                condition_if: 'status_code == "A"',
+                condition_then: 'ACTIVE',
+                condition_else: 'INACTIVE',
+                description: 'Simple if-then-else: Active if status_code is A, otherwise Inactive'
+            },
+            {
+                fieldName: 'department_name',
+                sourceField: 'dept_id',
+                transformationType: 'conditional',
+                value: '',
+                defaultValue: 'OTHER',
+                delimiter: '',
+                condition_if: 'dept_id == "HR" ? "Human Resources" : (dept_id == "IT" ? "Information Technology" : (dept_id == "FIN" ? "Finance" : "Other Department"))',
+                condition_then: '',
+                condition_else: '',
+                description: 'Complex nested if-then-else: Map department codes to full names'
+            },
+            {
+                fieldName: 'full_address',
+                sourceField: 'street,city,state,zip',
+                transformationType: 'composite',
+                value: '',
+                defaultValue: '',
+                delimiter: ', ',
+                condition_if: '',
+                condition_then: '',
+                condition_else: '',
+                description: 'Combine address fields with comma-space delimiter'
+            },
+            {
+                fieldName: 'salary_grade',
+                sourceField: 'annual_salary',
+                transformationType: 'conditional',
+                value: '',
+                defaultValue: 'ENTRY',
+                delimiter: '',
+                condition_if: 'annual_salary >= 100000 ? "SENIOR" : (annual_salary >= 75000 ? "MID" : (annual_salary >= 50000 ? "JUNIOR" : "ENTRY"))',
+                condition_then: '',
+                condition_else: '',
+                description: 'Multi-level salary grading based on annual salary ranges'
+            }
+        ];
+        
+        const csvContent = generateCSVFromData(sampleData);
+        downloadCSV(csvContent, 'sample_field_mapping_with_examples.csv');
+    };
+
+    const generateCSVFromTemplate = (fields: FieldTemplate[]): string => {
+        const headers = ['fieldName', 'sourceField', 'transformationType', 'value', 'defaultValue', 'length', 'dataType', 'required'];
+        const rows = fields.map(field => [
+            field.fieldName || '',
+            field.sourceField || '',
+            field.transformationType || 'source',
+            field.value || '',
+            field.defaultValue || '',
+            field.length || '',
+            field.dataType || '',
+            field.required || 'N'
+        ]);
+        
+        return [headers, ...rows].map(row => 
+            row.map(cell => `"${cell}"`).join(',')
+        ).join('\n');
+    };
+
+    const generateCSVFromData = (data: any[]): string => {
+        if (data.length === 0) return '';
+        
+        const headers = Object.keys(data[0]);
+        const rows = data.map(item => 
+            headers.map(header => `"${item[header] || ''}"`).join(',')
+        );
+        
+        return [headers.map(h => `"${h}"`).join(','), ...rows].join('\n');
+    };
+
+    const downloadCSV = (content: string, filename: string) => {
+        const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        
+        if (link.download !== undefined) {
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', filename);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    };
+
     return (
         <Container maxWidth="xl" sx={{ py: 3 }}>
             <Typography variant="h4" gutterBottom sx={{ color: 'primary.main', mb: 3 }}>
@@ -531,6 +873,27 @@ Fields prepared: ${enhancedFields.length}
                         <Alert severity="info" sx={{ mb: 2 }}>
                             Target structure is pre-configured from template. Only specify source fields and transformation logic.
                         </Alert>
+                        
+                        {uploadedFileName && (
+                            <Alert severity="success" sx={{ mb: 2 }}>
+                                📁 Configuration imported from: <strong>{uploadedFileName}</strong>
+                            </Alert>
+                        )}
+                        
+                        <Alert severity="info" sx={{ mb: 2 }}>
+                            <Typography variant="body2">
+                                💡 <strong>Pro Tip:</strong> You can import field mappings from CSV files. 
+                                <strong>Click "Download Sample CSV"</strong> to see examples including:
+                                <br />
+                                • <strong>Composite:</strong> Combine multiple fields (e.g., first_name + last_name)
+                                <br />
+                                • <strong>Simple Conditional:</strong> if status_code == "A" then "ACTIVE" else "INACTIVE"
+                                <br />
+                                • <strong>Complex Conditional:</strong> Multi-level if-then-else chains for mappings
+                                <br />
+                                • <strong>Constant:</strong> Fixed values for all records
+                            </Typography>
+                        </Alert>
 
                         {loading ? (
                             <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
@@ -579,17 +942,193 @@ Fields prepared: ${enhancedFields.length}
                                                     />
                                                 </TableCell>
                                                 <TableCell>
-                                                    <Select
-                                                        size="small"
-                                                        value={field.transformationType || 'source'}
-                                                        onChange={(e) => handleTransformationChange(index, e.target.value)}
-                                                        sx={{ width: 120 }}
-                                                    >
-                                                        <MenuItem value="source">Source</MenuItem>
-                                                        <MenuItem value="constant">Constant</MenuItem>
-                                                        <MenuItem value="composite">Composite</MenuItem>
-                                                        <MenuItem value="conditional">Conditional</MenuItem>
-                                                    </Select>
+                                                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, minWidth: 200 }}>
+                                                        <Select
+                                                            size="small"
+                                                            value={field.transformationType || 'source'}
+                                                            onChange={(e) => handleTransformationChange(index, e.target.value)}
+                                                            sx={{ width: 120 }}
+                                                        >
+                                                            <MenuItem value="source">Source</MenuItem>
+                                                            <MenuItem value="constant">Constant</MenuItem>
+                                                            <MenuItem value="composite">Composite</MenuItem>
+                                                            <MenuItem value="conditional">Conditional</MenuItem>
+                                                        </Select>
+                                                        
+                                                        {/* Constant Value Configuration */}
+                                                        {field.transformationType === 'constant' && (
+                                                            <TextField
+                                                                size="small"
+                                                                placeholder="Constant value"
+                                                                value={field.value || field.defaultValue || ''}
+                                                                onChange={(e) => {
+                                                                    const updated = [...templateFields];
+                                                                    updated[index].value = e.target.value;
+                                                                    setTemplateFields(updated);
+                                                                }}
+                                                                sx={{ width: 120 }}
+                                                                label="Value"
+                                                            />
+                                                        )}
+                                                        
+                                                        {/* Composite Configuration */}
+                                                        {field.transformationType === 'composite' && (
+                                                            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                                                                <Typography variant="caption" color="text.secondary">
+                                                                    Source Fields:
+                                                                </Typography>
+                                                                {(field.sources || [{ field: '' }]).map((source: { field: string }, sourceIndex: number) => (
+                                                                    <Box key={sourceIndex} sx={{ display: 'flex', gap: 0.5, alignItems: 'center' }}>
+                                                                        <TextField
+                                                                            size="small"
+                                                                            placeholder={`Field ${sourceIndex + 1}`}
+                                                                            value={source.field || ''}
+                                                                            onChange={(e) => {
+                                                                                const updated = [...templateFields];
+                                                                                if (!updated[index].sources) updated[index].sources = [];
+                                                                                updated[index].sources![sourceIndex] = { field: e.target.value };
+                                                                                setTemplateFields(updated);
+                                                                            }}
+                                                                            sx={{ width: 100 }}
+                                                                        />
+                                                                        <Button
+                                                                            size="small"
+                                                                            variant="outlined"
+                                                                            onClick={() => {
+                                                                                const updated = [...templateFields];
+                                                                                if (!updated[index].sources) updated[index].sources = [];
+                                                                                updated[index].sources!.push({ field: '' });
+                                                                                setTemplateFields(updated);
+                                                                            }}
+                                                                            sx={{ minWidth: 'auto', px: 1 }}
+                                                                        >
+                                                                            +
+                                                                        </Button>
+                                                                        {field.sources && field.sources.length > 1 && (
+                                                                            <Button
+                                                                                size="small"
+                                                                                variant="outlined"
+                                                                                color="error"
+                                                                                onClick={() => {
+                                                                                    const updated = [...templateFields];
+                                                                                    if (updated[index].sources) {
+                                                                                        updated[index].sources!.splice(sourceIndex, 1);
+                                                                                    }
+                                                                                    setTemplateFields(updated);
+                                                                                }}
+                                                                                sx={{ minWidth: 'auto', px: 1 }}
+                                                                            >
+                                                                                -
+                                                                            </Button>
+                                                                        )}
+                                                                    </Box>
+                                                                ))}
+                                                                <TextField
+                                                                    size="small"
+                                                                    placeholder="Delimiter (e.g., ' ', '_', ',')"
+                                                                    value={field.delimiter || ''}
+                                                                    onChange={(e) => {
+                                                                        const updated = [...templateFields];
+                                                                        updated[index].delimiter = e.target.value;
+                                                                        setTemplateFields(updated);
+                                                                    }}
+                                                                    sx={{ width: 120 }}
+                                                                    label="Delimiter"
+                                                                />
+                                                            </Box>
+                                                        )}
+                                                        
+                                                        {/* Conditional Configuration */}
+                                                        {field.transformationType === 'conditional' && (
+                                                            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                                                                <Typography variant="caption" color="text.secondary">
+                                                                    Conditions:
+                                                                </Typography>
+                                                                {(field.conditions || [{ ifExpr: '', then: '', elseExpr: '' }]).map((condition: { ifExpr: string; then: string; elseExpr?: string }, condIndex: number) => (
+                                                                    <Box key={condIndex} sx={{ display: 'flex', flexDirection: 'column', gap: 0.5, p: 1, border: '1px solid #ddd', borderRadius: 1 }}>
+                                                                        <TextField
+                                                                            size="small"
+                                                                            placeholder="If condition (e.g., field == 'value')"
+                                                                            value={condition.ifExpr || ''}
+                                                                            onChange={(e) => {
+                                                                                const updated = [...templateFields];
+                                                                                if (!updated[index].conditions) updated[index].conditions = [];
+                                                                                updated[index].conditions![condIndex] = {
+                                                                                    ...updated[index].conditions![condIndex],
+                                                                                    ifExpr: e.target.value
+                                                                                };
+                                                                                setTemplateFields(updated);
+                                                                            }}
+                                                                            label="If"
+                                                                            sx={{ width: 150 }}
+                                                                        />
+                                                                        <TextField
+                                                                            size="small"
+                                                                            placeholder="Then value"
+                                                                            value={condition.then || ''}
+                                                                            onChange={(e) => {
+                                                                                const updated = [...templateFields];
+                                                                                if (!updated[index].conditions) updated[index].conditions = [];
+                                                                                updated[index].conditions![condIndex] = {
+                                                                                    ...updated[index].conditions![condIndex],
+                                                                                    then: e.target.value
+                                                                                };
+                                                                                setTemplateFields(updated);
+                                                                            }}
+                                                                            label="Then"
+                                                                            sx={{ width: 150 }}
+                                                                        />
+                                                                        <TextField
+                                                                            size="small"
+                                                                            placeholder="Else value (optional)"
+                                                                            value={condition.elseExpr || ''}
+                                                                            onChange={(e) => {
+                                                                                const updated = [...templateFields];
+                                                                                if (!updated[index].conditions) updated[index].conditions = [];
+                                                                                updated[index].conditions![condIndex] = {
+                                                                                    ...updated[index].conditions![condIndex],
+                                                                                    elseExpr: e.target.value
+                                                                                };
+                                                                                setTemplateFields(updated);
+                                                                            }}
+                                                                            label="Else"
+                                                                            sx={{ width: 150 }}
+                                                                        />
+                                                                        {field.conditions && field.conditions.length > 1 && (
+                                                                            <Button
+                                                                                size="small"
+                                                                                variant="outlined"
+                                                                                color="error"
+                                                                                onClick={() => {
+                                                                                    const updated = [...templateFields];
+                                                                                    if (updated[index].conditions) {
+                                                                                        updated[index].conditions!.splice(condIndex, 1);
+                                                                                    }
+                                                                                    setTemplateFields(updated);
+                                                                                }}
+                                                                                sx={{ width: 'fit-content', alignSelf: 'flex-end' }}
+                                                                            >
+                                                                                Remove Condition
+                                                                            </Button>
+                                                                        )}
+                                                                    </Box>
+                                                                ))}
+                                                                <Button
+                                                                    size="small"
+                                                                    variant="outlined"
+                                                                    onClick={() => {
+                                                                        const updated = [...templateFields];
+                                                                        if (!updated[index].conditions) updated[index].conditions = [];
+                                                                        updated[index].conditions!.push({ ifExpr: '', then: '', elseExpr: '' });
+                                                                        setTemplateFields(updated);
+                                                                    }}
+                                                                    sx={{ width: 'fit-content' }}
+                                                                >
+                                                                    Add Condition
+                                                                </Button>
+                                                            </Box>
+                                                        )}
+                                                    </Box>
                                                 </TableCell>
                                             </TableRow>
                                         ))}
@@ -623,17 +1162,38 @@ Fields prepared: ${enhancedFields.length}
                                 variant="outlined"
                                 startIcon={<Download />}
                                 disabled={loading}
+                                onClick={exportCurrentTemplate}
                             >
                                 Export Template
                             </Button>
-
+                            
                             <Button
                                 variant="outlined"
-                                startIcon={<Upload />}
+                                startIcon={<Download />}
                                 disabled={loading}
+                                onClick={downloadSampleCSV}
+                                color="secondary"
                             >
-                                Import Mappings
+                                Download Sample CSV
                             </Button>
+
+                            <input
+                                accept=".xlsx,.xls,.csv"
+                                style={{ display: 'none' }}
+                                id="config-upload-button"
+                                type="file"
+                                onChange={handleFileUpload}
+                            />
+                            <label htmlFor="config-upload-button">
+                                <Button
+                                    variant="outlined"
+                                    component="span"
+                                    startIcon={<Upload />}
+                                    disabled={loading}
+                                >
+                                    Import Configuration
+                                </Button>
+                            </label>
                         </Box>
 
                         {(!localSelectedSourceSystem || !templateJobName) && (

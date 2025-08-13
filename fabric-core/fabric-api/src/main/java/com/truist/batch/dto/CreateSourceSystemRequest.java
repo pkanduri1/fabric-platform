@@ -3,6 +3,8 @@ package com.truist.batch.dto;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
+import java.util.List;
+import java.util.ArrayList;
 
 /**
  * Request DTO for creating new source systems in US002 Template Configuration Enhancement
@@ -29,6 +31,40 @@ public class CreateSourceSystemRequest {
     private String connectionString;
 
     private boolean enabled = true;
+
+    private List<JobRequest> jobs = new ArrayList<>();
+
+    /**
+     * Nested class for job requests
+     */
+    public static class JobRequest {
+        @NotBlank(message = "Job name is required")
+        @Size(max = 50, message = "Job name must not exceed 50 characters")
+        private String name;
+        
+        @Size(max = 500, message = "Job description must not exceed 500 characters") 
+        private String description;
+        
+        private String transactionTypes = "default"; // Default transaction type
+        
+        // Constructors
+        public JobRequest() {}
+        
+        public JobRequest(String name, String description) {
+            this.name = name;
+            this.description = description;
+        }
+        
+        // Getters and Setters
+        public String getName() { return name; }
+        public void setName(String name) { this.name = name; }
+        
+        public String getDescription() { return description; }
+        public void setDescription(String description) { this.description = description; }
+        
+        public String getTransactionTypes() { return transactionTypes; }
+        public void setTransactionTypes(String transactionTypes) { this.transactionTypes = transactionTypes; }
+    }
 
     // Constructors
     public CreateSourceSystemRequest() {}
@@ -87,6 +123,14 @@ public class CreateSourceSystemRequest {
 
     public void setEnabled(boolean enabled) {
         this.enabled = enabled;
+    }
+
+    public List<JobRequest> getJobs() {
+        return jobs;
+    }
+
+    public void setJobs(List<JobRequest> jobs) {
+        this.jobs = jobs != null ? jobs : new ArrayList<>();
     }
 
     @Override
