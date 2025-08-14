@@ -1,0 +1,575 @@
+# Fabric API - Enterprise Batch Processing Platform
+
+Spring Boot backend application for the Fabric Platform, providing enterprise-grade batch processing and job configuration management with banking-level security and compliance.
+
+## Table of Contents
+
+- [System Overview](#system-overview)
+- [Architecture](#architecture)
+- [Manual Job Configuration Feature](#manual-job-configuration-feature)
+- [Database Schema](#database-schema)
+- [API Documentation](#api-documentation)
+- [Setup and Installation](#setup-and-installation)
+- [Configuration](#configuration)
+- [Security](#security)
+- [Monitoring and Observability](#monitoring-and-observability)
+- [Development Guidelines](#development-guidelines)
+- [Troubleshooting](#troubleshooting)
+
+## System Overview
+
+The Fabric API is a Spring Boot application designed for enterprise batch processing with comprehensive manual job configuration capabilities. Built with banking-grade security, SOX compliance, and enterprise standards.
+
+### Key Features
+
+- **Manual Job Configuration Interface (US001)** - Complete CRUD operations for job configurations
+- **Enterprise Security** - JWT authentication, RBAC authorization, LDAP integration
+- **Oracle Database Integration** - JdbcTemplate-based data access with CM3INT schema
+- **RESTful APIs** - OpenAPI 3.0 documented endpoints with comprehensive validation
+- **Audit Trail** - SOX-compliant audit logging and data lineage tracking
+- **High Availability** - Production-ready with monitoring and health checks
+
+### Technology Stack
+
+- **Spring Boot 3.x** - Main application framework
+- **Spring Security** - Authentication and authorization
+- **Spring Data JDBC** - Database access with JdbcTemplate
+- **Oracle Database** - Primary data store (CM3INT schema)
+- **OpenAPI 3.0** - API documentation and testing
+- **Liquibase** - Database change management
+- **Maven** - Dependency management and build tool
+
+## Architecture
+
+### Application Layers
+
+```
+┌─────────────────────────────────────────┐
+│              Frontend (React)           │
+│         http://localhost:3000           │
+└─────────────────────────────────────────┘
+                     │ HTTP/REST
+┌─────────────────────────────────────────┐
+│             Controller Layer            │
+│     /api/v2/manual-job-config/*        │
+└─────────────────────────────────────────┘
+                     │
+┌─────────────────────────────────────────┐
+│              Service Layer              │
+│      Business Logic & Validation       │
+└─────────────────────────────────────────┘
+                     │
+┌─────────────────────────────────────────┐
+│            Repository Layer             │
+│          JdbcTemplate DAO              │
+└─────────────────────────────────────────┘
+                     │
+┌─────────────────────────────────────────┐
+│           Oracle Database               │
+│        CM3INT Schema                    │
+│     jdbc:oracle:thin:@localhost:1521   │
+└─────────────────────────────────────────┘
+```
+
+### Security Architecture
+
+- **JWT Authentication** - Token-based stateless authentication
+- **Role-Based Access Control (RBAC)** - Method-level security annotations
+- **CORS Configuration** - Frontend-backend communication setup
+- **Input Validation** - Comprehensive request validation and sanitization
+
+## Manual Job Configuration Feature
+
+### Business Context
+
+Implements US001 - Manual Job Configuration Interface for operations teams to configure and manage batch processing jobs.
+
+### Core Functionality
+
+1. **Create Job Configurations** - Define new batch job parameters and settings
+2. **View Job Configurations** - Browse and search existing configurations with pagination
+3. **Update Job Configurations** - Modify existing configurations with version control
+4. **Deactivate Job Configurations** - Soft delete with audit trail preservation
+5. **System Statistics** - Real-time monitoring of configuration health
+
+### Security Roles
+
+| Role | Permissions |
+|------|-------------|
+| `JOB_VIEWER` | Read-only access to all configurations |
+| `JOB_CREATOR` | Create and read configurations |
+| `JOB_MODIFIER` | Full CRUD operations on configurations |
+| `JOB_EXECUTOR` | Execute jobs and read configurations |
+
+## Database Schema
+
+### Core Tables
+
+#### MANUAL_JOB_CONFIG
+Primary table for job configuration storage.
+
+```sql
+-- Core configuration storage
+CREATE TABLE MANUAL_JOB_CONFIG (
+    CONFIG_ID VARCHAR2(50) PRIMARY KEY,
+    JOB_NAME VARCHAR2(100) NOT NULL UNIQUE,
+    JOB_TYPE VARCHAR2(50) NOT NULL,
+    SOURCE_SYSTEM VARCHAR2(50) NOT NULL,
+    TARGET_SYSTEM VARCHAR2(50) NOT NULL,
+    JOB_PARAMETERS CLOB NOT NULL,
+    STATUS VARCHAR2(20) DEFAULT 'ACTIVE',
+    CREATED_BY VARCHAR2(100) NOT NULL,
+    CREATED_DATE TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    LAST_MODIFIED_BY VARCHAR2(100),
+    LAST_MODIFIED_DATE TIMESTAMP,
+    VERSION_NUMBER NUMBER(10) DEFAULT 1
+);
+```
+
+#### MANUAL_JOB_EXECUTION
+Tracks job execution history and status.
+
+```sql
+-- Job execution tracking
+CREATE TABLE MANUAL_JOB_EXECUTION (
+    EXECUTION_ID VARCHAR2(50) PRIMARY KEY,
+    CONFIG_ID VARCHAR2(50) NOT NULL,
+    EXECUTION_STATUS VARCHAR2(20) NOT NULL,
+    START_TIME TIMESTAMP NOT NULL,
+    END_TIME TIMESTAMP,
+    EXECUTION_PARAMETERS CLOB,
+    ERROR_MESSAGE CLOB,
+    EXECUTED_BY VARCHAR2(100) NOT NULL,
+    CORRELATION_ID VARCHAR2(50),
+    CONSTRAINT FK_EXECUTION_CONFIG FOREIGN KEY (CONFIG_ID) 
+        REFERENCES MANUAL_JOB_CONFIG(CONFIG_ID)
+);
+```
+
+#### MANUAL_JOB_AUDIT
+SOX-compliant audit trail for all configuration changes.
+
+```sql
+-- SOX-compliant audit trail
+CREATE TABLE MANUAL_JOB_AUDIT (
+    AUDIT_ID VARCHAR2(50) PRIMARY KEY,
+    CONFIG_ID VARCHAR2(50) NOT NULL,
+    ACTION_TYPE VARCHAR2(20) NOT NULL,
+    OLD_VALUES CLOB,
+    NEW_VALUES CLOB,
+    CHANGED_BY VARCHAR2(100) NOT NULL,
+    CHANGE_TIMESTAMP TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CORRELATION_ID VARCHAR2(50),
+    BUSINESS_JUSTIFICATION VARCHAR2(500)
+);
+```
+
+### Database Connection
+
+- **Schema**: CM3INT
+- **Connection**: `jdbc:oracle:thin:@localhost:1521/ORCLPDB1`
+- **Driver**: `oracle.jdbc.OracleDriver`
+- **Connection Pool**: HikariCP (configured by Spring Boot)
+
+## API Documentation
+
+### Base URL
+```
+http://localhost:8080/api/v2/manual-job-config
+```
+
+### Authentication
+All endpoints require JWT Bearer token:
+```
+Authorization: Bearer <jwt-token>
+```
+
+### Core Endpoints
+
+#### Create Job Configuration
+```http
+POST /api/v2/manual-job-config
+Content-Type: application/json
+Authorization: Bearer <token>
+
+{
+  "jobName": "Daily Customer Balance ETL",
+  "jobType": "ETL_BATCH",
+  "sourceSystem": "CORE_BANKING",
+  "targetSystem": "DATA_WAREHOUSE",
+  "jobParameters": {
+    "inputPath": "/data/customer_balances",
+    "outputPath": "/processed/balances",
+    "batchSize": 1000,
+    "retryAttempts": 3
+  }
+}
+```
+
+#### Get Job Configuration
+```http
+GET /api/v2/manual-job-config/{configId}
+Authorization: Bearer <token>
+```
+
+#### List Job Configurations with Filtering
+```http
+GET /api/v2/manual-job-config?page=0&size=20&sortBy=createdDate&sortDir=desc&jobType=ETL_BATCH&sourceSystem=CORE_BANKING&status=ACTIVE
+Authorization: Bearer <token>
+```
+
+#### Update Job Configuration
+```http
+PUT /api/v2/manual-job-config/{configId}
+Content-Type: application/json
+Authorization: Bearer <token>
+
+{
+  "jobName": "Updated Job Name",
+  "jobType": "ETL_BATCH",
+  "sourceSystem": "CORE_BANKING",
+  "targetSystem": "DATA_WAREHOUSE",
+  "jobParameters": {
+    "inputPath": "/data/updated_path",
+    "batchSize": 2000
+  }
+}
+```
+
+#### Deactivate Job Configuration
+```http
+DELETE /api/v2/manual-job-config/{configId}?reason=No longer needed
+Authorization: Bearer <token>
+```
+
+#### Get System Statistics
+```http
+GET /api/v2/manual-job-config/statistics
+Authorization: Bearer <token>
+```
+
+### Response Format
+
+All responses include correlation IDs for tracing:
+
+```json
+{
+  "configId": "cfg_core_banking_1691234567890_a1b2c3d4",
+  "jobName": "Daily Customer Balance ETL",
+  "jobType": "ETL_BATCH",
+  "sourceSystem": "CORE_BANKING",
+  "targetSystem": "DATA_WAREHOUSE",
+  "jobParameters": {
+    "inputPath": "/data/customer_balances",
+    "outputPath": "/processed/balances",
+    "batchSize": 1000
+  },
+  "status": "ACTIVE",
+  "createdBy": "operations_user",
+  "createdDate": "2024-08-14T10:30:00Z",
+  "versionNumber": 1,
+  "correlationId": "550e8400-e29b-41d4-a716-446655440000"
+}
+```
+
+### OpenAPI Documentation
+
+Interactive API documentation available at:
+- **Swagger UI**: http://localhost:8080/swagger-ui.html
+- **OpenAPI JSON**: http://localhost:8080/api-docs
+
+## Setup and Installation
+
+### Prerequisites
+
+- **Java 17+** - OpenJDK or Oracle JDK
+- **Maven 3.8+** - Build tool
+- **Oracle Database** - 12c or higher with CM3INT schema
+- **Git** - Version control
+
+### Local Development Setup
+
+1. **Clone Repository**
+   ```bash
+   git clone <repository-url>
+   cd fabric-platform-new/fabric-core/fabric-api
+   ```
+
+2. **Configure Database**
+   - Ensure Oracle database is running on localhost:1521
+   - Verify CM3INT schema exists with proper permissions
+   - Run database schema creation scripts (see Database Schema section)
+
+3. **Configure Application Properties**
+   ```bash
+   # Copy and modify application.properties
+   cp src/main/resources/application.properties.example src/main/resources/application.properties
+   
+   # Update database credentials if needed
+   vi src/main/resources/application.properties
+   ```
+
+4. **Build and Run**
+   ```bash
+   # Clean build (skipping tests for faster startup)
+   mvn clean compile -DskipTests
+   
+   # Run application
+   mvn spring-boot:run
+   
+   # Alternative: Run with specific profile
+   mvn spring-boot:run -Dspring-boot.run.profiles=development
+   ```
+
+5. **Verify Application**
+   ```bash
+   # Check health endpoint
+   curl http://localhost:8080/actuator/health
+   
+   # Check API documentation
+   open http://localhost:8080/swagger-ui.html
+   ```
+
+### Docker Setup (Alternative)
+
+```bash
+# Build Docker image
+docker build -t fabric-api:latest .
+
+# Run with Docker Compose
+docker-compose up -d
+```
+
+## Configuration
+
+### Application Properties
+
+Key configuration properties in `application.properties`:
+
+```properties
+# Application settings
+spring.application.name=fabric-platform
+server.port=8080
+
+# Database configuration
+spring.datasource.url=jdbc:oracle:thin:@localhost:1521/ORCLPDB1
+spring.datasource.username=cm3int
+spring.datasource.password=${DB_PASSWORD:MySecurePass123}
+spring.datasource.driver-class-name=oracle.jdbc.OracleDriver
+
+# JPA/Hibernate settings
+spring.jpa.database-platform=org.hibernate.dialect.OracleDialect
+spring.jpa.hibernate.ddl-auto=validate
+spring.jpa.show-sql=false
+
+# Security settings
+fabric.security.ldap.enabled=false
+fabric.security.redis.enabled=false
+
+# OpenAPI documentation
+springdoc.api-docs.path=/api-docs
+springdoc.swagger-ui.path=/swagger-ui.html
+
+# CORS configuration for frontend
+fabric.cors.allowed-origins=http://localhost:3000
+```
+
+### Environment Variables
+
+```bash
+# Database connection
+export DB_URL=jdbc:oracle:thin:@localhost:1521/ORCLPDB1
+export DB_USERNAME=cm3int
+export DB_PASSWORD=MySecurePass123
+
+# Application environment
+export SPRING_PROFILES_ACTIVE=development
+
+# Logging levels
+export LOGGING_LEVEL_ROOT=INFO
+export LOGGING_LEVEL_COM_TRUIST_BATCH=DEBUG
+```
+
+### Profile-Specific Configuration
+
+Create environment-specific property files:
+
+- `application-development.properties` - Local development
+- `application-test.properties` - Testing environment
+- `application-staging.properties` - Staging environment
+- `application-production.properties` - Production environment
+
+## Security
+
+### Authentication Flow
+
+1. **JWT Token Generation** - Via `/api/auth/login` endpoint
+2. **Token Validation** - On every protected endpoint
+3. **Role Extraction** - From JWT claims for authorization
+4. **Security Context** - Populated for downstream processing
+
+### Security Configuration
+
+```java
+// Method-level security examples
+@PreAuthorize("hasRole('JOB_CREATOR') or hasRole('JOB_MODIFIER')")
+public ResponseEntity<?> createJobConfiguration(...)
+
+@PreAuthorize("hasAnyRole('JOB_VIEWER', 'JOB_CREATOR', 'JOB_MODIFIER', 'JOB_EXECUTOR')")
+public ResponseEntity<?> getJobConfiguration(...)
+```
+
+### CORS Configuration
+
+Frontend-backend communication enabled for:
+- `http://localhost:3000` (React development server)
+- Additional origins configurable via `fabric.cors.allowed-origins`
+
+## Monitoring and Observability
+
+### Logging
+
+Structured logging with correlation IDs for distributed tracing:
+
+```java
+log.info("Creating job configuration: {} by user: {} [correlationId: {}]", 
+         request.getJobName(), username, correlationId);
+```
+
+### Health Checks
+
+Spring Boot Actuator endpoints:
+- `/actuator/health` - Application health status
+- `/actuator/info` - Application information
+- `/actuator/metrics` - Application metrics
+
+### Audit Trail
+
+All configuration changes logged to `MANUAL_JOB_AUDIT` table with:
+- Action type (CREATE, UPDATE, DELETE)
+- Old and new values
+- User information
+- Timestamp and correlation ID
+- Business justification
+
+## Development Guidelines
+
+### Code Standards
+
+- **Java 17+ features** - Use modern Java syntax and features
+- **Spring Boot conventions** - Follow Spring Boot best practices
+- **Security first** - Validate all inputs, use parameterized queries
+- **Configuration-driven** - Externalize all configurable parameters
+- **Comprehensive testing** - Unit and integration tests for all components
+
+### Database Guidelines
+
+- **JdbcTemplate preferred** - Over JPA for better control and performance
+- **Parameterized queries** - Prevent SQL injection
+- **Transaction management** - Use `@Transactional` appropriately
+- **Connection pooling** - HikariCP for production performance
+
+### API Design Principles
+
+- **RESTful conventions** - Proper HTTP methods and status codes
+- **Comprehensive validation** - Input validation with meaningful error messages
+- **Pagination support** - For large datasets
+- **Correlation IDs** - For request tracing and debugging
+- **OpenAPI documentation** - Keep API docs current and comprehensive
+
+## Troubleshooting
+
+### Common Issues
+
+#### Database Connection Issues
+
+```bash
+# Check Oracle database connectivity
+sqlplus cm3int/MySecurePass123@localhost:1521/ORCLPDB1
+
+# Verify schema exists
+SELECT table_name FROM user_tables WHERE table_name LIKE 'MANUAL_JOB%';
+```
+
+#### Application Startup Issues
+
+```bash
+# Check logs for detailed error information
+tail -f logs/application.log
+
+# Common issues:
+# 1. Port 8080 already in use
+# 2. Database connection failure
+# 3. Missing environment variables
+```
+
+#### Frontend-Backend Connection Issues
+
+```bash
+# Verify CORS configuration
+curl -H "Origin: http://localhost:3000" \
+     -H "Access-Control-Request-Method: POST" \
+     -H "Access-Control-Request-Headers: Content-Type" \
+     -X OPTIONS \
+     http://localhost:8080/api/v2/manual-job-config
+```
+
+### Performance Optimization
+
+- **Database Indexing** - Ensure proper indexes on frequently queried columns
+- **Connection Pooling** - Tune HikariCP settings for your environment
+- **JVM Tuning** - Configure heap size and garbage collection for production
+
+### Debugging
+
+Enable debug logging for troubleshooting:
+
+```properties
+# Application debug logging
+logging.level.com.truist.batch=DEBUG
+logging.level.org.springframework.security=DEBUG
+logging.level.org.springframework.web=DEBUG
+
+# Database query logging
+spring.jpa.show-sql=true
+logging.level.org.hibernate.SQL=DEBUG
+```
+
+## Production Deployment
+
+### Build for Production
+
+```bash
+# Create production build
+mvn clean package -Pproduction
+
+# Build Docker image
+docker build -t fabric-api:1.0.0 .
+```
+
+### Environment Configuration
+
+- Use environment-specific property files
+- Configure external configuration server (Spring Cloud Config)
+- Set up proper logging aggregation (ELK stack)
+- Configure monitoring and alerting
+
+### Security Considerations
+
+- Use secrets management for database credentials
+- Enable HTTPS with proper certificates
+- Configure firewall rules for database access
+- Set up regular security scanning and updates
+
+---
+
+## Support
+
+For technical support or questions:
+- **Development Team**: Senior Full Stack Developer Agent
+- **Architecture Review**: Principal Enterprise Architect
+- **Product Owner**: Lending Product Owner
+
+**Last Updated**: August 14, 2025
+**Version**: 1.0.0
+**Documentation Generated**: Claude Code (claude.ai/code)

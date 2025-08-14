@@ -1,0 +1,488 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:oracle="http://www.liquibase.org/xml/ns/dbchangelog/oracle"
+    xsi:schemaLocation="
+        http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd
+        http://www.liquibase.org/xml/ns/dbchangelog/oracle
+        http://www.liquibase.org/xml/ns/oracle/oracle.xsd">
+
+    <!-- 
+    =========================================================================
+    US001-006: SECURITY AND PERMISSIONS
+    =========================================================================
+    
+    Purpose: Database-level security implementation for US001 tables
+    - Role-based access control at database level
+    - Row-level security policies for multi-tenant scenarios
+    - Audit trail security and tamper protection
+    - Encryption policies for sensitive data
+    
+    Security Classification: BANKING CONFIDENTIAL
+    
+    =========================================================================
+    -->
+
+    <changeSet id="us001-006-create-database-roles" 
+               author="Senior Full Stack Developer Agent" 
+               context="development,test,staging,production"
+               labels="us001,security,rbac,database-roles"
+               runOnChange="true">
+        
+        <comment>
+            Create database roles for US001 Manual Job Configuration access control.
+            Implements role-based access control at the database level for defense in depth.
+        </comment>
+
+        <!-- Create roles for different access levels -->
+        <sql>
+            -- Create role for Technical Administrators (full access)
+            BEGIN
+                EXECUTE IMMEDIATE 'CREATE ROLE FABRIC_TECH_ADMIN';
+            EXCEPTION
+                WHEN OTHERS THEN
+                    IF SQLCODE != -1921 THEN  -- Role already exists
+                        RAISE;
+                    END IF;
+            END;
+        ; </sql>
+
+        <sql>
+            -- Create role for Operations Managers (limited access)
+            BEGIN
+                EXECUTE IMMEDIATE 'CREATE ROLE FABRIC_OPS_MANAGER';
+            EXCEPTION
+                WHEN OTHERS THEN
+                    IF SQLCODE != -1921 THEN  -- Role already exists
+                        RAISE;
+                    END IF;
+            END;
+        ; </sql>
+
+        <sql>
+            -- Create role for Read-only Users
+            BEGIN
+                EXECUTE IMMEDIATE 'CREATE ROLE FABRIC_READ_ONLY';
+            EXCEPTION
+                WHEN OTHERS THEN
+                    IF SQLCODE != -1921 THEN  -- Role already exists
+                        RAISE;
+                    END IF;
+            END;
+        ; </sql>
+
+        <sql>
+            -- Create role for Audit Users (audit table access only)
+            BEGIN
+                EXECUTE IMMEDIATE 'CREATE ROLE FABRIC_AUDITOR';
+            EXCEPTION
+                WHEN OTHERS THEN
+                    IF SQLCODE != -1921 THEN  -- Role already exists
+                        RAISE;
+                    END IF;
+            END;
+        ; </sql>
+
+        <rollback>
+            <sql>DROP ROLE FABRIC_TECH_ADMIN; </sql>
+            <sql>DROP ROLE FABRIC_OPS_MANAGER; </sql>
+            <sql>DROP ROLE FABRIC_READ_ONLY; </sql>
+            <sql>DROP ROLE FABRIC_AUDITOR; </sql>
+        </rollback>
+
+    </changeSet>
+
+    <changeSet id="us001-006-grant-role-permissions" 
+               author="Senior Full Stack Developer Agent"
+               context="development,test,staging,production"
+               labels="us001,security,permissions,rbac"
+               runOnChange="true">
+        
+        <comment>
+            Grant appropriate permissions to each role for US001 tables.
+            Implements principle of least privilege access.
+        </comment>
+
+        <!-- Technical Administrator Permissions (Full Access) -->
+        <sql>
+            -- Grant full access to Technical Administrators
+            GRANT SELECT, INSERT, UPDATE, DELETE ON FABRIC_CORE.MANUAL_JOB_CONFIG TO FABRIC_TECH_ADMIN;
+            GRANT SELECT, INSERT, UPDATE, DELETE ON FABRIC_CORE.MANUAL_JOB_EXECUTION TO FABRIC_TECH_ADMIN;
+            GRANT SELECT, INSERT, UPDATE, DELETE ON FABRIC_CORE.JOB_PARAMETER_TEMPLATES TO FABRIC_TECH_ADMIN;
+            GRANT SELECT, INSERT ON FABRIC_CORE.MANUAL_JOB_AUDIT TO FABRIC_TECH_ADMIN;
+        ; </sql>
+
+        <!-- Operations Manager Permissions (Limited Access) -->
+        <sql>
+            -- Grant limited access to Operations Managers
+            GRANT SELECT, UPDATE ON FABRIC_CORE.MANUAL_JOB_CONFIG TO FABRIC_OPS_MANAGER;
+            GRANT SELECT ON FABRIC_CORE.MANUAL_JOB_EXECUTION TO FABRIC_OPS_MANAGER;
+            GRANT SELECT ON FABRIC_CORE.JOB_PARAMETER_TEMPLATES TO FABRIC_OPS_MANAGER;
+            GRANT SELECT, INSERT ON FABRIC_CORE.MANUAL_JOB_AUDIT TO FABRIC_OPS_MANAGER;
+        ; </sql>
+
+        <!-- Read-only User Permissions -->
+        <sql>
+            -- Grant read-only access
+            GRANT SELECT ON FABRIC_CORE.MANUAL_JOB_CONFIG TO FABRIC_READ_ONLY;
+            GRANT SELECT ON FABRIC_CORE.MANUAL_JOB_EXECUTION TO FABRIC_READ_ONLY;
+            GRANT SELECT ON FABRIC_CORE.JOB_PARAMETER_TEMPLATES TO FABRIC_READ_ONLY;
+            -- No access to audit table for read-only users
+        ; </sql>
+
+        <!-- Auditor Permissions (Audit-focused) -->
+        <sql>
+            -- Grant audit-specific access
+            GRANT SELECT ON FABRIC_CORE.MANUAL_JOB_CONFIG TO FABRIC_AUDITOR;
+            GRANT SELECT ON FABRIC_CORE.MANUAL_JOB_EXECUTION TO FABRIC_AUDITOR;
+            GRANT SELECT ON FABRIC_CORE.MANUAL_JOB_AUDIT TO FABRIC_AUDITOR;
+            -- Limited access to templates for audit context
+            GRANT SELECT ON FABRIC_CORE.JOB_PARAMETER_TEMPLATES TO FABRIC_AUDITOR;
+        ; </sql>
+
+        <rollback>
+            <sql>REVOKE ALL ON FABRIC_CORE.MANUAL_JOB_CONFIG FROM FABRIC_TECH_ADMIN; </sql>
+            <sql>REVOKE ALL ON FABRIC_CORE.MANUAL_JOB_EXECUTION FROM FABRIC_TECH_ADMIN; </sql>
+            <sql>REVOKE ALL ON FABRIC_CORE.JOB_PARAMETER_TEMPLATES FROM FABRIC_TECH_ADMIN; </sql>
+            <sql>REVOKE ALL ON FABRIC_CORE.MANUAL_JOB_AUDIT FROM FABRIC_TECH_ADMIN; </sql>
+            <sql>REVOKE ALL ON FABRIC_CORE.MANUAL_JOB_CONFIG FROM FABRIC_OPS_MANAGER; </sql>
+            <sql>REVOKE ALL ON FABRIC_CORE.MANUAL_JOB_EXECUTION FROM FABRIC_OPS_MANAGER; </sql>
+            <sql>REVOKE ALL ON FABRIC_CORE.JOB_PARAMETER_TEMPLATES FROM FABRIC_OPS_MANAGER; </sql>
+            <sql>REVOKE ALL ON FABRIC_CORE.MANUAL_JOB_AUDIT FROM FABRIC_OPS_MANAGER; </sql>
+            <sql>REVOKE ALL ON FABRIC_CORE.MANUAL_JOB_CONFIG FROM FABRIC_READ_ONLY; </sql>
+            <sql>REVOKE ALL ON FABRIC_CORE.MANUAL_JOB_EXECUTION FROM FABRIC_READ_ONLY; </sql>
+            <sql>REVOKE ALL ON FABRIC_CORE.JOB_PARAMETER_TEMPLATES FROM FABRIC_READ_ONLY; </sql>
+            <sql>REVOKE ALL ON FABRIC_CORE.MANUAL_JOB_CONFIG FROM FABRIC_AUDITOR; </sql>
+            <sql>REVOKE ALL ON FABRIC_CORE.MANUAL_JOB_EXECUTION FROM FABRIC_AUDITOR; </sql>
+            <sql>REVOKE ALL ON FABRIC_CORE.JOB_PARAMETER_TEMPLATES FROM FABRIC_AUDITOR; </sql>
+            <sql>REVOKE ALL ON FABRIC_CORE.MANUAL_JOB_AUDIT FROM FABRIC_AUDITOR; </sql>
+        </rollback>
+
+    </changeSet>
+
+    <changeSet id="us001-006-create-row-level-security" 
+               author="Senior Full Stack Developer Agent"
+               context="production,staging)"
+               labels="us001,security,rls,row-level-security"
+               runOnChange="true">
+        
+        <comment>
+            Create row-level security policies for multi-tenant and environment-based access control.
+            Only runs in production and staging environments where RLS is required.
+        </comment>
+
+        <!-- Row-Level Security Policy for Environment-based Access -->
+        <sql>
+            -- Create RLS policy for environment-based access control
+            CREATE OR REPLACE FUNCTION FABRIC_CORE.GET_USER_ENVIRONMENT 
+            RETURN VARCHAR2
+            IS
+                v_environment VARCHAR2(20);
+            BEGIN
+                -- Get environment from application context
+                v_environment := SYS_CONTEXT('FABRIC_APP_CTX', 'ENVIRONMENT');
+                
+                -- Default to production if not set
+                IF v_environment IS NULL THEN
+                    v_environment := 'PRODUCTION';
+                END IF;
+                
+                RETURN v_environment;
+            END GET_USER_ENVIRONMENT;
+        ; </sql>
+
+        <!-- Enable Row Level Security on Configuration Table -->
+        <sql>
+            -- Enable RLS on configuration table
+            ALTER TABLE FABRIC_CORE.MANUAL_JOB_CONFIG ENABLE ROW LEVEL SECURITY;
+            
+            -- Create policy for environment-based access
+            BEGIN
+                DBMS_RLS.ADD_POLICY(
+                    object_schema => 'FABRIC_CORE',
+                    object_name => 'MANUAL_JOB_CONFIG',
+                    policy_name => 'MANUAL_JOB_CONFIG_ENV_POLICY',
+                    function_schema => 'FABRIC_CORE',
+                    policy_function => 'RLS_ENVIRONMENT_FILTER',
+                    statement_types => 'SELECT,INSERT,UPDATE,DELETE',
+                    update_check => TRUE,
+                    enable => TRUE
+                );
+            EXCEPTION
+                WHEN OTHERS THEN
+                    IF SQLCODE != -28101 THEN  -- Policy already exists
+                        RAISE;
+                    END IF;
+            END;
+        ; </sql>
+
+        <!-- RLS Policy Function -->
+        <sql>
+            -- Create RLS policy function
+            CREATE OR REPLACE FUNCTION FABRIC_CORE.RLS_ENVIRONMENT_FILTER(
+                schema_var IN VARCHAR2,
+                table_var IN VARCHAR2
+            ) RETURN VARCHAR2
+            IS
+                v_user_env VARCHAR2(20);
+                v_predicate VARCHAR2(4000);
+            BEGIN
+                -- Get user's environment context
+                v_user_env := FABRIC_CORE.GET_USER_ENVIRONMENT();
+                
+                -- Build predicate based on user environment
+                -- System users can access all environments
+                IF SYS_CONTEXT('USERENV', 'SESSION_USER') = 'FABRIC_SYSTEM' THEN
+                    v_predicate := '1=1';
+                ELSE
+                    v_predicate := 'CREATED_BY = SYS_CONTEXT(''USERENV'', ''SESSION_USER'') OR ' ||
+                                   'EXISTS (SELECT 1 FROM FABRIC_CORE.MANUAL_JOB_AUDIT a ' ||
+                                   'WHERE a.CONFIG_ID = MANUAL_JOB_CONFIG.CONFIG_ID ' ||
+                                   'AND a.ENVIRONMENT = ''' || v_user_env || ''')';
+                END IF;
+                
+                RETURN v_predicate;
+            END RLS_ENVIRONMENT_FILTER;
+        ; </sql>
+
+        <rollback>
+            <sql>
+                BEGIN
+                    DBMS_RLS.DROP_POLICY(
+                        object_schema => 'FABRIC_CORE',
+                        object_name => 'MANUAL_JOB_CONFIG',
+                        policy_name => 'MANUAL_JOB_CONFIG_ENV_POLICY'
+                    );
+                EXCEPTION
+                    WHEN OTHERS THEN
+                        NULL; -- Ignore if policy doesn't exist
+                END;
+            ; </sql>
+            <sql>DROP FUNCTION FABRIC_CORE.RLS_ENVIRONMENT_FILTER; </sql>
+            <sql>DROP FUNCTION FABRIC_CORE.GET_USER_ENVIRONMENT; </sql>
+            <sql>ALTER TABLE FABRIC_CORE.MANUAL_JOB_CONFIG DISABLE ROW LEVEL SECURITY; </sql>
+        </rollback>
+
+    </changeSet>
+
+    <changeSet id="us001-006-create-audit-security-triggers" 
+               author="Senior Full Stack Developer Agent"
+               context="development,test,staging,production"
+               labels="us001,security,audit-triggers,data-protection"
+               runOnChange="true">
+        
+        <comment>
+            Create security triggers for automatic audit trail population and data protection.
+        </comment>
+
+        <!-- Trigger for automatic audit trail creation -->
+        <sql>
+            CREATE OR REPLACE TRIGGER TRG_MANUAL_JOB_CONFIG_AUDIT
+            AFTER INSERT OR UPDATE OR DELETE ON FABRIC_CORE.MANUAL_JOB_CONFIG
+            FOR EACH ROW
+            DECLARE
+                v_operation_type VARCHAR2(20);
+                v_old_values CLOB;
+                v_new_values CLOB;
+                v_changed_fields VARCHAR2(1000);
+                v_audit_id VARCHAR2(50);
+                v_correlation_id VARCHAR2(100);
+            BEGIN
+                -- Determine operation type
+                IF INSERTING THEN
+                    v_operation_type := 'CREATE';
+                ELSIF UPDATING THEN
+                    v_operation_type := 'UPDATE';
+                ELSIF DELETING THEN
+                    v_operation_type := 'DELETE';
+                END IF;
+                
+                -- Generate audit ID and correlation ID
+                v_audit_id := 'audit_' || TO_CHAR(SYSDATE, 'YYYYMMDD_HH24MISS') || '_' || DBMS_RANDOM.STRING('X', 6);
+                v_correlation_id := SYS_CONTEXT('FABRIC_APP_CTX', 'CORRELATION_ID');
+                
+                IF v_correlation_id IS NULL THEN
+                    v_correlation_id := 'AUTO_' || TO_CHAR(SYSDATE, 'YYYYMMDD_HH24MISS');
+                END IF;
+                
+                -- Build JSON representations of old and new values
+                IF NOT DELETING THEN
+                    v_new_values := JSON_OBJECT(
+                        'CONFIG_ID' VALUE :NEW.CONFIG_ID,
+                        'JOB_NAME' VALUE :NEW.JOB_NAME,
+                        'JOB_TYPE' VALUE :NEW.JOB_TYPE,
+                        'SOURCE_SYSTEM' VALUE :NEW.SOURCE_SYSTEM,
+                        'TARGET_SYSTEM' VALUE :NEW.TARGET_SYSTEM,
+                        'STATUS' VALUE :NEW.STATUS,
+                        'ERROR_THRESHOLD' VALUE :NEW.ERROR_THRESHOLD,
+                        'RETRY_COUNT' VALUE :NEW.RETRY_COUNT,
+                        'VERSION_NUMBER' VALUE :NEW.VERSION_NUMBER
+                    );
+                END IF;
+                
+                IF NOT INSERTING THEN
+                    v_old_values := JSON_OBJECT(
+                        'CONFIG_ID' VALUE :OLD.CONFIG_ID,
+                        'JOB_NAME' VALUE :OLD.JOB_NAME,
+                        'JOB_TYPE' VALUE :OLD.JOB_TYPE,
+                        'SOURCE_SYSTEM' VALUE :OLD.SOURCE_SYSTEM,
+                        'TARGET_SYSTEM' VALUE :OLD.TARGET_SYSTEM,
+                        'STATUS' VALUE :OLD.STATUS,
+                        'ERROR_THRESHOLD' VALUE :OLD.ERROR_THRESHOLD,
+                        'RETRY_COUNT' VALUE :OLD.RETRY_COUNT,
+                        'VERSION_NUMBER' VALUE :OLD.VERSION_NUMBER
+                    );
+                END IF;
+                
+                -- Identify changed fields for updates
+                IF UPDATING THEN
+                    v_changed_fields := '';
+                    IF NVL(:OLD.JOB_NAME, 'NULL') != NVL(:NEW.JOB_NAME, 'NULL') THEN
+                        v_changed_fields := v_changed_fields || 'JOB_NAME,';
+                    END IF;
+                    IF NVL(:OLD.JOB_TYPE, 'NULL') != NVL(:NEW.JOB_TYPE, 'NULL') THEN
+                        v_changed_fields := v_changed_fields || 'JOB_TYPE,';
+                    END IF;
+                    IF NVL(:OLD.STATUS, 'NULL') != NVL(:NEW.STATUS, 'NULL') THEN
+                        v_changed_fields := v_changed_fields || 'STATUS,';
+                    END IF;
+                    -- Add more field comparisons as needed
+                    v_changed_fields := RTRIM(v_changed_fields, ',');
+                END IF;
+                
+                -- Insert audit record
+                INSERT INTO FABRIC_CORE.MANUAL_JOB_AUDIT (
+                    AUDIT_ID,
+                    CONFIG_ID,
+                    OPERATION_TYPE,
+                    OLD_VALUES,
+                    NEW_VALUES,
+                    CHANGED_FIELDS,
+                    CHANGED_BY,
+                    USER_ROLE,
+                    CHANGE_REASON,
+                    SESSION_ID,
+                    IP_ADDRESS,
+                    CORRELATION_ID,
+                    ENVIRONMENT,
+                    SOX_COMPLIANCE_FLAG,
+                    CHECKSUM
+                ) VALUES (
+                    v_audit_id,
+                    COALESCE(:NEW.CONFIG_ID, :OLD.CONFIG_ID),
+                    v_operation_type,
+                    v_old_values,
+                    v_new_values,
+                    v_changed_fields,
+                    SYS_CONTEXT('USERENV', 'SESSION_USER'),
+                    NVL(SYS_CONTEXT('FABRIC_APP_CTX', 'USER_ROLE'), 'UNKNOWN'),
+                    SYS_CONTEXT('FABRIC_APP_CTX', 'CHANGE_REASON'),
+                    SYS_CONTEXT('USERENV', 'SESSIONID'),
+                    SYS_CONTEXT('USERENV', 'IP_ADDRESS'),
+                    v_correlation_id,
+                    NVL(SYS_CONTEXT('FABRIC_APP_CTX', 'ENVIRONMENT'), 'UNKNOWN'),
+                    'Y',
+                    DBMS_CRYPTO.HASH(
+                        UTL_RAW.CAST_TO_RAW(v_audit_id || v_operation_type || v_correlation_id),
+                        DBMS_CRYPTO.HASH_SHA256
+                    )
+                );
+                
+            EXCEPTION
+                WHEN OTHERS THEN
+                    -- Log error but don't fail the main operation
+                    INSERT INTO FABRIC_CORE.SYSTEM_ERROR_LOG (
+                        ERROR_ID,
+                        ERROR_MESSAGE,
+                        ERROR_STACK,
+                        ERROR_DATE,
+                        SOURCE_OPERATION
+                    ) VALUES (
+                        'AUDIT_ERROR_' || TO_CHAR(SYSDATE, 'YYYYMMDD_HH24MISS'),
+                        SQLERRM,
+                        DBMS_UTILITY.FORMAT_ERROR_BACKTRACE,
+                        SYSDATE,
+                        'TRG_MANUAL_JOB_CONFIG_AUDIT'
+                    );
+                    -- Don't re-raise to avoid breaking main operation
+            END TRG_MANUAL_JOB_CONFIG_AUDIT;
+        ; </sql>
+
+        <rollback>
+            <sql>DROP TRIGGER TRG_MANUAL_JOB_CONFIG_AUDIT; </sql>
+        </rollback>
+
+    </changeSet>
+
+    <changeSet id="us001-006-create-data-masking-policies" 
+               author="Senior Full Stack Developer Agent"
+               context="production)"
+               labels="us001,security,data-masking,pii-protection"
+               runOnChange="true">
+        
+        <comment>
+            Create data masking policies for sensitive information in non-production environments.
+            Only runs in production context to set up policies for data refresh operations.
+        </comment>
+
+        <!-- Create data masking function for sensitive parameters -->
+        <sql>
+            CREATE OR REPLACE FUNCTION FABRIC_CORE.MASK_SENSITIVE_DATA(
+                p_input CLOB,
+                p_mask_type VARCHAR2 DEFAULT 'PARTIAL'
+            ) RETURN CLOB
+            IS
+                v_masked_data CLOB;
+            BEGIN
+                -- Simple masking for demonstration
+                -- In production, use Oracle Data Masking and Subsetting
+                IF p_mask_type = 'FULL' THEN
+                    v_masked_data := '***MASKED***';
+                ELSIF p_mask_type = 'PARTIAL' THEN
+                    IF LENGTH(p_input) > 10 THEN
+                        v_masked_data := SUBSTR(p_input, 1, 3) || '***MASKED***' || SUBSTR(p_input, -3);
+                    ELSE
+                        v_masked_data := '***MASKED***';
+                    END IF;
+                ELSE
+                    v_masked_data := p_input;
+                END IF;
+                
+                RETURN v_masked_data;
+            END MASK_SENSITIVE_DATA;
+        ; </sql>
+
+        <!-- Create view with masked data for non-production use -->
+        <sql>
+            CREATE OR REPLACE VIEW FABRIC_CORE.MANUAL_JOB_CONFIG_MASKED AS
+            SELECT 
+                CONFIG_ID,
+                JOB_NAME,
+                JOB_TYPE,
+                SOURCE_SYSTEM,
+                TARGET_SYSTEM,
+                FABRIC_CORE.MASK_SENSITIVE_DATA(JOB_PARAMETERS, 'PARTIAL') AS JOB_PARAMETERS,
+                SCHEDULE_EXPRESSION,
+                STATUS,
+                VALIDATION_RULES,
+                ERROR_THRESHOLD,
+                RETRY_COUNT,
+                FABRIC_CORE.MASK_SENSITIVE_DATA(NOTIFICATION_CONFIG, 'PARTIAL') AS NOTIFICATION_CONFIG,
+                CREATED_BY,
+                CREATED_DATE,
+                UPDATED_BY,
+                UPDATED_DATE,
+                VERSION_NUMBER
+            FROM FABRIC_CORE.MANUAL_JOB_CONFIG;
+        ; </sql>
+
+        <rollback>
+            <sql>DROP VIEW FABRIC_CORE.MANUAL_JOB_CONFIG_MASKED; </sql>
+            <sql>DROP FUNCTION FABRIC_CORE.MASK_SENSITIVE_DATA; </sql>
+        </rollback>
+
+    </changeSet>
+
+</databaseChangeLog>

@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="
+        http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <!-- Simple Manual Job Configuration Table for Testing -->
+    <changeSet id="us001-simple-manual-job-config-table" 
+               author="Senior Full Stack Developer Agent" 
+               context="development,test">
+        
+        <comment>Create simplified MANUAL_JOB_CONFIG table for US001 testing</comment>
+
+        <createTable tableName="MANUAL_JOB_CONFIG">
+            <column name="CONFIG_ID" type="VARCHAR(50)">
+                <constraints primaryKey="true" primaryKeyName="PK_MANUAL_JOB_CONFIG"/>
+            </column>
+            
+            <column name="JOB_NAME" type="VARCHAR(100)">
+                <constraints nullable="false"/>
+            </column>
+            
+            <column name="JOB_TYPE" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+            
+            <column name="SOURCE_SYSTEM" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+            
+            <column name="TARGET_SYSTEM" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+            
+            <column name="JOB_PARAMETERS" type="CLOB">
+                <constraints nullable="false"/>
+            </column>
+            
+            <column name="STATUS" type="VARCHAR(20)" defaultValue="ACTIVE">
+                <constraints nullable="false"/>
+            </column>
+            
+            <column name="CREATED_BY" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+            
+            <column name="CREATED_DATE" type="TIMESTAMP" defaultValueComputed="NOW()">
+                <constraints nullable="false"/>
+            </column>
+            
+            <column name="VERSION_NUMBER" type="DECIMAL(10)" defaultValue="1">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <rollback>
+            <dropTable tableName="MANUAL_JOB_CONFIG"/>
+        </rollback>
+
+    </changeSet>
+
+</databaseChangeLog>

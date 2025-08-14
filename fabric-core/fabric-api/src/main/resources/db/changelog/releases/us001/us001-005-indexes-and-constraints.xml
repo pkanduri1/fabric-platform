@@ -1,0 +1,249 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:oracle="http://www.liquibase.org/xml/ns/dbchangelog/oracle"
+    xsi:schemaLocation="
+        http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd
+        http://www.liquibase.org/xml/ns/dbchangelog/oracle
+        http://www.liquibase.org/xml/ns/oracle/oracle.xsd">
+
+    <!-- 
+    =========================================================================
+    US001-005: ADDITIONAL INDEXES AND CONSTRAINTS
+    =========================================================================
+    
+    Purpose: Cross-table constraints and advanced indexing for performance
+    - Inter-table referential integrity
+    - Advanced composite indexes for complex queries
+    - Full-text search indexes for configuration search
+    - Performance optimization for reporting queries
+    
+    =========================================================================
+    -->
+
+    <changeSet id="us001-005-create-cross-table-constraints" 
+               author="Senior Full Stack Developer Agent" 
+               context="development,test,staging,production"
+               labels="us001,referential-integrity,data-consistency">
+        
+        <comment>
+            Create additional cross-table constraints and advanced indexes for optimal performance and data integrity.
+        </comment>
+
+        <!-- Advanced Composite Indexes for Complex Queries -->
+        
+        <!-- Index for job execution monitoring dashboard queries -->
+        <createIndex tableName="MANUAL_JOB_EXECUTION" 
+                     indexName="IDX_EXEC_MONITORING_DASHBOARD"
+                     >
+            <column name="STATUS"/>
+            <column name="JOB_NAME"/>
+            <column name="START_TIME" type="DESC"/>
+            <column name="EXECUTION_ENVIRONMENT"/>
+        </createIndex>
+
+        <!-- Index for configuration management queries -->
+        <createIndex tableName="MANUAL_JOB_CONFIG" 
+                     indexName="IDX_CONFIG_MANAGEMENT"
+                     >
+            <column name="STATUS"/>
+            <column name="JOB_TYPE"/>
+            <column name="UPDATED_DATE" type="DESC"/>
+        </createIndex>
+
+        <!-- Index for template usage analytics -->
+        <createIndex tableName="JOB_PARAMETER_TEMPLATES" 
+                     indexName="IDX_TEMPLATE_ANALYTICS"
+                     >
+            <column name="JOB_TYPE"/>
+            <column name="USAGE_COUNT" type="DESC"/>
+            <column name="LAST_USED_DATE" type="DESC"/>
+        </createIndex>
+
+        <!-- Index for audit reporting and compliance queries -->
+        <createIndex tableName="MANUAL_JOB_AUDIT" 
+                     indexName="IDX_AUDIT_REPORTING"
+                     >
+            <column name="ENVIRONMENT"/>
+            <column name="OPERATION_TYPE"/>
+            <column name="CHANGE_DATE" type="DESC"/>
+            <column name="RISK_ASSESSMENT"/>
+        </createIndex>
+
+        <rollback>
+            <dropIndex tableName="MANUAL_JOB_EXECUTION" indexName="IDX_EXEC_MONITORING_DASHBOARD" />
+            <dropIndex tableName="MANUAL_JOB_CONFIG" indexName="IDX_CONFIG_MANAGEMENT" />
+            <dropIndex tableName="JOB_PARAMETER_TEMPLATES" indexName="IDX_TEMPLATE_ANALYTICS" />
+            <dropIndex tableName="MANUAL_JOB_AUDIT" indexName="IDX_AUDIT_REPORTING" />
+        </rollback>
+
+    </changeSet>
+
+    <!-- Create Full-Text Search Capabilities -->
+    <changeSet id="us001-005-create-fulltext-search-indexes" 
+               author="Senior Full Stack Developer Agent"
+               context="development,test,staging,production"
+               labels="us001,full-text-search,oracle-text">
+        
+        <comment>
+            Create Oracle Text indexes for full-text search capabilities in job configurations and templates.
+        </comment>
+
+        <!-- Oracle Text index for job parameter search -->
+        <sql>
+            -- Create Oracle Text index for searching job parameters
+            CREATE INDEX IDX_CONFIG_PARAMETERS_TEXT 
+            ON FABRIC_CORE.MANUAL_JOB_CONFIG(JOB_PARAMETERS) 
+            INDEXTYPE IS CTXSYS.CONTEXT
+            PARAMETERS ('SYNC(ON COMMIT)');
+        ; </sql>
+
+        <!-- Oracle Text index for template schema search -->
+        <sql>
+            -- Create Oracle Text index for searching template schemas
+            CREATE INDEX IDX_TEMPLATE_SCHEMA_TEXT 
+            ON FABRIC_CORE.JOB_PARAMETER_TEMPLATES(TEMPLATE_SCHEMA) 
+            INDEXTYPE IS CTXSYS.CONTEXT
+            PARAMETERS ('SYNC(ON COMMIT)');
+        ; </sql>
+
+        <!-- Oracle Text index for audit changes search -->
+        <sql>
+            -- Create Oracle Text index for searching audit change details
+            CREATE INDEX IDX_AUDIT_CHANGES_TEXT 
+            ON FABRIC_CORE.MANUAL_JOB_AUDIT(OLD_VALUES || ' ' || NEW_VALUES) 
+            INDEXTYPE IS CTXSYS.CONTEXT
+            PARAMETERS ('SYNC(ON COMMIT)');
+        ; </sql>
+
+        <rollback>
+            <sql>DROP INDEX IDX_CONFIG_PARAMETERS_TEXT; </sql>
+            <sql>DROP INDEX IDX_TEMPLATE_SCHEMA_TEXT; </sql>
+            <sql>DROP INDEX IDX_AUDIT_CHANGES_TEXT; </sql>
+        </rollback>
+
+    </changeSet>
+
+    <!-- Create Partitioning Strategy for Large Tables -->
+    <changeSet id="us001-005-create-partitioning-strategy" 
+               author="Senior Full Stack Developer Agent"
+               context="production"
+               labels="us001,partitioning,performance,production-only">
+        
+        <comment>
+            Create partitioning strategy for audit table to handle high-volume audit data in production.
+            This changeset only runs in production context.
+        </comment>
+
+        <!-- Note: In production, consider partitioning the audit table by date -->
+        <sql>
+            -- Create partitioned version of audit table for production use
+            -- This would typically be done during initial production deployment
+            
+            COMMENT ON TABLE FABRIC_CORE.MANUAL_JOB_AUDIT IS 
+            'Consider partitioning this table by CHANGE_DATE for production environments with high audit volume';
+            
+            -- Example partitioning strategy (commented for reference):
+            /*
+            ALTER TABLE FABRIC_CORE.MANUAL_JOB_AUDIT 
+            MODIFY PARTITION BY RANGE (CHANGE_DATE) 
+            INTERVAL(NUMTOYMINTERVAL(1, 'MONTH'))
+            (
+                PARTITION AUDIT_INITIAL VALUES LESS THAN (DATE '2025-01-01')
+            );
+            */
+        ; </sql>
+
+        <rollback>
+            <!-- Rollback would remove partitioning if implemented -->
+            <sql>
+                -- Rollback partitioning changes if needed
+                COMMENT ON TABLE FABRIC_CORE.MANUAL_JOB_AUDIT IS 
+                'Manual Job Audit table - standard non-partitioned version';
+            ; </sql>
+        </rollback>
+
+    </changeSet>
+
+    <!-- Create Database Statistics Collection Job -->
+    <changeSet id="us001-005-create-statistics-collection" 
+               author="Senior Full Stack Developer Agent"
+               context="development,test,staging,production"
+               labels="us001,statistics,performance-optimization">
+        
+        <comment>
+            Create database statistics collection procedures for optimal query performance.
+        </comment>
+
+        <sql>
+            -- Create procedure to collect statistics on US001 tables
+            CREATE OR REPLACE PROCEDURE FABRIC_CORE.COLLECT_US001_STATISTICS
+            AS
+            BEGIN
+                -- Collect statistics on all US001 tables
+                DBMS_STATS.GATHER_TABLE_STATS(
+                    ownname => 'FABRIC_CORE',
+                    tabname => 'MANUAL_JOB_CONFIG',
+                    estimate_percent => DBMS_STATS.AUTO_SAMPLE_SIZE,
+                    cascade => TRUE
+                );
+                
+                DBMS_STATS.GATHER_TABLE_STATS(
+                    ownname => 'FABRIC_CORE',
+                    tabname => 'MANUAL_JOB_EXECUTION',
+                    estimate_percent => DBMS_STATS.AUTO_SAMPLE_SIZE,
+                    cascade => TRUE
+                );
+                
+                DBMS_STATS.GATHER_TABLE_STATS(
+                    ownname => 'FABRIC_CORE',
+                    tabname => 'JOB_PARAMETER_TEMPLATES',
+                    estimate_percent => DBMS_STATS.AUTO_SAMPLE_SIZE,
+                    cascade => TRUE
+                );
+                
+                DBMS_STATS.GATHER_TABLE_STATS(
+                    ownname => 'FABRIC_CORE',
+                    tabname => 'MANUAL_JOB_AUDIT',
+                    estimate_percent => DBMS_STATS.AUTO_SAMPLE_SIZE,
+                    cascade => TRUE
+                );
+                
+                -- Log statistics collection
+                INSERT INTO FABRIC_CORE.MANUAL_JOB_AUDIT (
+                    AUDIT_ID, CONFIG_ID, OPERATION_TYPE, OPERATION_DESCRIPTION,
+                    CHANGED_BY, USER_ROLE, CHANGE_REASON, ENVIRONMENT,
+                    SOX_COMPLIANCE_FLAG, CORRELATION_ID
+                ) VALUES (
+                    'stats_' || TO_CHAR(SYSDATE, 'YYYYMMDD_HH24MISS'),
+                    'SYSTEM',
+                    'UPDATE',
+                    'Database statistics collection for US001 tables',
+                    'SYSTEM',
+                    'SYSTEM_PROCESS',
+                    'Performance optimization - statistics update',
+                    'PRODUCTION',
+                    'N',
+                    'STATS_COLLECTION_' || TO_CHAR(SYSDATE, 'YYYYMMDD_HH24MISS')
+                );
+                
+                COMMIT;
+                
+            EXCEPTION
+                WHEN OTHERS THEN
+                    ROLLBACK;
+                    RAISE;
+            END COLLECT_US001_STATISTICS;
+        ; </sql>
+
+        <rollback>
+            <sql>
+                DROP PROCEDURE FABRIC_CORE.COLLECT_US001_STATISTICS;
+            ; </sql>
+        </rollback>
+
+    </changeSet>
+
+</databaseChangeLog>

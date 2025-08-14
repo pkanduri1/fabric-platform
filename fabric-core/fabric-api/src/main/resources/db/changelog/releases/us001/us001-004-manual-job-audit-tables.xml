@@ -1,0 +1,400 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:oracle="http://www.liquibase.org/xml/ns/dbchangelog/oracle"
+    xsi:schemaLocation="
+        http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd
+        http://www.liquibase.org/xml/ns/dbchangelog/oracle
+        http://www.liquibase.org/xml/ns/oracle/oracle.xsd">
+
+    <!-- 
+    =========================================================================
+    US001-004: MANUAL JOB AUDIT TABLE
+    =========================================================================
+    
+    Purpose: SOX-compliant audit trail for manual job configuration changes
+    - Complete change tracking for all configuration modifications
+    - Immutable audit records with tamper detection
+    - Business justification and approval workflow support
+    - Regulatory compliance reporting capabilities
+    
+    Security: 
+    - Immutable audit records - no updates or deletes allowed
+    - Encrypted sensitive data changes
+    - Access controls for audit data
+    - Regulatory retention policies
+    
+    =========================================================================
+    -->
+
+    <changeSet id="us001-004-create-manual-job-audit-table" 
+               author="Senior Full Stack Developer Agent" 
+               context="development,test,staging,production"
+               labels="us001,audit-trail,sox-compliant,banking-grade,immutable">
+        
+        <comment>
+            Create MANUAL_JOB_AUDIT table for SOX-compliant audit trail of all manual job configuration changes.
+            This table provides immutable audit records supporting regulatory compliance and change management.
+        </comment>
+
+        <createTable tableName="MANUAL_JOB_AUDIT" >
+            <!-- Primary Key -->
+            <column name="AUDIT_ID" type="VARCHAR(50)">
+                <constraints primaryKey="true" primaryKeyName="PK_MANUAL_JOB_AUDIT"/>
+            </column>
+            
+            <!-- Foreign Key to Configuration -->
+            <column name="CONFIG_ID" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+            
+            <!-- Audit Operation Details -->
+            <column name="OPERATION_TYPE" type="VARCHAR(20)">
+                <constraints nullable="false"/>
+            </column>
+            
+            <column name="OPERATION_DESCRIPTION" type="VARCHAR(500)">
+                <constraints nullable="true"/>
+            </column>
+            
+            <!-- Change Tracking -->
+            <column name="OLD_VALUES" type="CLOB">
+                <constraints nullable="true"/>
+            </column>
+            
+            <column name="NEW_VALUES" type="CLOB">
+                <constraints nullable="true"/>
+            </column>
+            
+            <column name="CHANGED_FIELDS" type="VARCHAR(1000)">
+                <constraints nullable="true"/>
+            </column>
+            
+            <!-- User and Context Information -->
+            <column name="CHANGED_BY" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+            
+            <column name="CHANGE_DATE" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            
+            <column name="USER_ROLE" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+            
+            <!-- Business Context -->
+            <column name="CHANGE_REASON" type="VARCHAR(500)">
+                <constraints nullable="true"/>
+            </column>
+            
+            <column name="BUSINESS_JUSTIFICATION" type="VARCHAR(1000)">
+                <constraints nullable="true"/>
+            </column>
+            
+            <column name="TICKET_REFERENCE" type="VARCHAR(100)">
+                <constraints nullable="true"/>
+            </column>
+            
+            <!-- Session and Security Information -->
+            <column name="SESSION_ID" type="VARCHAR(100)">
+                <constraints nullable="true"/>
+            </column>
+            
+            <column name="IP_ADDRESS" type="VARCHAR(45)">
+                <constraints nullable="true"/>
+            </column>
+            
+            <column name="USER_AGENT" type="VARCHAR(500)">
+                <constraints nullable="true"/>
+            </column>
+            
+            <column name="CLIENT_FINGERPRINT" type="VARCHAR(100)">
+                <constraints nullable="true"/>
+            </column>
+            
+            <!-- Approval Workflow -->
+            <column name="APPROVAL_STATUS" type="VARCHAR(20)" defaultValue="PENDING">
+                <constraints nullable="false"/>
+            </column>
+            
+            <column name="APPROVED_BY" type="VARCHAR(50)">
+                <constraints nullable="true"/>
+            </column>
+            
+            <column name="APPROVED_DATE" type="TIMESTAMP">
+                <constraints nullable="true"/>
+            </column>
+            
+            <column name="APPROVAL_COMMENTS" type="VARCHAR(1000)">
+                <constraints nullable="true"/>
+            </column>
+            
+            <!-- Compliance and Risk -->
+            <column name="SOX_COMPLIANCE_FLAG" type="CHAR(1)" defaultValue="Y">
+                <constraints nullable="false"/>
+            </column>
+            
+            <column name="RISK_ASSESSMENT" type="VARCHAR(20)">
+                <constraints nullable="true"/>
+            </column>
+            
+            <column name="REGULATORY_IMPACT" type="VARCHAR(500)">
+                <constraints nullable="true"/>
+            </column>
+            
+            <!-- Data Integrity -->
+            <column name="CHECKSUM" type="VARCHAR(64)">
+                <constraints nullable="true"/>
+            </column>
+            
+            <column name="DIGITAL_SIGNATURE" type="VARCHAR(512)">
+                <constraints nullable="true"/>
+            </column>
+            
+            <!-- Correlation and Tracing -->
+            <column name="CORRELATION_ID" type="VARCHAR(100)">
+                <constraints nullable="true"/>
+            </column>
+            
+            <column name="PARENT_AUDIT_ID" type="VARCHAR(50)">
+                <constraints nullable="true"/>
+            </column>
+            
+            <!-- Environment and System Context -->
+            <column name="ENVIRONMENT" type="VARCHAR(20)">
+                <constraints nullable="false"/>
+            </column>
+            
+            <column name="APPLICATION_VERSION" type="VARCHAR(20)">
+                <constraints nullable="true"/>
+            </column>
+            
+            <!-- Retention Management -->
+            <column name="RETENTION_DATE" type="DATE">
+                <constraints nullable="true"/>
+            </column>
+            
+            <column name="ARCHIVED_FLAG" type="CHAR(1)" defaultValue="N">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <!-- Add Foreign Key Constraint -->
+        <addForeignKeyConstraint baseTableName="MANUAL_JOB_AUDIT" 
+                                baseColumnNames="CONFIG_ID"
+                                constraintName="FK_MANUAL_JOB_AUDIT_CONFIG"
+                                referencedTableName="MANUAL_JOB_CONFIG"
+                                referencedColumnNames="CONFIG_ID"
+                                onDelete="RESTRICT"
+                                onUpdate="RESTRICT"/>
+
+        <!-- Self-referencing foreign key for parent audit records -->
+        <addForeignKeyConstraint baseTableName="MANUAL_JOB_AUDIT" 
+                                baseColumnNames="PARENT_AUDIT_ID"
+                                constraintName="FK_MANUAL_JOB_AUDIT_PARENT"
+                                referencedTableName="MANUAL_JOB_AUDIT"
+                                referencedColumnNames="AUDIT_ID"
+                                onDelete="SET NULL"
+                                onUpdate="RESTRICT"/>
+
+        <!-- Add Check Constraints -->
+        <sql>
+            ALTER TABLE MANUAL_JOB_AUDIT 
+            ADD CONSTRAINT CHK_MANUAL_AUDIT_OPERATION 
+            CHECK (OPERATION_TYPE IN ('CREATE', 'UPDATE', 'DELETE', 'ACTIVATE', 'DEACTIVATE', 'APPROVE', 'REJECT'))
+        ; </sql>
+
+        <sql>
+            ALTER TABLE MANUAL_JOB_AUDIT 
+            ADD CONSTRAINT CHK_MANUAL_AUDIT_APPROVAL 
+            CHECK (APPROVAL_STATUS IN ('PENDING', 'APPROVED', 'REJECTED', 'AUTO_APPROVED'))
+        ; </sql>
+
+        <sql>
+            ALTER TABLE MANUAL_JOB_AUDIT 
+            ADD CONSTRAINT CHK_MANUAL_AUDIT_SOX 
+            CHECK (SOX_COMPLIANCE_FLAG IN ('Y', 'N'))
+        ; </sql>
+
+        <sql>
+            ALTER TABLE MANUAL_JOB_AUDIT 
+            ADD CONSTRAINT CHK_MANUAL_AUDIT_RISK 
+            CHECK (RISK_ASSESSMENT IN ('LOW', 'MEDIUM', 'HIGH', 'CRITICAL'))
+        ; </sql>
+
+        <sql>
+            ALTER TABLE MANUAL_JOB_AUDIT 
+            ADD CONSTRAINT CHK_MANUAL_AUDIT_ARCHIVED 
+            CHECK (ARCHIVED_FLAG IN ('Y', 'N'))
+        ; </sql>
+
+        <!-- Add Table Comments -->
+        <setTableRemarks tableName="MANUAL_JOB_AUDIT" 
+                        remarks="SOX-compliant audit trail for manual job configuration changes - immutable records supporting regulatory compliance"
+                        />
+
+        <setColumnRemarks tableName="MANUAL_JOB_AUDIT" columnName="OLD_VALUES" 
+                         remarks="JSON representation of configuration values before change - may be encrypted for sensitive data"
+                         />
+
+        <setColumnRemarks tableName="MANUAL_JOB_AUDIT" columnName="NEW_VALUES" 
+                         remarks="JSON representation of configuration values after change - may be encrypted for sensitive data"
+                         />
+
+        <setColumnRemarks tableName="MANUAL_JOB_AUDIT" columnName="CHECKSUM" 
+                         remarks="SHA-256 checksum of audit record for tamper detection"
+                         />
+
+        <rollback>
+            <dropTable tableName="MANUAL_JOB_AUDIT" />
+        </rollback>
+
+    </changeSet>
+
+    <!-- Create Performance and Compliance Indexes -->
+    <changeSet id="us001-004-create-manual-job-audit-indexes" 
+               author="Senior Full Stack Developer Agent"
+               context="development,test,staging,production"
+               labels="us001,audit-trail,performance,compliance">
+        
+        <comment>
+            Create performance indexes for manual job audit queries supporting compliance reporting and analysis.
+        </comment>
+
+        <!-- Index for change date queries (most common for reporting) -->
+        <createIndex tableName="MANUAL_JOB_AUDIT" 
+                     indexName="IDX_MANUAL_JOB_AUDIT_DATE"
+                     >
+            <column name="CHANGE_DATE" type="DESC"/>
+        </createIndex>
+
+        <!-- Index for user audit queries -->
+        <createIndex tableName="MANUAL_JOB_AUDIT" 
+                     indexName="IDX_MANUAL_JOB_AUDIT_USER"
+                     >
+            <column name="CHANGED_BY"/>
+        </createIndex>
+
+        <!-- Index for operation type queries -->
+        <createIndex tableName="MANUAL_JOB_AUDIT" 
+                     indexName="IDX_MANUAL_JOB_AUDIT_OPERATION"
+                     >
+            <column name="OPERATION_TYPE"/>
+        </createIndex>
+
+        <!-- Index for approval status queries -->
+        <createIndex tableName="MANUAL_JOB_AUDIT" 
+                     indexName="IDX_MANUAL_JOB_AUDIT_APPROVAL"
+                     >
+            <column name="APPROVAL_STATUS"/>
+        </createIndex>
+
+        <!-- Index for SOX compliance reporting -->
+        <createIndex tableName="MANUAL_JOB_AUDIT" 
+                     indexName="IDX_MANUAL_JOB_AUDIT_SOX"
+                     >
+            <column name="SOX_COMPLIANCE_FLAG"/>
+            <column name="CHANGE_DATE" type="DESC"/>
+        </createIndex>
+
+        <!-- Index for risk assessment queries -->
+        <createIndex tableName="MANUAL_JOB_AUDIT" 
+                     indexName="IDX_MANUAL_JOB_AUDIT_RISK"
+                     >
+            <column name="RISK_ASSESSMENT"/>
+        </createIndex>
+
+        <!-- Index for correlation ID (distributed tracing) -->
+        <createIndex tableName="MANUAL_JOB_AUDIT" 
+                     indexName="IDX_MANUAL_JOB_AUDIT_CORRELATION"
+                     >
+            <column name="CORRELATION_ID"/>
+        </createIndex>
+
+        <!-- Index for environment-specific queries -->
+        <createIndex tableName="MANUAL_JOB_AUDIT" 
+                     indexName="IDX_MANUAL_JOB_AUDIT_ENV"
+                     >
+            <column name="ENVIRONMENT"/>
+        </createIndex>
+
+        <!-- Composite index for compliance reporting -->
+        <createIndex tableName="MANUAL_JOB_AUDIT" 
+                     indexName="IDX_MANUAL_JOB_AUDIT_COMPLIANCE"
+                     >
+            <column name="ENVIRONMENT"/>
+            <column name="SOX_COMPLIANCE_FLAG"/>
+            <column name="CHANGE_DATE" type="DESC"/>
+        </createIndex>
+
+        <!-- Index for retention management -->
+        <createIndex tableName="MANUAL_JOB_AUDIT" 
+                     indexName="IDX_MANUAL_JOB_AUDIT_RETENTION"
+                     >
+            <column name="RETENTION_DATE"/>
+            <column name="ARCHIVED_FLAG"/>
+        </createIndex>
+
+        <rollback>
+            <dropIndex tableName="MANUAL_JOB_AUDIT" indexName="IDX_MANUAL_JOB_AUDIT_DATE" />
+            <dropIndex tableName="MANUAL_JOB_AUDIT" indexName="IDX_MANUAL_JOB_AUDIT_USER" />
+            <dropIndex tableName="MANUAL_JOB_AUDIT" indexName="IDX_MANUAL_JOB_AUDIT_OPERATION" />
+            <dropIndex tableName="MANUAL_JOB_AUDIT" indexName="IDX_MANUAL_JOB_AUDIT_APPROVAL" />
+            <dropIndex tableName="MANUAL_JOB_AUDIT" indexName="IDX_MANUAL_JOB_AUDIT_SOX" />
+            <dropIndex tableName="MANUAL_JOB_AUDIT" indexName="IDX_MANUAL_JOB_AUDIT_RISK" />
+            <dropIndex tableName="MANUAL_JOB_AUDIT" indexName="IDX_MANUAL_JOB_AUDIT_CORRELATION" />
+            <dropIndex tableName="MANUAL_JOB_AUDIT" indexName="IDX_MANUAL_JOB_AUDIT_ENV" />
+            <dropIndex tableName="MANUAL_JOB_AUDIT" indexName="IDX_MANUAL_JOB_AUDIT_COMPLIANCE" />
+            <dropIndex tableName="MANUAL_JOB_AUDIT" indexName="IDX_MANUAL_JOB_AUDIT_RETENTION" />
+        </rollback>
+
+    </changeSet>
+
+    <!-- Create Immutable Audit Trigger for Data Protection -->
+    <changeSet id="us001-004-create-audit-protection-trigger" 
+               author="Senior Full Stack Developer Agent"
+               context="development,test,staging,production"
+               labels="us001,audit-trail,data-protection,immutable"
+               runOnChange="true">
+        
+        <comment>
+            Create trigger to prevent updates and deletes on audit records ensuring immutability for SOX compliance.
+        </comment>
+
+        <sql>
+            CREATE OR REPLACE TRIGGER TRG_MANUAL_JOB_AUDIT_IMMUTABLE
+            BEFORE UPDATE OR DELETE ON FABRIC_CORE.MANUAL_JOB_AUDIT
+            FOR EACH ROW
+            BEGIN
+                -- Prevent any updates or deletes to maintain audit trail integrity
+                IF UPDATING THEN
+                    RAISE_APPLICATION_ERROR(-20001, 
+                        'SOX_COMPLIANCE_VIOLATION: Audit records are immutable and cannot be updated. ' ||
+                        'Audit ID: ' || :OLD.AUDIT_ID || 
+                        ' - Any changes to audit data violate SOX compliance requirements.');
+                END IF;
+                
+                IF DELETING THEN
+                    -- Only allow deletes for archived records past retention date
+                    IF :OLD.ARCHIVED_FLAG = 'N' OR :OLD.RETENTION_DATE IS NULL OR :OLD.RETENTION_DATE > SYSDATE THEN
+                        RAISE_APPLICATION_ERROR(-20002, 
+                            'SOX_COMPLIANCE_VIOLATION: Active audit records cannot be deleted. ' ||
+                            'Audit ID: ' || :OLD.AUDIT_ID || 
+                            ' - Records must be archived and past retention date before deletion.');
+                    END IF;
+                END IF;
+            END TRG_MANUAL_JOB_AUDIT_IMMUTABLE;
+        ; </sql>
+
+        <rollback>
+            <sql>
+                DROP TRIGGER TRG_MANUAL_JOB_AUDIT_IMMUTABLE;
+            ; </sql>
+        </rollback>
+
+    </changeSet>
+
+</databaseChangeLog>

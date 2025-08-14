@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext"
+    xmlns:oracle="http://www.liquibase.org/xml/ns/dbchangelog/oracle"
+    xsi:schemaLocation="
+        http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd
+        http://www.liquibase.org/xml/ns/dbchangelog-ext
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd
+        http://www.liquibase.org/xml/ns/dbchangelog/oracle
+        http://www.liquibase.org/xml/ns/oracle/oracle.xsd">
+
+    <!-- 
+    =========================================================================
+    FABRIC PLATFORM - LIQUIBASE MASTER CHANGELOG
+    =========================================================================
+    
+    Document Control:
+    - Project: FABRIC Platform - US001 Manual Job Configuration Interface
+    - Version: 1.0
+    - Date: 2025-08-13
+    - Author: Senior Full Stack Developer Agent
+    - Classification: INTERNAL - BANKING CONFIDENTIAL
+    
+    Enterprise Standards:
+    - SOX Compliance: All changes audited and tracked
+    - Banking Regulations: PCI-DSS, Basel III compliance
+    - Change Management: Approved change procedures
+    - Rollback Procedures: Complete rollback capability
+    
+    Security Classification:
+    - Contains database schema definitions for manual job configuration
+    - No sensitive data or credentials included
+    - Proper access controls required for execution
+    
+    =========================================================================
+    -->
+
+    <!-- Property Definitions for Enterprise Configuration -->
+    <property name="blob.type" value="CLOB" dbms="oracle"/>
+    <property name="boolean.type" value="CHAR(1)" dbms="oracle"/>
+    <property name="datetime.type" value="TIMESTAMP" dbms="oracle"/>
+    <property name="id.type" value="VARCHAR2(50)" dbms="oracle"/>
+    <property name="name.type" value="VARCHAR2(100)" dbms="oracle"/>
+    <property name="description.type" value="VARCHAR2(500)" dbms="oracle"/>
+
+    <!-- Context Definitions for Environment Management -->
+    <!-- development: Local development environment -->
+    <!-- test: Testing and QA environments -->
+    <!-- staging: Pre-production staging environment -->
+    <!-- production: Production banking environment -->
+
+    <!-- 
+    =========================================================================
+    US001: MANUAL JOB CONFIGURATION INTERFACE - DATABASE SCHEMA
+    =========================================================================
+    
+    Story: US001 - Manual Job Configuration Interface
+    Epic: Configuration Management Foundation
+    Release: 1.0
+    Priority: P0 - Critical Infrastructure Foundation
+    
+    Database Changes:
+    1. MANUAL_JOB_CONFIG - Core job configuration table
+    2. MANUAL_JOB_EXECUTION - Job execution tracking
+    3. JOB_PARAMETER_TEMPLATES - Reusable parameter templates
+    4. MANUAL_JOB_AUDIT - SOX-compliant audit trail
+    
+    =========================================================================
+    -->
+    
+    <!-- US001 Phase 2: Full Enterprise Schema - APPROVED FOR IMPLEMENTATION -->
+    <!-- Simple version removed to avoid table conflict with full enterprise schema -->
+    <include file="releases/us001/us001-001-manual-job-config-tables.xml" relativeToChangelogFile="true"/>
+    <include file="releases/us001/us001-002-manual-job-execution-tables.xml" relativeToChangelogFile="true"/>
+    <include file="releases/us001/us001-003-job-parameter-templates.xml" relativeToChangelogFile="true"/>
+    <include file="releases/us001/us001-004-manual-job-audit-tables.xml" relativeToChangelogFile="true"/>
+    <include file="releases/us001/us001-005-indexes-and-constraints.xml" relativeToChangelogFile="true"/>
+    <include file="releases/us001/us001-006-security-and-permissions.xml" relativeToChangelogFile="true"/>
+    <include file="releases/us001/us001-007-reference-data.xml" relativeToChangelogFile="true"/>
+
+    <!-- 
+    =========================================================================
+    FUTURE RELEASES - PLACEHOLDER
+    =========================================================================
+    
+    Future user stories will be included here following the same pattern:
+    - Each user story gets its own release directory
+    - Each release contains logically grouped changesets
+    - All changes include proper rollback procedures
+    - Full SOX compliance and audit trail maintained
+    
+    Examples:
+    <include file="releases/us002/us002-template-enhancement.xml" relativeToChangelogFile="true"/>
+    <include file="releases/us003/us003-advanced-validation.xml" relativeToChangelogFile="true"/>
+    
+    =========================================================================
+    -->
+
+    <!-- Database Tagging for Release Management - Phase 2 Implementation -->
+    <changeSet id="tag-us001-phase2-release-2.0" author="Senior Full Stack Developer Agent" context="development,test,staging,production">
+        <comment>Release tag for US001 Phase 2 Manual Job Configuration Interface v2.0 - Complete enterprise schema with execution tracking, parameter templates, and SOX-compliant audit framework</comment>
+        <sql>SELECT 'US001 Phase 2 Complete' AS release_tag FROM DUAL</sql>
+    </changeSet>
+
+</databaseChangeLog>

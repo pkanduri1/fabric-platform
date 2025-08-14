@@ -29,7 +29,8 @@ import {
   AdminPanelSettings,
   Description,
   DynamicForm,
-  MonitorHeart
+  MonitorHeart,
+  Build
 } from '@mui/icons-material';
 import { useConfigurationContext } from '../../../contexts/ConfigurationContext';
 
@@ -101,7 +102,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ open, onClose, drawerWidth }) 
   const navigationItems = [
     { path: '/dashboard', label: 'Dashboard', icon: <Dashboard /> },
     { path: '/monitoring', label: 'Job Monitoring', icon: <MonitorHeart /> },
-    { path: '/configuration', label: 'Manual Configuration', icon: <Settings /> },
+    { path: '/manual-job-config', label: 'Manual Job Configuration', icon: <Build /> },
+    { path: '/configuration', label: 'Legacy Configuration', icon: <Settings /> },
     { path: '/template-configuration', label: 'Template Configuration', icon: <DynamicForm /> },
     { path: '/admin/templates', label: 'Template Admin', icon: <AdminPanelSettings /> },
     { path: '/yaml-preview', label: 'YAML Preview', icon: <Code /> },

@@ -9,6 +9,7 @@ import { PageLayout } from '../components/layout/PageLayout';
 import { TemplateConfigurationPage } from '../pages/TemplateConfigurationPage/TemplateConfigurationPage';
 import TemplateAdminPage from '../pages/TemplateAdminPage/TemplateAdminPage';
 import { MonitoringDashboard } from '../pages/MonitoringDashboard/MonitoringDashboard';
+import { ManualJobConfigurationPage } from '../pages/ManualJobConfigurationPage';
 import { useLocation } from 'react-router-dom';
 export const AppRouter: React.FC = () => {
 
@@ -38,6 +39,9 @@ export const AppRouter: React.FC = () => {
                 
                 {/* Monitoring Dashboard Routes */}
                 <Route path="/monitoring" element={<MonitoringDashboard />} />
+                
+                {/* Manual Job Configuration Routes - Phase 3A */}
+                <Route path="/manual-job-config" element={<ManualJobConfigurationPage />} />
                 
                 <Route path="/yaml-preview" element={<YamlPreviewPage />} />
                 <Route path="/testing" element={<TestingPage />} />

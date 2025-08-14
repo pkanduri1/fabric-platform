@@ -74,5 +74,5 @@
       "node_modules/(?!(axios)/)"
     ]
   },
-  "proxy": "http://localhost:3000"
+  "proxy": "http://localhost:8080"
 }

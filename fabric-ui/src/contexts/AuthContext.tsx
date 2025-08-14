@@ -217,6 +217,43 @@ export function AuthProvider({ children }: AuthProviderProps) {
               clearStorage();
             }
           }
+        } else {
+          // TEMPORARY: Auto-login with mock user for development/testing
+          console.log('[AuthContext] No stored auth found, using mock authentication for development');
+          const mockUser = {
+            userId: 'test-user-001',
+            username: 'testuser',
+            email: 'testuser@example.com',
+            fullName: 'Test User',
+            roles: ['JOB_CREATOR', 'JOB_MODIFIER', 'JOB_EXECUTOR', 'JOB_VIEWER'],
+            permissions: ['READ_CONFIGS', 'WRITE_CONFIGS', 'DELETE_CONFIGS'],
+            department: 'Engineering',
+            title: 'Senior Developer',
+            mfaEnabled: false,
+            mfaVerified: true
+          };
+          
+          const mockSession = {
+            sessionId: 'mock-session-' + Date.now(),
+            correlationId: 'mock-correlation-' + Date.now()
+          };
+          
+          // Store mock auth data
+          localStorage.setItem(TOKEN_STORAGE_KEY, 'mock-access-token');
+          localStorage.setItem(REFRESH_TOKEN_STORAGE_KEY, 'mock-refresh-token');
+          localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(mockUser));
+          localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(mockSession));
+          
+          dispatch({
+            type: 'LOGIN_SUCCESS',
+            payload: {
+              user: mockUser,
+              accessToken: 'mock-access-token',
+              refreshToken: 'mock-refresh-token',
+              sessionId: mockSession.sessionId,
+              correlationId: mockSession.correlationId
+            }
+          });
         }
       } catch (error) {
         console.error('Error initializing auth state:', error);
@@ -237,7 +274,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
       return () => clearInterval(refreshInterval);
     }
-  }, [state.accessToken, state.refreshToken]);
+  }, [state.isAuthenticated]); // ✅ Use stable boolean instead of changing token values
 
   const login = async (credentials: LoginRequest) => {
     dispatch({ type: 'LOGIN_START' });

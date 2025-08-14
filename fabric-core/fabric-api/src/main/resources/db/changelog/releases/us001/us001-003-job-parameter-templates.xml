@@ -1,0 +1,270 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:oracle="http://www.liquibase.org/xml/ns/dbchangelog/oracle"
+    xsi:schemaLocation="
+        http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd
+        http://www.liquibase.org/xml/ns/dbchangelog/oracle
+        http://www.liquibase.org/xml/ns/oracle/oracle.xsd">
+
+    <!-- 
+    =========================================================================
+    US001-003: JOB PARAMETER TEMPLATES TABLE
+    =========================================================================
+    
+    Purpose: Reusable templates for job parameter configurations
+    - Standardized parameter templates for different job types
+    - Default values and validation rules for parameters
+    - Template versioning and change management
+    - Supports template inheritance and composition
+    
+    Security: 
+    - Template schemas may define sensitive parameter structures
+    - Access control for template management
+    - Audit trail for template changes
+    
+    =========================================================================
+    -->
+
+    <changeSet id="us001-003-create-job-parameter-templates-table" 
+               author="Senior Full Stack Developer Agent" 
+               context="development,test,staging,production"
+               labels="us001,parameter-templates,configuration-management">
+        
+        <comment>
+            Create JOB_PARAMETER_TEMPLATES table for storing reusable parameter templates.
+            Templates define the structure, validation rules, and default values for job parameters.
+        </comment>
+
+        <createTable tableName="JOB_PARAMETER_TEMPLATES" >
+            <!-- Primary Key and Identification -->
+            <column name="TEMPLATE_ID" type="VARCHAR(50)">
+                <constraints primaryKey="true" primaryKeyName="PK_JOB_PARAMETER_TEMPLATES"/>
+            </column>
+            
+            <!-- Template Metadata -->
+            <column name="TEMPLATE_NAME" type="VARCHAR(100)">
+                <constraints nullable="false" unique="true" uniqueConstraintName="UK_JOB_TEMPLATE_NAME"/>
+            </column>
+            
+            <column name="JOB_TYPE" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+            
+            <column name="TEMPLATE_VERSION" type="VARCHAR(20)" defaultValue="1.0">
+                <constraints nullable="false"/>
+            </column>
+            
+            <column name="TEMPLATE_DESCRIPTION" type="VARCHAR(500)">
+                <constraints nullable="true"/>
+            </column>
+            
+            <!-- Template Schema and Configuration -->
+            <column name="TEMPLATE_SCHEMA" type="CLOB">
+                <constraints nullable="false"/>
+            </column>
+            
+            <column name="DEFAULT_VALUES" type="CLOB">
+                <constraints nullable="true"/>
+            </column>
+            
+            <column name="VALIDATION_RULES" type="CLOB">
+                <constraints nullable="true"/>
+            </column>
+            
+            <!-- Template Categories and Organization -->
+            <column name="CATEGORY" type="VARCHAR(50)">
+                <constraints nullable="true"/>
+            </column>
+            
+            <column name="TAGS" type="VARCHAR(500)">
+                <constraints nullable="true"/>
+            </column>
+            
+            <!-- Template Status and Control -->
+            <column name="STATUS" type="VARCHAR(20)" defaultValue="ACTIVE">
+                <constraints nullable="false"/>
+            </column>
+            
+            <column name="IS_SYSTEM_TEMPLATE" type="CHAR(1)" defaultValue="N">
+                <constraints nullable="false"/>
+            </column>
+            
+            <column name="IS_DEPRECATED" type="CHAR(1)" defaultValue="N">
+                <constraints nullable="false"/>
+            </column>
+            
+            <!-- Template Relationships -->
+            <column name="PARENT_TEMPLATE_ID" type="VARCHAR(50)">
+                <constraints nullable="true"/>
+            </column>
+            
+            <column name="EXTENDS_TEMPLATE_ID" type="VARCHAR(50)">
+                <constraints nullable="true"/>
+            </column>
+            
+            <!-- Usage Tracking -->
+            <column name="USAGE_COUNT" type="DECIMAL(10)" defaultValue="0">
+                <constraints nullable="false"/>
+            </column>
+            
+            <column name="LAST_USED_DATE" type="TIMESTAMP">
+                <constraints nullable="true"/>
+            </column>
+            
+            <!-- Compliance and Documentation -->
+            <column name="COMPLIANCE_NOTES" type="VARCHAR(1000)">
+                <constraints nullable="true"/>
+            </column>
+            
+            <column name="DOCUMENTATION_URL" type="VARCHAR(500)">
+                <constraints nullable="true"/>
+            </column>
+            
+            <!-- Audit Information -->
+            <column name="CREATED_BY" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+            
+            <column name="CREATED_DATE" type="TIMESTAMP" defaultValueComputed="NOW()">
+                <constraints nullable="false"/>
+            </column>
+            
+            <column name="UPDATED_BY" type="VARCHAR(50)">
+                <constraints nullable="true"/>
+            </column>
+            
+            <column name="UPDATED_DATE" type="TIMESTAMP">
+                <constraints nullable="true"/>
+            </column>
+            
+            <column name="VERSION_DECIMAL" type="DECIMAL(10)" defaultValue="1">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <!-- Add Self-Referencing Foreign Keys -->
+        <addForeignKeyConstraint baseTableName="JOB_PARAMETER_TEMPLATES" 
+                                baseColumnNames="PARENT_TEMPLATE_ID"
+                                constraintName="FK_JOB_TEMPLATE_PARENT"
+                                referencedTableName="JOB_PARAMETER_TEMPLATES"
+                                referencedColumnNames="TEMPLATE_ID"
+                                onDelete="SET NULL"
+                                onUpdate="RESTRICT"/>
+
+        <addForeignKeyConstraint baseTableName="JOB_PARAMETER_TEMPLATES" 
+                                baseColumnNames="EXTENDS_TEMPLATE_ID"
+                                constraintName="FK_JOB_TEMPLATE_EXTENDS"
+                                referencedTableName="JOB_PARAMETER_TEMPLATES"
+                                referencedColumnNames="TEMPLATE_ID"
+                                onDelete="SET NULL"
+                                onUpdate="RESTRICT"/>
+
+        <!-- Add Check Constraints -->
+        <sql>
+            ALTER TABLE JOB_PARAMETER_TEMPLATES 
+            ADD CONSTRAINT CHK_JOB_TEMPLATE_STATUS 
+            CHECK (STATUS IN ('ACTIVE', 'INACTIVE', 'DEPRECATED', 'DRAFT'))
+        ; </sql>
+
+        <sql>
+            ALTER TABLE JOB_PARAMETER_TEMPLATES 
+            ADD CONSTRAINT CHK_JOB_TEMPLATE_SYSTEM 
+            CHECK (IS_SYSTEM_TEMPLATE IN ('Y', 'N'))
+        ; </sql>
+
+        <sql>
+            ALTER TABLE JOB_PARAMETER_TEMPLATES 
+            ADD CONSTRAINT CHK_JOB_TEMPLATE_DEPRECATED 
+            CHECK (IS_DEPRECATED IN ('Y', 'N'))
+        ; </sql>
+
+        <sql>
+            ALTER TABLE JOB_PARAMETER_TEMPLATES 
+            ADD CONSTRAINT CHK_JOB_TEMPLATE_USAGE_COUNT 
+            CHECK (USAGE_COUNT >= 0)
+        ; </sql>
+
+        <!-- Add Table Comments -->
+        <setTableRemarks tableName="JOB_PARAMETER_TEMPLATES" 
+                        remarks="Job Parameter Templates - defines reusable templates for job configuration parameters with validation and default values"
+                        />
+
+        <setColumnRemarks tableName="JOB_PARAMETER_TEMPLATES" columnName="TEMPLATE_SCHEMA" 
+                         remarks="JSON Schema defining the parameter structure and validation rules"
+                         />
+
+        <rollback>
+            <dropTable tableName="JOB_PARAMETER_TEMPLATES" />
+        </rollback>
+
+    </changeSet>
+
+    <!-- Create Performance Indexes for Template Queries -->
+    <changeSet id="us001-003-create-job-parameter-templates-indexes" 
+               author="Senior Full Stack Developer Agent"
+               context="development,test,staging,production"
+               labels="us001,parameter-templates,performance">
+        
+        <comment>
+            Create performance indexes for job parameter template queries.
+        </comment>
+
+        <!-- Index for job type queries -->
+        <createIndex tableName="JOB_PARAMETER_TEMPLATES" 
+                     indexName="IDX_JOB_TEMPLATE_TYPE"
+                     >
+            <column name="JOB_TYPE"/>
+        </createIndex>
+
+        <!-- Index for status queries -->
+        <createIndex tableName="JOB_PARAMETER_TEMPLATES" 
+                     indexName="IDX_JOB_TEMPLATE_STATUS"
+                     >
+            <column name="STATUS"/>
+        </createIndex>
+
+        <!-- Index for category queries -->
+        <createIndex tableName="JOB_PARAMETER_TEMPLATES" 
+                     indexName="IDX_JOB_TEMPLATE_CATEGORY"
+                     >
+            <column name="CATEGORY"/>
+        </createIndex>
+
+        <!-- Index for system template queries -->
+        <createIndex tableName="JOB_PARAMETER_TEMPLATES" 
+                     indexName="IDX_JOB_TEMPLATE_SYSTEM"
+                     >
+            <column name="IS_SYSTEM_TEMPLATE"/>
+        </createIndex>
+
+        <!-- Composite index for active templates by job type -->
+        <createIndex tableName="JOB_PARAMETER_TEMPLATES" 
+                     indexName="IDX_JOB_TEMPLATE_ACTIVE_TYPE"
+                     >
+            <column name="JOB_TYPE"/>
+            <column name="STATUS"/>
+            <column name="IS_DEPRECATED"/>
+        </createIndex>
+
+        <!-- Index for usage statistics -->
+        <createIndex tableName="JOB_PARAMETER_TEMPLATES" 
+                     indexName="IDX_JOB_TEMPLATE_USAGE"
+                     >
+            <column name="USAGE_COUNT" type="DESC"/>
+        </createIndex>
+
+        <rollback>
+            <dropIndex tableName="JOB_PARAMETER_TEMPLATES" indexName="IDX_JOB_TEMPLATE_TYPE" />
+            <dropIndex tableName="JOB_PARAMETER_TEMPLATES" indexName="IDX_JOB_TEMPLATE_STATUS" />
+            <dropIndex tableName="JOB_PARAMETER_TEMPLATES" indexName="IDX_JOB_TEMPLATE_CATEGORY" />
+            <dropIndex tableName="JOB_PARAMETER_TEMPLATES" indexName="IDX_JOB_TEMPLATE_SYSTEM" />
+            <dropIndex tableName="JOB_PARAMETER_TEMPLATES" indexName="IDX_JOB_TEMPLATE_ACTIVE_TYPE" />
+            <dropIndex tableName="JOB_PARAMETER_TEMPLATES" indexName="IDX_JOB_TEMPLATE_USAGE" />
+        </rollback>
+
+    </changeSet>
+
+</databaseChangeLog>

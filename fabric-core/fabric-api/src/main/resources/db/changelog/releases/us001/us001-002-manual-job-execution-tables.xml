@@ -1,0 +1,261 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:oracle="http://www.liquibase.org/xml/ns/dbchangelog/oracle"
+    xsi:schemaLocation="
+        http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd
+        http://www.liquibase.org/xml/ns/dbchangelog/oracle
+        http://www.liquibase.org/xml/ns/oracle/oracle.xsd">
+
+    <!-- 
+    =========================================================================
+    US001-002: MANUAL JOB EXECUTION TRACKING TABLE
+    =========================================================================
+    
+    Purpose: Track execution instances of manually configured jobs
+    - Complete execution history and status tracking
+    - Performance metrics collection
+    - Error tracking and troubleshooting support
+    - Integration with US008 monitoring dashboard
+    
+    Security: 
+    - Execution logs may contain sensitive data references
+    - Proper data retention policies applied
+    - Access control for execution history
+    
+    =========================================================================
+    -->
+
+    <changeSet id="us001-002-create-manual-job-execution-table" 
+               author="Senior Full Stack Developer Agent" 
+               context="development,test,staging,production"
+               labels="us001,job-execution,monitoring,sox-compliant">
+        
+        <comment>
+            Create MANUAL_JOB_EXECUTION table for tracking execution instances of manual job configurations.
+            Integrates with US008 monitoring dashboard for real-time job tracking and historical analysis.
+        </comment>
+
+        <createTable tableName="MANUAL_JOB_EXECUTION" >
+            <!-- Primary Key and Identification -->
+            <column name="EXECUTION_ID" type="VARCHAR(50)">
+                <constraints primaryKey="true" primaryKeyName="PK_MANUAL_JOB_EXECUTION"/>
+            </column>
+            
+            <!-- Foreign Key to Configuration -->
+            <column name="CONFIG_ID" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+            
+            <!-- Execution Context -->
+            <column name="JOB_NAME" type="VARCHAR(100)">
+                <constraints nullable="false"/>
+            </column>
+            
+            <column name="EXECUTION_TYPE" type="VARCHAR(20)" defaultValue="MANUAL">
+                <constraints nullable="false"/>
+            </column>
+            
+            <column name="TRIGGER_SOURCE" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+            
+            <!-- Execution Status and Timing -->
+            <column name="STATUS" type="VARCHAR(20)" defaultValue="STARTED">
+                <constraints nullable="false"/>
+            </column>
+            
+            <column name="START_TIME" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            
+            <column name="END_TIME" type="TIMESTAMP">
+                <constraints nullable="true"/>
+            </column>
+            
+            <column name="DURATION_SECONDS" type="NUMBER(10,2)">
+                <constraints nullable="true"/>
+            </column>
+            
+            <!-- Performance Metrics -->
+            <column name="RECORDS_PROCESSED" type="NUMBER(15)">
+                <constraints nullable="true"/>
+            </column>
+            
+            <column name="RECORDS_SUCCESS" type="NUMBER(15)">
+                <constraints nullable="true"/>
+            </column>
+            
+            <column name="RECORDS_ERROR" type="NUMBER(15)">
+                <constraints nullable="true"/>
+            </column>
+            
+            <column name="ERROR_PERCENTAGE" type="NUMBER(5,2)">
+                <constraints nullable="true"/>
+            </column>
+            
+            <!-- Error Handling -->
+            <column name="ERROR_MESSAGE" type="VARCHAR(4000)">
+                <constraints nullable="true"/>
+            </column>
+            
+            <column name="ERROR_STACK_TRACE" type="CLOB">
+                <constraints nullable="true"/>
+            </column>
+            
+            <column name="RETRY_COUNT" type="NUMBER(2)" defaultValue="0">
+                <constraints nullable="false"/>
+            </column>
+            
+            <!-- Execution Details -->
+            <column name="EXECUTION_PARAMETERS" type="CLOB">
+                <constraints nullable="true"/>
+            </column>
+            
+            <column name="EXECUTION_LOG" type="CLOB">
+                <constraints nullable="true"/>
+            </column>
+            
+            <column name="OUTPUT_LOCATION" type="VARCHAR(500)">
+                <constraints nullable="true"/>
+            </column>
+            
+            <!-- Monitoring Integration -->
+            <column name="CORRELATION_ID" type="VARCHAR(100)">
+                <constraints nullable="true"/>
+            </column>
+            
+            <column name="MONITORING_ALERTS_SENT" type="CHAR(1)" defaultValue="N">
+                <constraints nullable="false"/>
+            </column>
+            
+            <!-- Audit Information -->
+            <column name="EXECUTED_BY" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+            
+            <column name="EXECUTION_HOST" type="VARCHAR(100)">
+                <constraints nullable="true"/>
+            </column>
+            
+            <column name="EXECUTION_ENVIRONMENT" type="VARCHAR(20)">
+                <constraints nullable="false"/>
+            </column>
+            
+            <column name="CREATED_DATE" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <!-- Add Foreign Key Constraint to MANUAL_JOB_CONFIG -->
+        <addForeignKeyConstraint baseTableName="MANUAL_JOB_EXECUTION" 
+                                baseColumnNames="CONFIG_ID"
+                                constraintName="FK_MANUAL_JOB_EXECUTION_CONFIG"
+                                referencedTableName="MANUAL_JOB_CONFIG"
+                                referencedColumnNames="CONFIG_ID"
+                                onDelete="RESTRICT"
+                                onUpdate="RESTRICT"/>
+
+        <!-- Add Check Constraints -->
+        <sql>
+            ALTER TABLE MANUAL_JOB_EXECUTION 
+            ADD CONSTRAINT CHK_MANUAL_EXECUTION_STATUS 
+            CHECK (STATUS IN ('STARTED', 'RUNNING', 'COMPLETED', 'FAILED', 'CANCELLED', 'RETRY'))
+        ; </sql>
+
+        <sql>
+            ALTER TABLE MANUAL_JOB_EXECUTION 
+            ADD CONSTRAINT CHK_MANUAL_EXECUTION_TYPE 
+            CHECK (EXECUTION_TYPE IN ('MANUAL', 'SCHEDULED', 'TRIGGERED', 'RETRY'))
+        ; </sql>
+
+        <sql>
+            ALTER TABLE MANUAL_JOB_EXECUTION 
+            ADD CONSTRAINT CHK_MANUAL_EXECUTION_ALERTS 
+            CHECK (MONITORING_ALERTS_SENT IN ('Y', 'N'))
+        ; </sql>
+
+        <sql>
+            ALTER TABLE MANUAL_JOB_EXECUTION 
+            ADD CONSTRAINT CHK_MANUAL_EXECUTION_ERROR_PCT 
+            CHECK (ERROR_PERCENTAGE BETWEEN 0 AND 100)
+        ; </sql>
+
+        <!-- Add Table Comments -->
+        <setTableRemarks tableName="MANUAL_JOB_EXECUTION" 
+                        remarks="Manual Job Execution tracking table - stores execution history, performance metrics, and monitoring data"
+                        />
+
+        <rollback>
+            <dropTable tableName="MANUAL_JOB_EXECUTION" />
+        </rollback>
+
+    </changeSet>
+
+    <!-- Create Performance Indexes for Execution Queries -->
+    <changeSet id="us001-002-create-manual-job-execution-indexes" 
+               author="Senior Full Stack Developer Agent"
+               context="development,test,staging,production"
+               labels="us001,job-execution,performance">
+        
+        <comment>
+            Create performance indexes for manual job execution queries used by monitoring dashboard and reporting.
+        </comment>
+
+        <!-- Index for status-based queries -->
+        <createIndex tableName="MANUAL_JOB_EXECUTION" 
+                     indexName="IDX_MANUAL_JOB_EXEC_STATUS"
+                     >
+            <column name="STATUS"/>
+        </createIndex>
+
+        <!-- Index for time-based queries (monitoring dashboard) -->
+        <createIndex tableName="MANUAL_JOB_EXECUTION" 
+                     indexName="IDX_MANUAL_JOB_EXEC_START_TIME"
+                     >
+            <column name="START_TIME" type="DESC"/>
+        </createIndex>
+
+        <!-- Index for job name queries -->
+        <createIndex tableName="MANUAL_JOB_EXECUTION" 
+                     indexName="IDX_MANUAL_JOB_EXEC_NAME"
+                     >
+            <column name="JOB_NAME"/>
+        </createIndex>
+
+        <!-- Index for correlation ID (distributed tracing) -->
+        <createIndex tableName="MANUAL_JOB_EXECUTION" 
+                     indexName="IDX_MANUAL_JOB_EXEC_CORRELATION"
+                     >
+            <column name="CORRELATION_ID"/>
+        </createIndex>
+
+        <!-- Composite index for active job monitoring -->
+        <createIndex tableName="MANUAL_JOB_EXECUTION" 
+                     indexName="IDX_MANUAL_JOB_EXEC_ACTIVE"
+                     >
+            <column name="STATUS"/>
+            <column name="START_TIME" type="DESC"/>
+        </createIndex>
+
+        <!-- Index for execution environment queries -->
+        <createIndex tableName="MANUAL_JOB_EXECUTION" 
+                     indexName="IDX_MANUAL_JOB_EXEC_ENV"
+                     >
+            <column name="EXECUTION_ENVIRONMENT"/>
+        </createIndex>
+
+        <rollback>
+            <dropIndex tableName="MANUAL_JOB_EXECUTION" indexName="IDX_MANUAL_JOB_EXEC_STATUS" />
+            <dropIndex tableName="MANUAL_JOB_EXECUTION" indexName="IDX_MANUAL_JOB_EXEC_START_TIME" />
+            <dropIndex tableName="MANUAL_JOB_EXECUTION" indexName="IDX_MANUAL_JOB_EXEC_NAME" />
+            <dropIndex tableName="MANUAL_JOB_EXECUTION" indexName="IDX_MANUAL_JOB_EXEC_CORRELATION" />
+            <dropIndex tableName="MANUAL_JOB_EXECUTION" indexName="IDX_MANUAL_JOB_EXEC_ACTIVE" />
+            <dropIndex tableName="MANUAL_JOB_EXECUTION" indexName="IDX_MANUAL_JOB_EXEC_ENV" />
+        </rollback>
+
+    </changeSet>
+
+</databaseChangeLog>

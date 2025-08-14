@@ -1,0 +1,264 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:oracle="http://www.liquibase.org/xml/ns/dbchangelog/oracle"
+    xsi:schemaLocation="
+        http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd
+        http://www.liquibase.org/xml/ns/dbchangelog/oracle
+        http://www.liquibase.org/xml/ns/oracle/oracle.xsd">
+
+    <!-- 
+    =========================================================================
+    US001-001: MANUAL JOB CONFIGURATION CORE TABLE
+    =========================================================================
+    
+    Purpose: Core table for storing manual job configurations
+    - Supports all job types (ETL, batch processing, data validation)
+    - JSON/CLOB storage for flexible parameter configuration
+    - Built-in versioning and audit trail integration
+    - SOX-compliant change tracking
+    
+    Security: 
+    - Sensitive parameters will be encrypted at application layer
+    - Audit trail for all configuration changes
+    - Role-based access control integration
+    
+    =========================================================================
+    -->
+
+    <changeSet id="us001-001-create-manual-job-config-table" 
+               author="Senior Full Stack Developer Agent" 
+               context="development,test,staging,production"
+               labels="us001,manual-job-config,sox-compliant,banking-grade">
+        
+        <comment>
+            Create MANUAL_JOB_CONFIG table for US001 Manual Job Configuration Interface.
+            This table stores the core job configuration data including job parameters,
+            scheduling, validation rules, and notification settings.
+        </comment>
+
+        <createTable tableName="MANUAL_JOB_CONFIG" >
+            <!-- Primary Key and Identification -->
+            <column name="CONFIG_ID" type="VARCHAR(50)">
+                <constraints primaryKey="true" primaryKeyName="PK_MANUAL_JOB_CONFIG"/>
+            </column>
+            
+            <!-- Core Job Information -->
+            <column name="JOB_NAME" type="VARCHAR(100)">
+                <constraints nullable="false"/>
+            </column>
+            
+            <column name="JOB_TYPE" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+            
+            <column name="SOURCE_SYSTEM" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+            
+            <column name="TARGET_SYSTEM" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+            
+            <!-- Configuration Data -->
+            <column name="JOB_PARAMETERS" type="CLOB">
+                <constraints nullable="false"/>
+            </column>
+            
+            <column name="SCHEDULE_EXPRESSION" type="VARCHAR(100)">
+                <constraints nullable="true"/>
+            </column>
+            
+            <!-- Status and Control -->
+            <column name="STATUS" type="VARCHAR(20)" defaultValue="ACTIVE">
+                <constraints nullable="false"/>
+            </column>
+            
+            <column name="VALIDATION_RULES" type="CLOB">
+                <constraints nullable="true"/>
+            </column>
+            
+            <!-- Error Handling Configuration -->
+            <column name="ERROR_THRESHOLD" type="NUMBER(5,2)" defaultValue="5.0">
+                <constraints nullable="false"/>
+            </column>
+            
+            <column name="RETRY_COUNT" type="NUMBER(2)" defaultValue="3">
+                <constraints nullable="false"/>
+            </column>
+            
+            <!-- Notification Configuration -->
+            <column name="NOTIFICATION_CONFIG" type="CLOB">
+                <constraints nullable="true"/>
+            </column>
+            
+            <!-- Audit and Version Control -->
+            <column name="CREATED_BY" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+            
+            <column name="CREATED_DATE" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            
+            <column name="UPDATED_BY" type="VARCHAR(50)">
+                <constraints nullable="true"/>
+            </column>
+            
+            <column name="UPDATED_DATE" type="TIMESTAMP">
+                <constraints nullable="true"/>
+            </column>
+            
+            <column name="VERSION_DECIMAL" type="NUMBER(10)" defaultValue="1">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <rollback>
+            <dropTable tableName="MANUAL_JOB_CONFIG" />
+        </rollback>
+
+    </changeSet>
+
+    <!-- Add Check Constraints for Data Validation -->
+    <changeSet id="us001-001-add-manual-job-config-constraints" 
+               author="Senior Full Stack Developer Agent" 
+               context="development,test,staging,production"
+               labels="us001,manual-job-config,constraints">
+        
+        <comment>
+            Add check constraints for Manual Job Configuration table to ensure data integrity.
+        </comment>
+
+        <sql>
+            ALTER TABLE MANUAL_JOB_CONFIG 
+            ADD CONSTRAINT CHK_MANUAL_JOB_STATUS 
+            CHECK (STATUS IN ('ACTIVE', 'INACTIVE', 'DEPRECATED'))
+        ; </sql>
+
+        <sql>
+            ALTER TABLE MANUAL_JOB_CONFIG 
+            ADD CONSTRAINT CHK_MANUAL_JOB_ERROR_THRESHOLD 
+            CHECK (ERROR_THRESHOLD BETWEEN 0 AND 100)
+        ; </sql>
+
+        <sql>
+            ALTER TABLE MANUAL_JOB_CONFIG 
+            ADD CONSTRAINT CHK_MANUAL_JOB_RETRY_COUNT 
+            CHECK (RETRY_COUNT BETWEEN 0 AND 10)
+        ; </sql>
+
+        <rollback>
+            <sql>ALTER TABLE MANUAL_JOB_CONFIG DROP CONSTRAINT CHK_MANUAL_JOB_STATUS; </sql>
+            <sql>ALTER TABLE MANUAL_JOB_CONFIG DROP CONSTRAINT CHK_MANUAL_JOB_ERROR_THRESHOLD; </sql>
+            <sql>ALTER TABLE MANUAL_JOB_CONFIG DROP CONSTRAINT CHK_MANUAL_JOB_RETRY_COUNT; </sql>
+        </rollback>
+
+    </changeSet>
+
+    <!-- Add Comments for Database Documentation -->
+    <changeSet id="us001-001-add-manual-job-config-remarks" 
+               author="Senior Full Stack Developer Agent" 
+               context="development,test,staging,production"
+               labels="us001,manual-job-config,documentation">
+        
+        <comment>
+            Add table and column remarks for documentation purposes.
+        </comment>
+
+        <setTableRemarks tableName="MANUAL_JOB_CONFIG" 
+                        remarks="Manual Job Configuration table for US001 - stores job definitions, parameters, and configuration settings"
+                        />
+
+        <setColumnRemarks tableName="MANUAL_JOB_CONFIG" columnName="CONFIG_ID" 
+                         remarks="Unique identifier for job configuration (format: cfg_{system}_{sequence}_{date})"
+                         />
+        
+        <setColumnRemarks tableName="MANUAL_JOB_CONFIG" columnName="JOB_PARAMETERS" 
+                         remarks="JSON-formatted job parameters - encrypted for sensitive data"
+                         />
+
+        <rollback>
+            <!-- No rollback needed for remarks -->
+        </rollback>
+
+    </changeSet>
+
+    <!-- Create Unique Index on Job Name for Active Configurations -->
+    <changeSet id="us001-001-create-manual-job-config-unique-index" 
+               author="Senior Full Stack Developer Agent"
+               context="development,test,staging,production"
+               labels="us001,manual-job-config,performance">
+        
+        <comment>
+            Create unique index on JOB_NAME for active configurations to prevent duplicate job names.
+            This ensures data integrity while allowing historical records with same names.
+        </comment>
+
+        <createIndex tableName="MANUAL_JOB_CONFIG" 
+                     indexName="UK_MANUAL_JOB_CONFIG_ACTIVE_NAME" 
+                     unique="true"
+                     >
+            <column name="JOB_NAME"/>
+            <column name="STATUS"/>
+        </createIndex>
+
+        <rollback>
+            <dropIndex tableName="MANUAL_JOB_CONFIG" 
+                      indexName="UK_MANUAL_JOB_CONFIG_ACTIVE_NAME"
+                      />
+        </rollback>
+
+    </changeSet>
+
+    <!-- Add Performance Indexes -->
+    <changeSet id="us001-001-create-manual-job-config-indexes" 
+               author="Senior Full Stack Developer Agent"
+               context="development,test,staging,production"
+               labels="us001,manual-job-config,performance">
+        
+        <comment>
+            Create performance indexes for common query patterns in manual job configuration.
+        </comment>
+
+        <!-- Index for job type queries -->
+        <createIndex tableName="MANUAL_JOB_CONFIG" 
+                     indexName="IDX_MANUAL_JOB_CONFIG_TYPE"
+                     >
+            <column name="JOB_TYPE"/>
+        </createIndex>
+
+        <!-- Index for status queries -->
+        <createIndex tableName="MANUAL_JOB_CONFIG" 
+                     indexName="IDX_MANUAL_JOB_CONFIG_STATUS"
+                     >
+            <column name="STATUS"/>
+        </createIndex>
+
+        <!-- Index for created date queries (reporting) -->
+        <createIndex tableName="MANUAL_JOB_CONFIG" 
+                     indexName="IDX_MANUAL_JOB_CONFIG_CREATED"
+                     >
+            <column name="CREATED_DATE"/>
+        </createIndex>
+
+        <!-- Composite index for system queries -->
+        <createIndex tableName="MANUAL_JOB_CONFIG" 
+                     indexName="IDX_MANUAL_JOB_CONFIG_SYSTEM"
+                     >
+            <column name="SOURCE_SYSTEM"/>
+            <column name="TARGET_SYSTEM"/>
+        </createIndex>
+
+        <rollback>
+            <dropIndex tableName="MANUAL_JOB_CONFIG" indexName="IDX_MANUAL_JOB_CONFIG_TYPE" />
+            <dropIndex tableName="MANUAL_JOB_CONFIG" indexName="IDX_MANUAL_JOB_CONFIG_STATUS" />
+            <dropIndex tableName="MANUAL_JOB_CONFIG" indexName="IDX_MANUAL_JOB_CONFIG_CREATED" />
+            <dropIndex tableName="MANUAL_JOB_CONFIG" indexName="IDX_MANUAL_JOB_CONFIG_SYSTEM" />
+        </rollback>
+
+    </changeSet>
+
+</databaseChangeLog>

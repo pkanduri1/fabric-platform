@@ -1,0 +1,422 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:oracle="http://www.liquibase.org/xml/ns/dbchangelog/oracle"
+    xsi:schemaLocation="
+        http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd
+        http://www.liquibase.org/xml/ns/dbchangelog/oracle
+        http://www.liquibase.org/xml/ns/oracle/oracle.xsd">
+
+    <!-- 
+    =========================================================================
+    US001-007: REFERENCE DATA AND INITIAL TEMPLATES
+    =========================================================================
+    
+    Purpose: Insert reference data and default templates for US001
+    - System default job parameter templates
+    - Reference data for job types and categories
+    - Initial configuration templates
+    - Sample data for development and testing
+    
+    Security: Contains system templates and reference data only
+    
+    =========================================================================
+    -->
+
+    <changeSet id="us001-007-insert-system-templates" 
+               author="Senior Full Stack Developer Agent" 
+               context="development,test,staging,production"
+               labels="us001,reference-data,system-templates">
+        
+        <comment>
+            Insert system default job parameter templates for common job types.
+            These templates provide standardized configurations for typical banking batch jobs.
+        </comment>
+
+        <!-- ETL Batch Job Template -->
+        <insert tableName="JOB_PARAMETER_TEMPLATES" >
+            <column name="TEMPLATE_ID">tpl_etl_standard_001</column>
+            <column name="TEMPLATE_NAME">Standard ETL Batch Template</column>
+            <column name="JOB_TYPE">ETL_BATCH</column>
+            <column name="TEMPLATE_VERSION">1.0</column>
+            <column name="TEMPLATE_DESCRIPTION">Standard template for ETL batch processing jobs with common parameters and validation rules</column>
+            <column name="TEMPLATE_SCHEMA">{
+                "type": "object",
+                "properties": {
+                    "inputPath": {
+                        "type": "string",
+                        "pattern": "^/data/input/[a-zA-Z0-9_]+$",
+                        "description": "Input file directory path"
+                    },
+                    "outputPath": {
+                        "type": "string", 
+                        "pattern": "^/data/output/[a-zA-Z0-9_]+$",
+                        "description": "Output file directory path"
+                    },
+                    "batchSize": {
+                        "type": "integer",
+                        "minimum": 100,
+                        "maximum": 10000,
+                        "description": "Number of records to process in each batch"
+                    },
+                    "parallelThreads": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 16,
+                        "description": "Number of parallel processing threads"
+                    },
+                    "fileFormat": {
+                        "type": "string",
+                        "enum": ["CSV", "FIXED_WIDTH", "JSON", "XML"],
+                        "description": "Input file format"
+                    },
+                    "delimiter": {
+                        "type": "string",
+                        "description": "Field delimiter for delimited files"
+                    }
+                },
+                "required": ["inputPath", "outputPath", "batchSize", "fileFormat"]
+            }</column>
+            <column name="DEFAULT_VALUES">{
+                "batchSize": 1000,
+                "parallelThreads": 4,
+                "fileFormat": "CSV",
+                "delimiter": ","
+            }</column>
+            <column name="VALIDATION_RULES">{
+                "inputPath": "Directory must exist and be readable",
+                "outputPath": "Directory must exist and be writable", 
+                "batchSize": "Must be between 100 and 10000 for optimal performance"
+            }</column>
+            <column name="CATEGORY">DATA_PROCESSING</column>
+            <column name="TAGS">etl,batch,standard,data-processing</column>
+            <column name="STATUS">ACTIVE</column>
+            <column name="IS_SYSTEM_TEMPLATE">Y</column>
+            <column name="IS_DEPRECATED">N</column>
+            <column name="COMPLIANCE_NOTES">SOX compliant template with audit trail support</column>
+            <column name="CREATED_BY">SYSTEM</column>
+            <column name="CREATED_DATE" valueComputed="NOW()"/>
+            <column name="VERSION_NUMBER">1</column>
+        </insert>
+
+        <!-- File Processing Template -->
+        <insert tableName="JOB_PARAMETER_TEMPLATES" >
+            <column name="TEMPLATE_ID">tpl_file_processor_001</column>
+            <column name="TEMPLATE_NAME">File Processing Template</column>
+            <column name="JOB_TYPE">FILE_PROCESSING</column>
+            <column name="TEMPLATE_VERSION">1.0</column>
+            <column name="TEMPLATE_DESCRIPTION">Template for file processing and validation jobs</column>
+            <column name="TEMPLATE_SCHEMA">{
+                "type": "object",
+                "properties": {
+                    "inputDirectory": {
+                        "type": "string",
+                        "description": "Input file directory"
+                    },
+                    "archiveDirectory": {
+                        "type": "string",
+                        "description": "Archive directory for processed files"
+                    },
+                    "errorDirectory": {
+                        "type": "string",
+                        "description": "Directory for files with errors"
+                    },
+                    "filePattern": {
+                        "type": "string",
+                        "description": "Regex pattern for file matching"
+                    },
+                    "maxFileAge": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "description": "Maximum file age in hours"
+                    },
+                    "validateChecksum": {
+                        "type": "boolean",
+                        "description": "Validate file checksum"
+                    },
+                    "compressionType": {
+                        "type": "string",
+                        "enum": ["NONE", "GZIP", "ZIP"],
+                        "description": "File compression type"
+                    }
+                },
+                "required": ["inputDirectory", "archiveDirectory", "filePattern"]
+            }</column>
+            <column name="DEFAULT_VALUES">{
+                "maxFileAge": 24,
+                "validateChecksum": true,
+                "compressionType": "NONE"
+            }</column>
+            <column name="VALIDATION_RULES">{
+                "filePattern": "Must be valid regex pattern",
+                "maxFileAge": "Must be positive integer"
+            }</column>
+            <column name="CATEGORY">FILE_MANAGEMENT</column>
+            <column name="TAGS">file,processing,validation</column>
+            <column name="STATUS">ACTIVE</column>
+            <column name="IS_SYSTEM_TEMPLATE">Y</column>
+            <column name="IS_DEPRECATED">N</column>
+            <column name="CREATED_BY">SYSTEM</column>
+            <column name="CREATED_DATE" valueComputed="NOW()"/>
+            <column name="VERSION_NUMBER">1</column>
+        </insert>
+
+        <!-- Data Validation Template -->
+        <insert tableName="JOB_PARAMETER_TEMPLATES" >
+            <column name="TEMPLATE_ID">tpl_data_validation_001</column>
+            <column name="TEMPLATE_NAME">Data Validation Template</column>
+            <column name="JOB_TYPE">DATA_VALIDATION</column>
+            <column name="TEMPLATE_VERSION">1.0</column>
+            <column name="TEMPLATE_DESCRIPTION">Template for data quality and validation jobs</column>
+            <column name="TEMPLATE_SCHEMA">{
+                "type": "object",
+                "properties": {
+                    "sourceTable": {
+                        "type": "string",
+                        "description": "Source table for validation"
+                    },
+                    "validationRules": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "field": {"type": "string"},
+                                "rule": {"type": "string"},
+                                "severity": {"type": "string", "enum": ["WARNING", "ERROR", "CRITICAL"]}
+                            }
+                        },
+                        "description": "List of validation rules"
+                    },
+                    "errorThreshold": {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 100,
+                        "description": "Error threshold percentage"
+                    },
+                    "generateReport": {
+                        "type": "boolean",
+                        "description": "Generate validation report"
+                    },
+                    "reportFormat": {
+                        "type": "string",
+                        "enum": ["HTML", "PDF", "CSV", "JSON"],
+                        "description": "Report output format"
+                    }
+                },
+                "required": ["sourceTable", "validationRules", "errorThreshold"]
+            }</column>
+            <column name="DEFAULT_VALUES">{
+                "errorThreshold": 5.0,
+                "generateReport": true,
+                "reportFormat": "HTML"
+            }</column>
+            <column name="VALIDATION_RULES">{
+                "sourceTable": "Must be valid table name",
+                "errorThreshold": "Must be between 0 and 100"
+            }</column>
+            <column name="CATEGORY">DATA_QUALITY</column>
+            <column name="TAGS">validation,quality,rules</column>
+            <column name="STATUS">ACTIVE</column>
+            <column name="IS_SYSTEM_TEMPLATE">Y</column>
+            <column name="IS_DEPRECATED">N</column>
+            <column name="CREATED_BY">SYSTEM</column>
+            <column name="CREATED_DATE" valueComputed="NOW()"/>
+            <column name="VERSION_NUMBER">1</column>
+        </insert>
+
+        <rollback>
+            <delete tableName="JOB_PARAMETER_TEMPLATES" >
+                <where>IS_SYSTEM_TEMPLATE = 'Y' AND CREATED_BY = 'SYSTEM'</where>
+            </delete>
+        </rollback>
+
+    </changeSet>
+
+    <changeSet id="us001-007-insert-sample-configurations" 
+               author="Senior Full Stack Developer Agent"
+               context="development,test"
+               labels="us001,sample-data,development-only">
+        
+        <comment>
+            Insert sample job configurations for development and testing.
+            This data only exists in development and test environments.
+        </comment>
+
+        <!-- Sample TCB ETL Configuration -->
+        <insert tableName="MANUAL_JOB_CONFIG" >
+            <column name="CONFIG_ID">cfg_tcb_sample_001</column>
+            <column name="JOB_NAME">TCB_TRANSACTION_ETL_SAMPLE</column>
+            <column name="JOB_TYPE">ETL_BATCH</column>
+            <column name="SOURCE_SYSTEM">TCB</column>
+            <column name="TARGET_SYSTEM">FABRIC_DW</column>
+            <column name="JOB_PARAMETERS">{
+                "inputPath": "/data/input/tcb",
+                "outputPath": "/data/output/tcb",
+                "batchSize": 1000,
+                "parallelThreads": 4,
+                "fileFormat": "CSV",
+                "delimiter": ",",
+                "headerRow": true,
+                "encoding": "UTF-8"
+            }</column>
+            <column name="SCHEDULE_EXPRESSION">0 0 2 * * ?</column>
+            <column name="STATUS">ACTIVE</column>
+            <column name="VALIDATION_RULES">{
+                "maxFileSize": "100MB",
+                "requiredFields": ["account_id", "transaction_date", "amount"],
+                "dateFormat": "yyyy-MM-dd"
+            }</column>
+            <column name="ERROR_THRESHOLD">2.5</column>
+            <column name="RETRY_COUNT">3</column>
+            <column name="NOTIFICATION_CONFIG">{
+                "emailRecipients": ["dev-team@bank.com"],
+                "slackChannel": "#fabric-dev",
+                "onSuccess": true,
+                "onFailure": true
+            }</column>
+            <column name="CREATED_BY">developer</column>
+            <column name="CREATED_DATE" valueComputed="NOW()"/>
+            <column name="VERSION_NUMBER">1</column>
+        </insert>
+
+        <!-- Sample File Processing Configuration -->
+        <insert tableName="MANUAL_JOB_CONFIG" >
+            <column name="CONFIG_ID">cfg_file_proc_sample_001</column>
+            <column name="JOB_NAME">DAILY_FILE_PROCESSOR_SAMPLE</column>
+            <column name="JOB_TYPE">FILE_PROCESSING</column>
+            <column name="SOURCE_SYSTEM">FILE_SYSTEM</column>
+            <column name="TARGET_SYSTEM">ARCHIVE</column>
+            <column name="JOB_PARAMETERS">{
+                "inputDirectory": "/data/incoming",
+                "archiveDirectory": "/data/archive",
+                "errorDirectory": "/data/error",
+                "filePattern": "DAILY_TRANS_\\d{8}\\.csv",
+                "maxFileAge": 24,
+                "validateChecksum": true,
+                "compressionType": "GZIP"
+            }</column>
+            <column name="SCHEDULE_EXPRESSION">0 30 1 * * ?</column>
+            <column name="STATUS">ACTIVE</column>
+            <column name="ERROR_THRESHOLD">1.0</column>
+            <column name="RETRY_COUNT">2</column>
+            <column name="CREATED_BY">developer</column>
+            <column name="CREATED_DATE" valueComputed="NOW()"/>
+            <column name="VERSION_NUMBER">1</column>
+        </insert>
+
+        <rollback>
+            <delete tableName="MANUAL_JOB_CONFIG" >
+                <where>CREATED_BY = 'developer' AND CONFIG_ID LIKE 'cfg_%_sample_%'</where>
+            </delete>
+        </rollback>
+
+    </changeSet>
+
+    <changeSet id="us001-007-insert-system-error-log-table" 
+               author="Senior Full Stack Developer Agent"
+               context="development,test,staging,production"
+               labels="us001,error-handling,system-logging">
+        
+        <comment>
+            Create system error log table for capturing audit trigger errors and other system issues.
+        </comment>
+
+        <createTable tableName="SYSTEM_ERROR_LOG" >
+            <column name="ERROR_ID" type="VARCHAR(50)">
+                <constraints primaryKey="true" primaryKeyName="PK_SYSTEM_ERROR_LOG"/>
+            </column>
+            <column name="ERROR_MESSAGE" type="VARCHAR(4000)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="ERROR_STACK" type="CLOB">
+                <constraints nullable="true"/>
+            </column>
+            <column name="ERROR_DATE" type="TIMESTAMP" defaultValueComputed="NOW()">
+                <constraints nullable="false"/>
+            </column>
+            <column name="SOURCE_OPERATION" type="VARCHAR(100)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="SEVERITY" type="VARCHAR(20)" defaultValue="ERROR">
+                <constraints nullable="false"/>
+            </column>
+            <column name="RESOLUTION_STATUS" type="VARCHAR(20)" defaultValue="OPEN">
+                <constraints nullable="false"/>
+            </column>
+            <column name="RESOLVED_BY" type="VARCHAR(50)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="RESOLVED_DATE" type="TIMESTAMP">
+                <constraints nullable="true"/>
+            </column>
+        </createTable>
+
+        <sql>
+            ALTER TABLE SYSTEM_ERROR_LOG 
+            ADD CONSTRAINT CHK_ERROR_SEVERITY 
+            CHECK (SEVERITY IN ('INFO', 'WARNING', 'ERROR', 'CRITICAL'))
+        ; </sql>
+
+        <sql>
+            ALTER TABLE SYSTEM_ERROR_LOG 
+            ADD CONSTRAINT CHK_ERROR_RESOLUTION 
+            CHECK (RESOLUTION_STATUS IN ('OPEN', 'IN_PROGRESS', 'RESOLVED', 'CLOSED'))
+        ; </sql>
+
+        <createIndex tableName="SYSTEM_ERROR_LOG" 
+                     indexName="IDX_SYSTEM_ERROR_DATE"
+                     >
+            <column name="ERROR_DATE" type="DESC"/>
+        </createIndex>
+
+        <rollback>
+            <dropTable tableName="SYSTEM_ERROR_LOG" />
+        </rollback>
+
+    </changeSet>
+
+    <changeSet id="us001-007-update-template-usage" 
+               author="Senior Full Stack Developer Agent"
+               context="development,test,staging,production"
+               labels="us001,template-maintenance,system-maintenance"
+               runOnChange="true">
+        
+        <comment>
+            Create procedure to update template usage statistics.
+            This helps track which templates are most commonly used.
+        </comment>
+
+        <sql>
+            CREATE OR REPLACE PROCEDURE FABRIC_CORE.UPDATE_TEMPLATE_USAGE(
+                p_template_id VARCHAR
+            )
+            IS
+            BEGIN
+                UPDATE FABRIC_CORE.JOB_PARAMETER_TEMPLATES
+                SET USAGE_COUNT = USAGE_COUNT + 1,
+                    LAST_USED_DATE = NOW()
+                WHERE TEMPLATE_ID = p_template_id;
+                
+                IF SQL%ROWCOUNT = 0 THEN
+                    RAISE_APPLICATION_ERROR(-20003, 
+                        'Template not found: ' || p_template_id);
+                END IF;
+                
+                COMMIT;
+                
+            EXCEPTION
+                WHEN OTHERS THEN
+                    ROLLBACK;
+                    RAISE;
+            END UPDATE_TEMPLATE_USAGE;
+        ; </sql>
+
+        <rollback>
+            <sql>DROP PROCEDURE FABRIC_CORE.UPDATE_TEMPLATE_USAGE; </sql>
+        </rollback>
+
+    </changeSet>
+
+</databaseChangeLog>
