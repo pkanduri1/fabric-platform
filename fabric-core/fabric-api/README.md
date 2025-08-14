@@ -23,10 +23,13 @@ The Fabric API is a Spring Boot application designed for enterprise batch proces
 ### Key Features
 
 - **Manual Job Configuration Interface (US001)** - Complete CRUD operations for job configurations
+- **Manual Batch Execution Interface (Phase 3)** - JSON-to-YAML conversion and batch job triggering
 - **Enterprise Security** - JWT authentication, RBAC authorization, LDAP integration
 - **Oracle Database Integration** - JdbcTemplate-based data access with CM3INT schema
 - **RESTful APIs** - OpenAPI 3.0 documented endpoints with comprehensive validation
 - **Audit Trail** - SOX-compliant audit logging and data lineage tracking
+- **ENCORE Test Data Simulation** - Complete testing framework for batch jobs
+- **Fixed-Width File Generation** - Database-driven file creation for mainframe integration
 - **High Availability** - Production-ready with monitoring and health checks
 
 ### Technology Stack
@@ -101,6 +104,184 @@ Implements US001 - Manual Job Configuration Interface for operations teams to co
 | `JOB_MODIFIER` | Full CRUD operations on configurations |
 | `JOB_EXECUTOR` | Execute jobs and read configurations |
 
+## Manual Batch Execution Feature
+
+### Business Context
+
+Implements Phase 3 - Manual Batch Execution capabilities for operations teams to trigger batch processing jobs using JSON configurations stored in the database. Includes JSON-to-YAML conversion, master query management, and ENCORE test data simulation.
+
+### Core Functionality
+
+1. **JSON Configuration Processing** - Convert stored JSON job parameters to YAML format for Spring Batch
+2. **Master Query Execution** - Execute SQL queries from `MASTER_QUERY_CONFIG` table
+3. **ENCORE Test Data** - Simulated source system data for testing and development
+4. **Fixed-Width File Generation** - Create mainframe-compatible output files
+5. **Execution Tracking** - Monitor job progress and results in `BATCH_EXECUTION_RESULTS`
+6. **AtocTran Job Support** - Complete implementation for transaction code 200 processing
+
+### API Endpoints
+
+#### Execute Batch Job
+```http
+POST /api/v2/manual-job-execution/execute/{configId}
+Content-Type: application/json
+Authorization: Bearer <token>
+
+{
+  "batchDate": "2025-08-14",
+  "additionalParam": "value"
+}
+```
+
+**Response:**
+```json
+{
+  "executionId": "exec_atoctran_encore_200_job_20250814_143025_a1b2c3d4",
+  "correlationId": "550e8400-e29b-41d4-a716-446655440000",
+  "status": "RUNNING",
+  "startTime": "2025-08-14T14:30:25",
+  "configId": "cfg_encore_1691234567890_xyz",
+  "jobName": "atoctran_encore_200_job",
+  "message": "Batch job execution initiated successfully"
+}
+```
+
+#### Get Execution Status
+```http
+GET /api/v2/manual-job-execution/status/{executionId}
+Authorization: Bearer <token>
+```
+
+#### Get Master Query
+```http
+GET /api/v2/manual-job-execution/query/{sourceSystem}/{jobName}
+Authorization: Bearer <token>
+
+# Example:
+GET /api/v2/manual-job-execution/query/ENCORE/atoctran_encore_200_job
+```
+
+### Sample AtocTran Configuration
+
+Example JSON configuration for AtocTran transaction code 200:
+
+```json
+{
+  "sourceSystem": "ENCORE",
+  "jobName": "atoctran_encore_200_job",
+  "transactionType": "200",
+  "outputFileName": "ATOCTRAN_ENCORE_200_{batchDate}.dat",
+  "fields": {
+    "location_code": {
+      "transformationType": "constant",
+      "value": "100030",
+      "length": 6,
+      "targetPosition": 1
+    },
+    "acct_num": {
+      "transformationType": "source",
+      "sourceField": "acct_num",
+      "length": 18,
+      "targetPosition": 2
+    },
+    "transaction_code": {
+      "transformationType": "constant",
+      "value": "200",
+      "length": 3,
+      "targetPosition": 3
+    },
+    "transaction_date": {
+      "transformationType": "source",
+      "sourceField": "batch_date",
+      "format": "YYYYMMDD",
+      "length": 8,
+      "targetPosition": 4
+    },
+    "previous_cci": {
+      "transformationType": "source",
+      "sourceField": "cci",
+      "length": 1,
+      "targetPosition": 5
+    },
+    "portfolio_location_cd": {
+      "transformationType": "constant",
+      "value": "200000",
+      "length": 6,
+      "targetPosition": 6
+    },
+    "customer_portfolio_id": {
+      "transformationType": "source",
+      "sourceField": "contact_id",
+      "length": 18,
+      "targetPosition": 7
+    },
+    "portfolio_contact_id": {
+      "transformationType": "source",
+      "sourceField": "contact_id",
+      "length": 18,
+      "targetPosition": 8
+    }
+  }
+}
+```
+
+### Expected Output Format
+
+Fixed-width file format for AtocTran transaction code 200:
+
+```
+Position  Field                    Length  Format    Example
+1-6       location-code            6       Constant  100030
+7-24      acct-num                18       Source    100234567890123456
+25-27     transaction-code         3       Constant  200
+28-35     transaction-date         8       YYYYMMDD  20250814
+36        previous-cci             1       Source    A
+37-42     portfolio-location-cd    6       Constant  200000
+43-60     customer-portfolio-id   18       Source    CONT001234567890
+61-78     portfolio-contact-id    18       Source    CONT001234567890
+```
+
+**Sample Output Line:**
+```
+100030100234567890123456200     20250814A200000CONT001234567890  CONT001234567890
+```
+
+### Test Data and QA
+
+#### ENCORE Test Data
+The system includes comprehensive test data in `ENCORE_TEST_DATA` table:
+
+- **5 records for 2025-08-14**: Accounts 100234567890123456 through 500678901234567890
+- **2 records for 2025-08-15**: Accounts 600789012345678901 through 700890123456789012
+- **CCI values**: Rotating A, B, C pattern for testing different customer classifications
+- **Contact IDs**: Systematic CONT-prefixed identifiers
+
+#### QA Testing Instructions
+
+1. **Configuration Test**: Create job configuration using sample JSON above
+2. **Execution Test**: Execute job with `POST /api/v2/manual-job-execution/execute/{configId}`
+3. **Status Verification**: Monitor execution with `GET /api/v2/manual-job-execution/status/{executionId}`
+4. **Output Validation**: Verify fixed-width file generation in `/tmp/batch/output`
+5. **Data Lineage**: Confirm audit trail in `BATCH_EXECUTION_RESULTS` table
+
+#### Sample cURL Commands
+
+```bash
+# Execute AtocTran job for today
+curl -X POST http://localhost:8080/api/v2/manual-job-execution/execute/cfg_encore_1691234567890_xyz \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"batchDate": "2025-08-14"}'
+
+# Check execution status
+curl -X GET http://localhost:8080/api/v2/manual-job-execution/status/exec_atoctran_encore_200_job_20250814_143025_a1b2c3d4 \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
+
+# Get master query
+curl -X GET http://localhost:8080/api/v2/manual-job-execution/query/ENCORE/atoctran_encore_200_job \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
+```
+
 ## Database Schema
 
 ### Core Tables
@@ -164,6 +345,65 @@ CREATE TABLE MANUAL_JOB_AUDIT (
 );
 ```
 
+#### MASTER_QUERY_CONFIG
+Master SQL queries for batch job execution.
+
+```sql
+-- Master query storage for batch jobs
+CREATE TABLE MASTER_QUERY_CONFIG (
+    ID NUMBER(19) PRIMARY KEY,
+    SOURCE_SYSTEM VARCHAR2(50) NOT NULL,
+    JOB_NAME VARCHAR2(100) NOT NULL,
+    QUERY_TEXT CLOB NOT NULL,
+    VERSION NUMBER(10) DEFAULT 1,
+    IS_ACTIVE VARCHAR2(1) DEFAULT 'Y',
+    CREATED_BY VARCHAR2(50) NOT NULL,
+    CREATED_DATE TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    MODIFIED_BY VARCHAR2(50),
+    MODIFIED_DATE TIMESTAMP,
+    CONSTRAINT UK_MASTER_QUERY UNIQUE (SOURCE_SYSTEM, JOB_NAME, VERSION),
+    CONSTRAINT CHK_ACTIVE CHECK (IS_ACTIVE IN ('Y', 'N'))
+);
+```
+
+#### ENCORE_TEST_DATA
+Simulated source system data for testing and development.
+
+```sql
+-- Test data simulation for ENCORE source system
+CREATE TABLE ENCORE_TEST_DATA (
+    ID NUMBER(19) PRIMARY KEY,
+    ACCT_NUM VARCHAR2(18) NOT NULL,
+    BATCH_DATE DATE NOT NULL,
+    CCI VARCHAR2(1) NOT NULL,
+    CONTACT_ID VARCHAR2(18) NOT NULL,
+    CREATED_DATE TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT UK_ENCORE_TEST UNIQUE (ACCT_NUM, BATCH_DATE)
+);
+```
+
+#### BATCH_EXECUTION_RESULTS
+Tracks batch job execution results and status.
+
+```sql
+-- Batch job execution tracking
+CREATE TABLE BATCH_EXECUTION_RESULTS (
+    ID NUMBER(19) PRIMARY KEY,
+    JOB_CONFIG_ID VARCHAR2(50) NOT NULL,
+    EXECUTION_ID VARCHAR2(100) NOT NULL UNIQUE,
+    SOURCE_SYSTEM VARCHAR2(50) NOT NULL,
+    RECORDS_PROCESSED NUMBER(10) DEFAULT 0,
+    OUTPUT_FILE_NAME VARCHAR2(255),
+    OUTPUT_FILE_PATH VARCHAR2(500),
+    STATUS VARCHAR2(20) DEFAULT 'PENDING',
+    START_TIME TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    END_TIME TIMESTAMP,
+    ERROR_MESSAGE CLOB,
+    CORRELATION_ID VARCHAR2(100),
+    CONSTRAINT CHK_STATUS CHECK (STATUS IN ('PENDING', 'RUNNING', 'SUCCESS', 'FAILED', 'CANCELLED'))
+);
+```
+
 ### Database Connection
 
 - **Schema**: CM3INT
@@ -173,9 +413,13 @@ CREATE TABLE MANUAL_JOB_AUDIT (
 
 ## API Documentation
 
-### Base URL
+### Base URLs
 ```
+# Manual Job Configuration
 http://localhost:8080/api/v2/manual-job-config
+
+# Manual Batch Execution  
+http://localhost:8080/api/v2/manual-job-execution
 ```
 
 ### Authentication
@@ -245,6 +489,30 @@ Authorization: Bearer <token>
 #### Get System Statistics
 ```http
 GET /api/v2/manual-job-config/statistics
+Authorization: Bearer <token>
+```
+
+#### Execute Batch Job (New in Phase 3)
+```http
+POST /api/v2/manual-job-execution/execute/{configId}
+Content-Type: application/json
+Authorization: Bearer <token>
+
+{
+  "batchDate": "2025-08-14",
+  "outputDirectory": "/custom/output/path"
+}
+```
+
+#### Get Batch Execution Status (New in Phase 3)
+```http
+GET /api/v2/manual-job-execution/status/{executionId}
+Authorization: Bearer <token>
+```
+
+#### Get Master Query (New in Phase 3)
+```http
+GET /api/v2/manual-job-execution/query/{sourceSystem}/{jobName}
 Authorization: Bearer <token>
 ```
 

@@ -25,11 +25,13 @@ The Fabric UI is a modern React application built with TypeScript and Material-U
 ### Key Features
 
 - **Manual Job Configuration Interface (US001)** - Complete CRUD operations for job configurations
+- **Manual Batch Execution Integration (Phase 3)** - Trigger and monitor batch jobs from the UI
 - **Role-Based Access Control** - Dynamic UI rendering based on user permissions
 - **Material-UI Design System** - Enterprise-grade responsive design
 - **Real-time Data Management** - Live updates and notifications
 - **Advanced Filtering & Pagination** - Efficient data browsing and management
 - **Comprehensive Form Validation** - Client-side and server-side validation
+- **Batch Job Monitoring** - Real-time execution status and progress tracking
 - **Audit Trail Integration** - SOX-compliant change tracking
 
 ### Technology Stack
@@ -112,6 +114,141 @@ src/
 | `JOB_MODIFIER` | ✅ | ✅ | ✅ | ✅ | ❌ |
 | `JOB_EXECUTOR` | ❌ | ✅ | ❌ | ❌ | ✅ |
 
+## Manual Batch Execution Integration
+
+### Phase 3 Enhancement
+
+The frontend now includes comprehensive integration with the Manual Batch Execution API, providing operations teams with the ability to trigger and monitor batch jobs directly from the web interface.
+
+### Core Features
+
+1. **Job Execution Trigger**
+   - Execute button available for users with `JOB_EXECUTOR` or `JOB_MODIFIER` roles
+   - Modal dialog for specifying batch parameters (batch date, custom parameters)
+   - Real-time validation of execution parameters
+   - Immediate feedback on job launch status
+
+2. **Execution Monitoring**
+   - Real-time status updates for running batch jobs
+   - Progress indicators and execution timeline
+   - Download links for generated output files
+   - Detailed error messages and troubleshooting information
+
+3. **Batch History**
+   - Complete execution history for each job configuration
+   - Filterable execution log with status-based views
+   - Performance metrics and execution time tracking
+   - Export capabilities for audit and reporting
+
+### UI Components
+
+#### Batch Execution Dialog
+```typescript
+interface BatchExecutionDialogProps {
+  configId: string;
+  jobName: string;
+  onExecute: (params: BatchExecutionParams) => void;
+  onClose: () => void;
+}
+
+interface BatchExecutionParams {
+  batchDate: string;
+  outputDirectory?: string;
+  additionalParams?: Record<string, string>;
+}
+```
+
+#### Execution Status Monitor
+```typescript
+interface ExecutionStatusProps {
+  executionId: string;
+  onStatusUpdate: (status: ExecutionStatus) => void;
+}
+
+interface ExecutionStatus {
+  executionId: string;
+  status: 'PENDING' | 'RUNNING' | 'SUCCESS' | 'FAILED' | 'CANCELLED';
+  startTime: string;
+  endTime?: string;
+  recordsProcessed?: number;
+  outputFileName?: string;
+  errorMessage?: string;
+}
+```
+
+### API Integration
+
+The frontend integrates with new batch execution endpoints:
+
+```typescript
+// Execute batch job
+const executionResult = await BatchExecutionApiService.executeJob(configId, {
+  batchDate: '2025-08-14',
+  outputDirectory: '/custom/path'
+});
+
+// Monitor execution status
+const status = await BatchExecutionApiService.getExecutionStatus(executionId);
+
+// Get master query for troubleshooting
+const query = await BatchExecutionApiService.getMasterQuery(sourceSystem, jobName);
+```
+
+### User Experience Flow
+
+1. **Job Selection**: User browses job configurations and selects one for execution
+2. **Parameter Entry**: Modal dialog for entering batch date and optional parameters
+3. **Execution Launch**: Backend API call with loading indicators and validation
+4. **Status Monitoring**: Real-time updates showing job progress and status
+5. **Result Verification**: Access to output files and execution summary
+6. **Audit Trail**: Automatic logging of all execution activities
+
+### Error Handling
+
+- **Network Errors**: Automatic retry with exponential backoff
+- **Validation Errors**: Real-time form validation with helpful error messages
+- **Execution Failures**: Detailed error display with troubleshooting suggestions
+- **Permission Errors**: Clear messaging about insufficient privileges
+
+### Sample UI Integration
+
+```typescript
+const JobConfigurationRow: React.FC<JobRowProps> = ({ config }) => {
+  const { hasRole } = useAuth();
+  const [executionDialog, setExecutionDialog] = useState(false);
+  
+  const handleExecute = async (params: BatchExecutionParams) => {
+    try {
+      const result = await BatchExecutionApiService.executeJob(config.configId, params);
+      showNotification(`Job execution started: ${result.executionId}`, 'success');
+      
+      // Start monitoring execution status
+      monitorExecution(result.executionId);
+    } catch (error) {
+      showNotification(`Execution failed: ${error.message}`, 'error');
+    }
+  };
+
+  return (
+    <TableRow>
+      <TableCell>{config.jobName}</TableCell>
+      <TableCell>{config.sourceSystem}</TableCell>
+      <TableCell>{config.status}</TableCell>
+      <TableCell>
+        {hasRole('JOB_EXECUTOR') && (
+          <Button 
+            onClick={() => setExecutionDialog(true)}
+            disabled={config.status !== 'ACTIVE'}
+          >
+            Execute Job
+          </Button>
+        )}
+      </TableCell>
+    </TableRow>
+  );
+};
+```
+
 ## Backend Integration
 
 ### API Service Layer
@@ -119,7 +256,7 @@ src/
 The application uses a dedicated API service layer for backend communication:
 
 ```typescript
-// Example API service usage
+// Job Configuration API service usage
 const configurations = await ManualJobConfigApiService.getAllJobConfigurations({
   page: 0,
   size: 20,
@@ -128,6 +265,16 @@ const configurations = await ManualJobConfigApiService.getAllJobConfigurations({
   jobType: 'ETL_BATCH',
   status: 'ACTIVE'
 });
+
+// Batch Execution API service usage (New in Phase 3)
+const executionResult = await BatchExecutionApiService.executeJob('cfg_123', {
+  batchDate: '2025-08-14',
+  outputDirectory: '/custom/output'
+});
+
+const status = await BatchExecutionApiService.getExecutionStatus('exec_123');
+
+const masterQuery = await BatchExecutionApiService.getMasterQuery('ENCORE', 'atoctran_encore_200_job');
 ```
 
 ### Authentication Flow

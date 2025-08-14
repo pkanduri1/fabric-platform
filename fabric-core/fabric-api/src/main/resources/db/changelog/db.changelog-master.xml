@@ -99,6 +99,9 @@
     =========================================================================
     -->
 
+    <!-- US001 Phase 3: Batch Execution Enhancement - APPROVED FOR IMPLEMENTATION -->
+    <include file="releases/us001/us001-008-batch-execution-tables.xml" relativeToChangelogFile="true"/>
+
     <!-- Database Tagging for Release Management - Phase 2 Implementation -->
     <changeSet id="tag-us001-phase2-release-2.0" author="Senior Full Stack Developer Agent" context="development,test,staging,production">
         <comment>Release tag for US001 Phase 2 Manual Job Configuration Interface v2.0 - Complete enterprise schema with execution tracking, parameter templates, and SOX-compliant audit framework</comment>

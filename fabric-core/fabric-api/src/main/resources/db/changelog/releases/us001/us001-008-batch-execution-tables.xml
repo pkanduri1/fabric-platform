@@ -1,0 +1,207 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <changeSet id="us001-004-001" author="senior-fullstack-fintech-dev" context="development,test,staging,production">
+        <comment>Create MASTER_QUERY_CONFIG table for storing source system queries</comment>
+        <createTable tableName="MASTER_QUERY_CONFIG">
+            <column name="ID" type="NUMBER(19)" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="SOURCE_SYSTEM" type="VARCHAR2(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="JOB_NAME" type="VARCHAR2(100)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="QUERY_TEXT" type="CLOB">
+                <constraints nullable="false"/>
+            </column>
+            <column name="VERSION" type="NUMBER(10)" defaultValue="1">
+                <constraints nullable="false"/>
+            </column>
+            <column name="IS_ACTIVE" type="VARCHAR2(1)" defaultValue="Y">
+                <constraints nullable="false" checkConstraint="IS_ACTIVE IN ('Y', 'N')"/>
+            </column>
+            <column name="CREATED_BY" type="VARCHAR2(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="CREATED_DATE" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="MODIFIED_BY" type="VARCHAR2(50)"/>
+            <column name="MODIFIED_DATE" type="TIMESTAMP"/>
+        </createTable>
+        
+        <addUniqueConstraint 
+            tableName="MASTER_QUERY_CONFIG" 
+            columnNames="SOURCE_SYSTEM, JOB_NAME, VERSION"
+            constraintName="UK_MASTER_QUERY"/>
+            
+        <createIndex tableName="MASTER_QUERY_CONFIG" indexName="IDX_MASTER_QUERY_ACTIVE">
+            <column name="SOURCE_SYSTEM"/>
+            <column name="JOB_NAME"/>
+            <column name="IS_ACTIVE"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="us001-004-002" author="senior-fullstack-fintech-dev" context="development,test,staging,production">
+        <comment>Create ENCORE_TEST_DATA table for simulating source system data</comment>
+        <createTable tableName="ENCORE_TEST_DATA">
+            <column name="ID" type="NUMBER(19)" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="ACCT_NUM" type="VARCHAR2(18)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="BATCH_DATE" type="DATE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="CCI" type="VARCHAR2(1)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="CONTACT_ID" type="VARCHAR2(18)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="CREATED_DATE" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        
+        <addUniqueConstraint 
+            tableName="ENCORE_TEST_DATA" 
+            columnNames="ACCT_NUM, BATCH_DATE"
+            constraintName="UK_ENCORE_TEST"/>
+            
+        <createIndex tableName="ENCORE_TEST_DATA" indexName="IDX_ENCORE_ACCT">
+            <column name="ACCT_NUM"/>
+        </createIndex>
+        
+        <createIndex tableName="ENCORE_TEST_DATA" indexName="IDX_ENCORE_BATCH_DATE">
+            <column name="BATCH_DATE"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="us001-004-003" author="senior-fullstack-fintech-dev" context="development,test,staging,production">
+        <comment>Create BATCH_EXECUTION_RESULTS table for tracking job execution results</comment>
+        <createTable tableName="BATCH_EXECUTION_RESULTS">
+            <column name="ID" type="NUMBER(19)" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="JOB_CONFIG_ID" type="VARCHAR2(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="EXECUTION_ID" type="VARCHAR2(100)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="SOURCE_SYSTEM" type="VARCHAR2(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="RECORDS_PROCESSED" type="NUMBER(10)" defaultValue="0"/>
+            <column name="OUTPUT_FILE_NAME" type="VARCHAR2(255)"/>
+            <column name="OUTPUT_FILE_PATH" type="VARCHAR2(500)"/>
+            <column name="STATUS" type="VARCHAR2(20)" defaultValue="PENDING">
+                <constraints checkConstraint="STATUS IN ('PENDING', 'RUNNING', 'SUCCESS', 'FAILED', 'CANCELLED')"/>
+            </column>
+            <column name="START_TIME" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP"/>
+            <column name="END_TIME" type="TIMESTAMP"/>
+            <column name="ERROR_MESSAGE" type="CLOB"/>
+            <column name="CORRELATION_ID" type="VARCHAR2(100)"/>
+        </createTable>
+        
+        <createIndex tableName="BATCH_EXECUTION_RESULTS" indexName="IDX_BATCH_EXEC_CONFIG">
+            <column name="JOB_CONFIG_ID"/>
+        </createIndex>
+        
+        <createIndex tableName="BATCH_EXECUTION_RESULTS" indexName="IDX_BATCH_EXEC_STATUS">
+            <column name="STATUS"/>
+            <column name="START_TIME"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="us001-004-004" author="senior-fullstack-fintech-dev" context="development,test">
+        <comment>Insert sample master query for ENCORE atoctran job</comment>
+        <insert tableName="MASTER_QUERY_CONFIG">
+            <column name="SOURCE_SYSTEM" value="ENCORE"/>
+            <column name="JOB_NAME" value="atoctran_encore_200_job"/>
+            <column name="QUERY_TEXT" value="SELECT 
+                ACCT_NUM as acct_num,
+                BATCH_DATE as batch_date,
+                CCI as cci,
+                CONTACT_ID as contact_id
+            FROM ENCORE_TEST_DATA
+            WHERE BATCH_DATE = TO_DATE(:batchDate, 'YYYY-MM-DD')
+            ORDER BY ACCT_NUM"/>
+            <column name="VERSION" value="1"/>
+            <column name="IS_ACTIVE" value="Y"/>
+            <column name="CREATED_BY" value="system"/>
+        </insert>
+    </changeSet>
+
+    <changeSet id="us001-004-005" author="senior-fullstack-fintech-dev" context="development,test">
+        <comment>Insert sample test data for ENCORE source system</comment>
+        <!-- Sample test data records -->
+        <insert tableName="ENCORE_TEST_DATA">
+            <column name="ACCT_NUM" value="100234567890123456"/>
+            <column name="BATCH_DATE" valueDate="2025-08-14"/>
+            <column name="CCI" value="A"/>
+            <column name="CONTACT_ID" value="CONT001234567890"/>
+        </insert>
+        <insert tableName="ENCORE_TEST_DATA">
+            <column name="ACCT_NUM" value="200345678901234567"/>
+            <column name="BATCH_DATE" valueDate="2025-08-14"/>
+            <column name="CCI" value="B"/>
+            <column name="CONTACT_ID" value="CONT002345678901"/>
+        </insert>
+        <insert tableName="ENCORE_TEST_DATA">
+            <column name="ACCT_NUM" value="300456789012345678"/>
+            <column name="BATCH_DATE" valueDate="2025-08-14"/>
+            <column name="CCI" value="C"/>
+            <column name="CONTACT_ID" value="CONT003456789012"/>
+        </insert>
+        <insert tableName="ENCORE_TEST_DATA">
+            <column name="ACCT_NUM" value="400567890123456789"/>
+            <column name="BATCH_DATE" valueDate="2025-08-14"/>
+            <column name="CCI" value="A"/>
+            <column name="CONTACT_ID" value="CONT004567890123"/>
+        </insert>
+        <insert tableName="ENCORE_TEST_DATA">
+            <column name="ACCT_NUM" value="500678901234567890"/>
+            <column name="BATCH_DATE" valueDate="2025-08-14"/>
+            <column name="CCI" value="B"/>
+            <column name="CONTACT_ID" value="CONT005678901234"/>
+        </insert>
+        
+        <!-- Additional test data for different dates -->
+        <insert tableName="ENCORE_TEST_DATA">
+            <column name="ACCT_NUM" value="600789012345678901"/>
+            <column name="BATCH_DATE" valueDate="2025-08-15"/>
+            <column name="CCI" value="C"/>
+            <column name="CONTACT_ID" value="CONT006789012345"/>
+        </insert>
+        <insert tableName="ENCORE_TEST_DATA">
+            <column name="ACCT_NUM" value="700890123456789012"/>
+            <column name="BATCH_DATE" valueDate="2025-08-15"/>
+            <column name="CCI" value="A"/>
+            <column name="CONTACT_ID" value="CONT007890123456"/>
+        </insert>
+    </changeSet>
+
+    <changeSet id="us001-004-006" author="senior-fullstack-fintech-dev" context="development,test,staging,production">
+        <comment>Add MASTER_QUERY_ID column to MANUAL_JOB_CONFIG for linking to master queries</comment>
+        <addColumn tableName="MANUAL_JOB_CONFIG">
+            <column name="MASTER_QUERY_ID" type="NUMBER(19)"/>
+        </addColumn>
+        
+        <addForeignKeyConstraint 
+            baseTableName="MANUAL_JOB_CONFIG" 
+            baseColumnNames="MASTER_QUERY_ID"
+            referencedTableName="MASTER_QUERY_CONFIG" 
+            referencedColumnNames="ID"
+            constraintName="FK_JOB_CONFIG_MASTER_QUERY"/>
+    </changeSet>
+
+</databaseChangeLog>
