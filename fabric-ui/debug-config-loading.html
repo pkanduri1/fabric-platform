@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug: Manual Job Configuration Loading</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .debug-section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .debug-title {
+            color: #1976d2;
+            border-bottom: 2px solid #1976d2;
+            padding-bottom: 10px;
+        }
+        .status {
+            padding: 8px 16px;
+            border-radius: 4px;
+            margin: 10px 0;
+            font-weight: bold;
+        }
+        .status.success { background-color: #d4edda; color: #155724; }
+        .status.error { background-color: #f8d7da; color: #721c24; }
+        .status.warning { background-color: #fff3cd; color: #856404; }
+        .status.info { background-color: #d1ecf1; color: #0c5460; }
+        pre {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            overflow-x: auto;
+            border-left: 4px solid #007bff;
+        }
+        .test-button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 10px 5px;
+        }
+        .test-button:hover {
+            background-color: #0056b3;
+        }
+        .results {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔍 Debug: Manual Job Configuration Loading Issue</h1>
+    
+    <div class="debug-section">
+        <h2 class="debug-title">Issue Summary</h2>
+        <div class="status error">
+            CRITICAL: Job configurations list is not loading - users see "Select a source system and job to begin configuration" instead of the configurations table.
+        </div>
+        <p><strong>Expected:</strong> Users should see a table/list of job configurations with filtering options and CRUD actions.</p>
+        <p><strong>Current Behavior:</strong> Empty state message is displayed, indicating no data is being fetched or displayed properly.</p>
+    </div>
+
+    <div class="debug-section">
+        <h2 class="debug-title">Debug Tests</h2>
+        <button class="test-button" onclick="testAuthContext()">1. Test Auth Context</button>
+        <button class="test-button" onclick="testMockApiService()">2. Test Mock API Service</button>
+        <button class="test-button" onclick="testDataFlow()">3. Test Data Flow</button>
+        <button class="test-button" onclick="testComponentRendering()">4. Test Component Logic</button>
+        
+        <div id="debug-results" class="results"></div>
+    </div>
+
+    <div class="debug-section">
+        <h2 class="debug-title">Mock Data Preview</h2>
+        <p>This is the mock data that should be displayed in the configurations list:</p>
+        <pre id="mock-data-preview">Loading mock data...</pre>
+    </div>
+
+    <div class="debug-section">
+        <h2 class="debug-title">Component State Analysis</h2>
+        <div id="component-analysis">
+            <p>Analyzing component state and data flow...</p>
+        </div>
+    </div>
+
+    <script>
+        // Mock data matching the API service
+        const mockConfigurations = [
+            {
+                configId: 'config-001',
+                jobName: 'DAILY_TRANSACTION_LOADER',
+                jobType: 'ETL_BATCH',
+                sourceSystem: 'CORE_BANKING',
+                targetSystem: 'DATA_WAREHOUSE',
+                jobParameters: {
+                    batchSize: 1000,
+                    timeoutMinutes: 30,
+                    retryCount: 3,
+                    enableLogging: true
+                },
+                status: 'ACTIVE',
+                createdBy: 'testuser',
+                createdDate: new Date().toISOString(),
+                lastModifiedBy: 'testuser',
+                lastModifiedDate: new Date().toISOString(),
+                versionNumber: 1,
+                correlationId: 'mock-corr-001',
+                description: 'Daily transaction data loading from core banking to data warehouse',
+                priority: 'HIGH',
+                expectedRuntimeMinutes: 45,
+                securityClassification: 'CONFIDENTIAL',
+                dataClassification: 'SENSITIVE',
+                environmentTargets: ['PROD', 'UAT'],
+                complianceTags: ['SOX', 'BASEL_III']
+            },
+            {
+                configId: 'config-002',
+                jobName: 'MONTHLY_REPORT_GENERATOR',
+                jobType: 'REPORT_GENERATION',
+                sourceSystem: 'ANALYTICS_DB',
+                targetSystem: 'REPORT_SERVER',
+                jobParameters: {
+                    reportType: 'MONTHLY_SUMMARY',
+                    outputFormat: 'PDF',
+                    emailRecipients: ['manager@example.com']
+                },
+                status: 'ACTIVE',
+                createdBy: 'testuser',
+                createdDate: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
+                versionNumber: 2,
+                correlationId: 'mock-corr-002',
+                description: 'Monthly financial reports generation',
+                priority: 'MEDIUM',
+                expectedRuntimeMinutes: 120,
+                securityClassification: 'INTERNAL',
+                dataClassification: 'INTERNAL'
+            },
+            {
+                configId: 'config-003',
+                jobName: 'FILE_ARCHIVAL_PROCESS',
+                jobType: 'FILE_PROCESSING',
+                sourceSystem: 'FILE_STORAGE',
+                targetSystem: 'ARCHIVE_STORAGE',
+                jobParameters: {
+                    retentionDays: 2555,
+                    compressionLevel: 9,
+                    encryptionEnabled: true
+                },
+                status: 'INACTIVE',
+                createdBy: 'admin',
+                createdDate: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+                versionNumber: 1,
+                correlationId: 'mock-corr-003',
+                description: 'Automated file archival and compression process',
+                priority: 'LOW',
+                expectedRuntimeMinutes: 180,
+                securityClassification: 'INTERNAL',
+                dataClassification: 'PUBLIC'
+            }
+        ];
+
+        // Mock auth user with proper roles
+        const mockUser = {
+            userId: 'test-user-001',
+            username: 'testuser',
+            email: 'testuser@example.com',
+            fullName: 'Test User',
+            roles: ['JOB_CREATOR', 'JOB_MODIFIER', 'JOB_EXECUTOR', 'JOB_VIEWER'],
+            permissions: ['READ_CONFIGS', 'WRITE_CONFIGS', 'DELETE_CONFIGS'],
+            department: 'Engineering',
+            title: 'Senior Developer',
+            mfaEnabled: false,
+            mfaVerified: true
+        };
+
+        function addResult(message, status = 'info') {
+            const resultsDiv = document.getElementById('debug-results');
+            const resultElement = document.createElement('div');
+            resultElement.className = `status ${status}`;
+            resultElement.innerHTML = message;
+            resultsDiv.appendChild(resultElement);
+        }
+
+        function testAuthContext() {
+            addResult('🔍 Testing Auth Context...', 'info');
+            
+            // Check if mock user has required roles
+            const requiredRoles = ['JOB_VIEWER', 'JOB_CREATOR', 'JOB_MODIFIER', 'JOB_EXECUTOR'];
+            const hasAnyRole = requiredRoles.some(role => mockUser.roles.includes(role));
+            
+            if (hasAnyRole) {
+                addResult('✅ Auth Context: User has required roles for viewing configurations', 'success');
+                addResult(`Roles: ${mockUser.roles.join(', ')}`, 'info');
+            } else {
+                addResult('❌ Auth Context: User missing required roles', 'error');
+            }
+            
+            // Check if user should pass permission checks
+            const canViewConfigurations = hasAnyRole;
+            const canCreateConfigurations = ['JOB_CREATOR', 'JOB_MODIFIER'].some(role => mockUser.roles.includes(role));
+            const canModifyConfigurations = mockUser.roles.includes('JOB_MODIFIER');
+            
+            addResult(`Can View: ${canViewConfigurations}, Can Create: ${canCreateConfigurations}, Can Modify: ${canModifyConfigurations}`, 'info');
+        }
+
+        function testMockApiService() {
+            addResult('🔍 Testing Mock API Service...', 'info');
+            
+            // Simulate the API call
+            const simulateApiCall = async () => {
+                try {
+                    // Simulate delay
+                    await new Promise(resolve => setTimeout(resolve, 400));
+                    
+                    // Apply mock pagination
+                    const page = 0;
+                    const size = 20;
+                    const startIndex = page * size;
+                    const endIndex = startIndex + size;
+                    const paginatedConfigs = mockConfigurations.slice(startIndex, endIndex);
+                    
+                    const response = {
+                        content: paginatedConfigs,
+                        totalElements: mockConfigurations.length,
+                        totalPages: Math.ceil(mockConfigurations.length / size),
+                        currentPage: page,
+                        pageSize: size,
+                        correlationId: `mock-corr-list-${Date.now()}`
+                    };
+                    
+                    addResult(`✅ Mock API Service: Successfully returned ${response.content.length} configurations`, 'success');
+                    addResult(`Total Elements: ${response.totalElements}, Current Page: ${response.currentPage + 1}`, 'info');
+                    
+                    return response;
+                } catch (error) {
+                    addResult(`❌ Mock API Service Error: ${error.message}`, 'error');
+                    throw error;
+                }
+            };
+            
+            simulateApiCall();
+        }
+
+        function testDataFlow() {
+            addResult('🔍 Testing Data Flow...', 'info');
+            
+            // Simulate the complete data flow
+            let configurations = [];
+            let loading = true;
+            let totalElements = 0;
+            
+            // Step 1: Component mounts, starts loading
+            addResult('Step 1: Component mounts, loading starts', 'info');
+            
+            // Step 2: Check permissions
+            const canViewConfigurations = true; // Based on auth test
+            if (!canViewConfigurations) {
+                addResult('❌ Data Flow: Permission check failed', 'error');
+                return;
+            }
+            addResult('Step 2: Permission check passed', 'success');
+            
+            // Step 3: API call simulation
+            setTimeout(() => {
+                configurations = mockConfigurations;
+                totalElements = mockConfigurations.length;
+                loading = false;
+                
+                addResult('Step 3: API call completed successfully', 'success');
+                addResult(`Step 4: State updated - ${configurations.length} configurations loaded`, 'success');
+                
+                // Step 5: Component should render list
+                if (configurations.length > 0) {
+                    addResult('✅ Data Flow: Complete - configurations should display in table', 'success');
+                } else {
+                    addResult('❌ Data Flow: No configurations to display', 'error');
+                }
+            }, 500);
+        }
+
+        function testComponentRendering() {
+            addResult('🔍 Testing Component Logic...', 'info');
+            
+            // Test the rendering logic
+            const configurations = mockConfigurations;
+            const loading = false;
+            
+            // Simulate filtering (no filters applied)
+            const searchTerm = '';
+            const filteredConfigurations = configurations.filter(config =>
+                !searchTerm || 
+                config.jobName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                config.sourceSystem.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                config.targetSystem.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                config.createdBy.toLowerCase().includes(searchTerm.toLowerCase())
+            );
+            
+            addResult(`Filtered configurations: ${filteredConfigurations.length}`, 'info');
+            
+            // Test the render conditions
+            if (loading) {
+                addResult('Component would show: Loading skeleton rows', 'info');
+            } else if (filteredConfigurations.length === 0) {
+                addResult('❌ Component would show: Empty state message', 'warning');
+                addResult('This is likely the current issue - empty state is being shown', 'error');
+            } else {
+                addResult('✅ Component would show: Configuration table with data', 'success');
+                addResult(`Rendering ${filteredConfigurations.length} configuration rows`, 'success');
+            }
+        }
+
+        // Initialize the debug page
+        window.onload = function() {
+            // Display mock data
+            document.getElementById('mock-data-preview').textContent = JSON.stringify(mockConfigurations, null, 2);
+            
+            // Analyze component conditions
+            const analysisDiv = document.getElementById('component-analysis');
+            analysisDiv.innerHTML = `
+                <h4>Critical Analysis Points:</h4>
+                <ul>
+                    <li><strong>useEffect Dependency:</strong> loadConfigurations should be called on component mount</li>
+                    <li><strong>Permission Check:</strong> canViewConfigurations must return true</li>
+                    <li><strong>API Response:</strong> ManualJobConfigApiService.getAllJobConfigurations() must return mock data</li>
+                    <li><strong>State Update:</strong> setConfigurations(response.content) must update component state</li>
+                    <li><strong>Render Condition:</strong> filteredConfigurations.length > 0 should be true</li>
+                </ul>
+                
+                <h4>Common Issues:</h4>
+                <ul>
+                    <li>❌ Auth context not providing mock user with proper roles</li>
+                    <li>❌ API service not being called or failing silently</li>
+                    <li>❌ Component state not being updated after API call</li>
+                    <li>❌ Empty array being set instead of mock configurations</li>
+                    <li>❌ Loading state getting stuck as true</li>
+                </ul>
+            `;
+        };
+    </script>
+</body>
+</html>

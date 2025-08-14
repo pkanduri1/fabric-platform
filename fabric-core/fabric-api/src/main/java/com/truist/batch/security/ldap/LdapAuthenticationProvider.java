@@ -17,6 +17,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.stereotype.Component;
 import org.springframework.context.annotation.Profile;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 
 import javax.naming.directory.DirContext;
 import java.util.UUID;
@@ -44,6 +45,7 @@ import java.util.UUID;
 @Component
 @RequiredArgsConstructor
 @Profile("!local")  // Exclude from local profile to avoid LDAP dependencies
+@ConditionalOnProperty(name = "fabric.security.ldap.enabled", havingValue = "true", matchIfMissing = false)
 public class LdapAuthenticationProvider implements AuthenticationProvider {
     
     private final LdapTemplate ldapTemplate;

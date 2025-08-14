@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manual Job Configuration Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .test-section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .iframe-container {
+            width: 100%;
+            height: 600px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+        .instructions {
+            background-color: #e3f2fd;
+            padding: 15px;
+            border-radius: 4px;
+            border-left: 4px solid #2196f3;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔧 Manual Job Configuration Page Test</h1>
+    
+    <div class="test-section">
+        <h2>Test Instructions</h2>
+        <div class="instructions">
+            <p><strong>Steps to test:</strong></p>
+            <ol>
+                <li>Click the link below to open the Manual Job Configuration page</li>
+                <li>Open your browser's Developer Tools (F12)</li>
+                <li>Go to the Console tab</li>
+                <li>Look for DEBUG log messages starting with "[DEBUG ManualJobConfig"</li>
+                <li>Check if the configurations are being loaded and displayed</li>
+            </ol>
+            <p><strong>Expected behavior:</strong> You should see a table with job configurations, not an empty state message.</p>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>Direct Link to Manual Job Configuration Page</h2>
+        <p>
+            <a href="http://localhost:3000/manual-job-config" target="_blank" style="
+                display: inline-block;
+                background-color: #2196f3;
+                color: white;
+                padding: 15px 30px;
+                text-decoration: none;
+                border-radius: 4px;
+                font-size: 16px;
+                font-weight: bold;
+            ">
+                🔗 Open Manual Job Configuration Page
+            </a>
+        </p>
+    </div>
+
+    <div class="test-section">
+        <h2>Debug Checklist</h2>
+        <p>In the browser console, look for these debug messages:</p>
+        <ul>
+            <li>✅ <code>[DEBUG ManualJobConfig Page] loadConfigurations called - canViewConfigurations: true</code></li>
+            <li>✅ <code>[DEBUG ManualJobConfig API] getAllJobConfigurations called with params</code></li>
+            <li>✅ <code>[DEBUG ManualJobConfig API] Mock configurations available: 3</code></li>
+            <li>✅ <code>[DEBUG ManualJobConfig Page] API response received</code></li>
+            <li>✅ <code>[DEBUG JobConfigurationList] Props received: configurations.length: 3</code></li>
+        </ul>
+        
+        <h3>Common Issues to Check:</h3>
+        <ul>
+            <li>🔍 <strong>Permission Issue:</strong> If canViewConfigurations is false</li>
+            <li>🔍 <strong>API Issue:</strong> If API call fails or returns empty array</li>
+            <li>🔍 <strong>State Issue:</strong> If configurations state is not updated</li>
+            <li>🔍 <strong>Render Issue:</strong> If component shows empty state despite having data</li>
+        </ul>
+    </div>
+
+    <div class="test-section">
+        <h2>Quick Fix Test</h2>
+        <p>If the issue persists, try these quick fixes:</p>
+        <ol>
+            <li><strong>Refresh the page</strong> - Sometimes React state gets stuck</li>
+            <li><strong>Clear browser cache</strong> - Ctrl+Shift+R or Cmd+Shift+R</li>
+            <li><strong>Check network tab</strong> - Look for failed API calls</li>
+            <li><strong>Restart the dev server</strong> - npm start in terminal</li>
+        </ol>
+    </div>
+
+    <script>
+        // Auto-refresh this page every 30 seconds to keep it updated
+        setTimeout(() => {
+            window.location.reload();
+        }, 30000);
+        
+        console.log('🔧 Manual Job Configuration Test Page Loaded');
+        console.log('Open http://localhost:3000/manual-job-config in a new tab to test');
+    </script>
+</body>
+</html>

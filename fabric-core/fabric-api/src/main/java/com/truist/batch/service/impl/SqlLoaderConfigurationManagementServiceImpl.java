@@ -2,6 +2,7 @@ package com.truist.batch.service.impl;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Primary;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
@@ -15,6 +16,8 @@ import com.truist.batch.sqlloader.SqlLoaderConfig;
  * Implementation of SqlLoaderConfigurationManagementService
  * Provides SQL Loader configuration management capabilities
  */
+@Service("localSqlLoaderConfigurationManagementService")
+@ConditionalOnMissingBean(name = "sqlLoaderConfigurationManagementService")
 public class SqlLoaderConfigurationManagementServiceImpl implements SqlLoaderConfigurationManagementService {
 
     @Override

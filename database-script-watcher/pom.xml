@@ -13,10 +13,10 @@
     </parent>
 
     <groupId>com.fabric</groupId>
-    <artifactId>database-script-watcher</artifactId>
+    <artifactId>interface-utils</artifactId>
     <version>1.0.0-SNAPSHOT</version>
-    <name>Database Script Watcher</name>
-    <description>Spring Boot service for automated file processing with pluggable processors</description>
+    <name>Interface Utils</name>
+    <description>Spring Boot service for automated interface utilities including file processing, database operations, and more</description>
 
     <properties>
         <java.version>17</java.version>

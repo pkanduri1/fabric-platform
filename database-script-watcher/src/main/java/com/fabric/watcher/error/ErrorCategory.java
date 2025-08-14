@@ -93,17 +93,30 @@ public enum ErrorCategory {
         }
         
         // Database errors (specific database-related errors)
+        String fullClassName = exception.getClass().getName().toLowerCase();
         if (className.contains("dataaccess") || 
             className.contains("sql") || 
             className.contains("jdbc") ||
-            exception.getClass().getName().contains("DataAccess") ||
+            fullClassName.contains("dataaccess") ||
+            exception.getClass().getSimpleName().contains("DataAccess") ||
             message.contains("database") ||
-            message.contains("sql")) {
+            message.contains("sql") ||
+            exception instanceof org.springframework.dao.DataAccessException) {
             return DATABASE;
         }
         
+        // Application errors (check before file system to avoid conflicts)
+        if (className.contains("illegal") || 
+            className.contains("invalid") || 
+            className.contains("configuration") ||
+            message.contains("configuration") ||
+            message.contains("invalid")) {
+            return APPLICATION;
+        }
+        
         // File system errors
-        if (className.contains("io") || 
+        if (className.contains("ioexception") || 
+            className.contains("filenotfound") ||
             className.contains("file") || 
             className.contains("path") ||
             className.contains("directory") ||
@@ -121,15 +134,6 @@ public enum ErrorCategory {
             message.contains("disk space") ||
             message.contains("resource")) {
             return RESOURCE;
-        }
-        
-        // Application errors
-        if (className.contains("illegal") || 
-            className.contains("invalid") || 
-            className.contains("configuration") ||
-            message.contains("configuration") ||
-            message.contains("invalid")) {
-            return APPLICATION;
         }
         
         return UNKNOWN;

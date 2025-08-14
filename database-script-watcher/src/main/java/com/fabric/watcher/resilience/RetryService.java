@@ -45,13 +45,17 @@ public class RetryService {
         // Database retry configuration - exponential backoff
         RetryConfig databaseRetryConfig = RetryConfig.custom()
             .maxAttempts(3)
-            .waitDuration(Duration.ofMillis(1000))
             .intervalFunction(attempt -> 1000L * (1L << (attempt - 1))) // Exponential: 1s, 2s, 4s
             .retryOnException(throwable -> 
                 throwable instanceof DataAccessException ||
                 throwable instanceof SocketException ||
                 throwable instanceof SocketTimeoutException ||
-                throwable instanceof TimeoutException)
+                throwable instanceof TimeoutException ||
+                (throwable instanceof RuntimeException && throwable.getMessage() != null &&
+                 (throwable.getMessage().contains("Temporary failure") ||
+                  throwable.getMessage().contains("Connection failed") ||
+                  throwable.getMessage().contains("timeout") ||
+                  throwable.getMessage().contains("database"))))
             .failAfterMaxAttempts(true)
             .build();
         
@@ -80,14 +84,26 @@ public class RetryService {
         // File system retry configuration - linear backoff
         RetryConfig fileSystemRetryConfig = RetryConfig.custom()
             .maxAttempts(5)
-            .waitDuration(Duration.ofMillis(500))
             .intervalFunction(attempt -> 500L * attempt) // Linear: 500ms, 1s, 1.5s, 2s, 2.5s
-            .retryOnException(throwable -> 
-                throwable instanceof IOException ||
-                (throwable.getMessage() != null && 
-                 (throwable.getMessage().contains("file") ||
-                  throwable.getMessage().contains("directory") ||
-                  throwable.getMessage().contains("permission"))))
+            .retryOnException(throwable -> {
+                // Check direct IOException
+                if (throwable instanceof IOException) {
+                    return true;
+                }
+                // Check wrapped IOException
+                if (throwable.getCause() instanceof IOException) {
+                    return true;
+                }
+                // Check message content for file-related errors
+                if (throwable.getMessage() != null && 
+                    (throwable.getMessage().contains("file") ||
+                     throwable.getMessage().contains("directory") ||
+                     throwable.getMessage().contains("permission") ||
+                     throwable.getMessage().contains("File access denied"))) {
+                    return true;
+                }
+                return false;
+            })
             .failAfterMaxAttempts(true)
             .build();
         
@@ -116,7 +132,6 @@ public class RetryService {
         // Network retry configuration - exponential backoff with jitter
         RetryConfig networkRetryConfig = RetryConfig.custom()
             .maxAttempts(4)
-            .waitDuration(Duration.ofMillis(2000))
             .intervalFunction(attempt -> {
                 // Exponential backoff with jitter: base * 2^(attempt-1) + random(0, 1000)
                 long baseDelay = 2000L * (1L << (attempt - 1));
@@ -147,6 +162,13 @@ public class RetryService {
                 logger.error("Network operation failed after {} retry attempts", 
                            event.getNumberOfRetryAttempts(), event.getLastThrowable());
                 metricsService.recordRetryFailure("network", event.getNumberOfRetryAttempts());
+            })
+            .onSuccess(event -> {
+                if (event.getNumberOfRetryAttempts() > 0) {
+                    logger.info("Network operation succeeded after {} retry attempts", 
+                               event.getNumberOfRetryAttempts());
+                    metricsService.recordRetrySuccess("network", event.getNumberOfRetryAttempts());
+                }
             });
         
         // Simple retry configuration - for less critical operations
@@ -302,7 +324,13 @@ public class RetryService {
         String retryName = getRetryNameForCategory(category);
         Retry retry = retryRegistry.retry(retryName);
         
-        return retry.getRetryConfig().getExceptionPredicate().test(exception);
+        // Check the exception and its cause
+        boolean shouldRetry = retry.getRetryConfig().getExceptionPredicate().test(exception);
+        if (!shouldRetry && exception.getCause() != null) {
+            shouldRetry = retry.getRetryConfig().getExceptionPredicate().test(exception.getCause());
+        }
+        
+        return shouldRetry;
     }
     
     /**
@@ -312,16 +340,27 @@ public class RetryService {
      * @return retry statistics
      */
     public RetryStatistics getRetryStatistics(String retryName) {
-        Retry retry = retryRegistry.retry(retryName);
-        if (retry != null) {
-            return new RetryStatistics(
-                retryName,
-                retry.getRetryConfig().getMaxAttempts(),
-                retry.getMetrics().getNumberOfSuccessfulCallsWithoutRetryAttempt(),
-                retry.getMetrics().getNumberOfSuccessfulCallsWithRetryAttempt(),
-                retry.getMetrics().getNumberOfFailedCallsWithoutRetryAttempt(),
-                retry.getMetrics().getNumberOfFailedCallsWithRetryAttempt()
-            );
+        // Check if the retry configuration exists in our known configurations
+        if (!retryName.equals("database") && !retryName.equals("filesystem") && 
+            !retryName.equals("network") && !retryName.equals("simple")) {
+            return null;
+        }
+        
+        try {
+            Retry retry = retryRegistry.retry(retryName);
+            if (retry != null) {
+                return new RetryStatistics(
+                    retryName,
+                    retry.getRetryConfig().getMaxAttempts(),
+                    retry.getMetrics().getNumberOfSuccessfulCallsWithoutRetryAttempt(),
+                    retry.getMetrics().getNumberOfSuccessfulCallsWithRetryAttempt(),
+                    retry.getMetrics().getNumberOfFailedCallsWithoutRetryAttempt(),
+                    retry.getMetrics().getNumberOfFailedCallsWithRetryAttempt()
+                );
+            }
+        } catch (Exception e) {
+            // Return null if retry configuration doesn't exist
+            logger.debug("Retry configuration '{}' not found", retryName);
         }
         return null;
     }

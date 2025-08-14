@@ -1,0 +1,260 @@
+package com.truist.batch.repository;
+
+import com.truist.batch.entity.ManualJobConfigEntity;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
+
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
+
+/**
+ * Spring Data JPA Repository for Manual Job Configuration management.
+ * 
+ * Provides enterprise-grade data access operations for US001 Manual Job Configuration Interface.
+ * Implements configuration-first methodology with comprehensive query support.
+ * 
+ * Enterprise Standards:
+ * - Banking-grade data access patterns
+ * - Performance-optimized query methods
+ * - SOX-compliant audit trail support
+ * - Type-safe repository operations
+ * 
+ * Security Considerations:
+ * - All queries respect data access controls
+ * - Sensitive job parameters handled securely
+ * - Audit trail maintained for all operations
+ * 
+ * @author Senior Full Stack Developer Agent
+ * @version 1.0
+ * @since US001 - Manual Job Configuration Interface
+ */
+@Repository
+public interface ManualJobConfigRepository extends JpaRepository<ManualJobConfigEntity, String> {
+
+    /**
+     * Find job configuration by job name.
+     * Used for job lookup and duplicate name validation.
+     * 
+     * @param jobName the job name to search for
+     * @return Optional containing the configuration if found
+     */
+    Optional<ManualJobConfigEntity> findByJobName(String jobName);
+
+    /**
+     * Find all active job configurations.
+     * Primary method for retrieving executable job configurations.
+     * 
+     * @return List of active job configurations
+     */
+    List<ManualJobConfigEntity> findByStatus(String status);
+
+    /**
+     * Find job configurations by job type.
+     * Used for category-based job management and reporting.
+     * 
+     * @param jobType the job type to filter by
+     * @return List of configurations matching the job type
+     */
+    List<ManualJobConfigEntity> findByJobType(String jobType);
+
+    /**
+     * Find job configurations by source system.
+     * Critical for data lineage tracking and system-based operations.
+     * 
+     * @param sourceSystem the source system identifier
+     * @return List of configurations for the specified source system
+     */
+    List<ManualJobConfigEntity> findBySourceSystem(String sourceSystem);
+
+    /**
+     * Find job configurations by target system.
+     * Used for impact analysis and system dependency mapping.
+     * 
+     * @param targetSystem the target system identifier
+     * @return List of configurations for the specified target system
+     */
+    List<ManualJobConfigEntity> findByTargetSystem(String targetSystem);
+
+    /**
+     * Find job configurations created by specific user.
+     * Required for audit trail and user-based configuration management.
+     * 
+     * @param createdBy the user who created the configurations
+     * @return List of configurations created by the specified user
+     */
+    List<ManualJobConfigEntity> findByCreatedBy(String createdBy);
+
+    /**
+     * Find job configurations created within date range.
+     * Used for reporting and compliance auditing.
+     * 
+     * @param startDate the start date of the range (inclusive)
+     * @param endDate the end date of the range (inclusive)
+     * @return List of configurations created within the specified date range
+     */
+    List<ManualJobConfigEntity> findByCreatedDateBetween(LocalDateTime startDate, LocalDateTime endDate);
+
+    /**
+     * Find active job configurations by job type.
+     * Optimized query for runtime job execution filtering.
+     * 
+     * @param jobType the job type to filter by
+     * @return List of active configurations for the specified job type
+     */
+    @Query("SELECT c FROM ManualJobConfigEntity c WHERE c.jobType = :jobType AND c.status = 'ACTIVE'")
+    List<ManualJobConfigEntity> findActiveConfigurationsByJobType(@Param("jobType") String jobType);
+
+    /**
+     * Find job configurations for specific source-target system pair.
+     * Used for data flow analysis and dependency management.
+     * 
+     * @param sourceSystem the source system identifier
+     * @param targetSystem the target system identifier
+     * @return List of configurations for the specified system pair
+     */
+    @Query("SELECT c FROM ManualJobConfigEntity c WHERE c.sourceSystem = :sourceSystem AND c.targetSystem = :targetSystem")
+    List<ManualJobConfigEntity> findBySourceAndTargetSystem(
+        @Param("sourceSystem") String sourceSystem, 
+        @Param("targetSystem") String targetSystem
+    );
+
+    /**
+     * Count active job configurations.
+     * Used for dashboard metrics and system monitoring.
+     * 
+     * @return count of active job configurations
+     */
+    @Query("SELECT COUNT(c) FROM ManualJobConfigEntity c WHERE c.status = 'ACTIVE'")
+    long countActiveConfigurations();
+
+    /**
+     * Count job configurations by status.
+     * Used for comprehensive system status reporting.
+     * 
+     * @param status the status to count
+     * @return count of configurations with the specified status
+     */
+    long countByStatus(String status);
+
+    /**
+     * Find job configurations that contain specific parameter.
+     * Uses LIKE query to search within JSON job parameters.
+     * 
+     * Note: Consider using database-specific JSON query functions for production.
+     * 
+     * @param parameterName the parameter name to search for
+     * @return List of configurations containing the specified parameter
+     */
+    @Query("SELECT c FROM ManualJobConfigEntity c WHERE c.jobParameters LIKE CONCAT('%', :parameterName, '%')")
+    List<ManualJobConfigEntity> findByJobParametersContaining(@Param("parameterName") String parameterName);
+
+    /**
+     * Check if job name exists for active configurations.
+     * Used for duplicate name validation during configuration creation.
+     * 
+     * @param jobName the job name to check
+     * @return true if an active configuration with this name exists
+     */
+    @Query("SELECT CASE WHEN COUNT(c) > 0 THEN true ELSE false END FROM ManualJobConfigEntity c WHERE c.jobName = :jobName AND c.status = 'ACTIVE'")
+    boolean existsActiveConfigurationByJobName(@Param("jobName") String jobName);
+
+    /**
+     * Find the most recently created job configuration.
+     * Used for displaying recent activity and configuration trends.
+     * 
+     * @return Optional containing the most recently created configuration
+     */
+    @Query("SELECT c FROM ManualJobConfigEntity c ORDER BY c.createdDate DESC")
+    List<ManualJobConfigEntity> findMostRecentConfiguration();
+
+    /**
+     * Find job configurations that need attention (deprecated or very old).
+     * Used for configuration maintenance and cleanup operations.
+     * 
+     * @param cutoffDate configurations created before this date are considered old
+     * @return List of configurations that may need attention
+     */
+    @Query("SELECT c FROM ManualJobConfigEntity c WHERE c.status = 'DEPRECATED' OR c.createdDate < :cutoffDate")
+    List<ManualJobConfigEntity> findConfigurationsNeedingAttention(@Param("cutoffDate") LocalDateTime cutoffDate);
+
+    /**
+     * Count job configurations created today.
+     * Used for dashboard metrics and activity monitoring.
+     * 
+     * @return count of configurations created today
+     */
+    @Query("SELECT COUNT(c) FROM ManualJobConfigEntity c WHERE CAST(c.createdDate AS DATE) = CURRENT_DATE")
+    long countConfigurationsCreatedToday();
+
+    /**
+     * Count job configurations modified this week.
+     * Used for dashboard metrics and change activity monitoring.
+     * 
+     * @return count of configurations modified this week
+     */
+    @Query("SELECT COUNT(c) FROM ManualJobConfigEntity c WHERE c.updatedDate IS NOT NULL AND c.updatedDate >= (CURRENT_DATE - 7)")
+    long countConfigurationsModifiedThisWeek();
+
+    /**
+     * Find configurations by job type and status.
+     * Used for filtered queries and reporting.
+     * 
+     * @param jobType the job type to filter by
+     * @param status the status to filter by
+     * @return List of configurations matching both criteria
+     */
+    @Query("SELECT c FROM ManualJobConfigEntity c WHERE c.jobType = :jobType AND c.status = :status")
+    List<ManualJobConfigEntity> findByJobTypeAndStatus(@Param("jobType") String jobType, @Param("status") String status);
+
+    /**
+     * Find configurations updated after a specific date.
+     * Used for change tracking and delta processing.
+     * 
+     * @param afterDate configurations updated after this date
+     * @return List of configurations updated after the specified date
+     */
+    @Query("SELECT c FROM ManualJobConfigEntity c WHERE c.updatedDate > :afterDate")
+    List<ManualJobConfigEntity> findUpdatedAfter(@Param("afterDate") LocalDateTime afterDate);
+
+    /**
+     * Count configurations by job type.
+     * Used for system analytics and reporting.
+     * 
+     * @param jobType the job type to count
+     * @return count of configurations with the specified job type
+     */
+    long countByJobType(String jobType);
+
+    /**
+     * Find configurations by job type, source system, and status.
+     * Used for complex filtering and reporting.
+     * 
+     * @param jobType the job type to filter by
+     * @param sourceSystem the source system to filter by
+     * @param status the status to filter by
+     * @return List of configurations matching all criteria
+     */
+    @Query("SELECT c FROM ManualJobConfigEntity c WHERE c.jobType = :jobType AND c.sourceSystem = :sourceSystem AND c.status = :status")
+    List<ManualJobConfigEntity> findByJobTypeAndSourceSystemAndStatus(
+        @Param("jobType") String jobType, 
+        @Param("sourceSystem") String sourceSystem, 
+        @Param("status") String status
+    );
+
+    /**
+     * Find configurations by source system and status.
+     * Used for system-specific status filtering.
+     * 
+     * @param sourceSystem the source system to filter by
+     * @param status the status to filter by
+     * @return List of configurations matching both criteria
+     */
+    @Query("SELECT c FROM ManualJobConfigEntity c WHERE c.sourceSystem = :sourceSystem AND c.status = :status")
+    List<ManualJobConfigEntity> findBySourceSystemAndStatus(
+        @Param("sourceSystem") String sourceSystem, 
+        @Param("status") String status
+    );
+}

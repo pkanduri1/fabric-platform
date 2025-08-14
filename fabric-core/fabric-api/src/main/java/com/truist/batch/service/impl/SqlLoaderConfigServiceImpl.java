@@ -3,6 +3,7 @@ package com.truist.batch.service.impl;
 import com.truist.batch.dto.*;
 import com.truist.batch.dto.SqlLoaderReports.*;
 import com.truist.batch.service.SqlLoaderConfigService;
+import com.truist.batch.service.SqlLoaderConfigurationManagementService;
 import com.truist.batch.service.AuditService;
 
 import lombok.RequiredArgsConstructor;
@@ -36,8 +37,9 @@ import java.util.stream.Collectors;
 @Slf4j
 public class SqlLoaderConfigServiceImpl implements SqlLoaderConfigService {
 
-    // Inject the data-loader service for entity operations
-    private final com.truist.batch.service.SqlLoaderConfigurationManagementService configurationManagementService;
+    // Inject the data-loader service for entity operations (use local implementation)  
+    @Qualifier("localSqlLoaderConfigurationManagementService")
+    private final SqlLoaderConfigurationManagementService configurationManagementService;
     
     // Inject audit service for comprehensive audit trail
     private final AuditService auditService;

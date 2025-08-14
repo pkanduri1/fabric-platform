@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manual Job Config Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ccc; border-radius: 5px; }
+        .success { background-color: #d4edda; border-color: #c3e6cb; }
+        .warning { background-color: #fff3cd; border-color: #ffeaa7; }
+        .error { background-color: #f8d7da; border-color: #f5c6cb; }
+        button { padding: 10px 15px; margin: 5px; background: #007bff; color: white; border: none; border-radius: 3px; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        #results { margin-top: 20px; }
+        .log { background: #f8f9fa; padding: 10px; margin: 5px 0; border-left: 3px solid #007bff; font-family: monospace; }
+    </style>
+</head>
+<body>
+    <h1>Manual Job Configuration Page Test</h1>
+    
+    <div class="test-section">
+        <h2>Quick Tests</h2>
+        <button onclick="testPageAccess()">1. Test Page Access</button>
+        <button onclick="testAuthentication()">2. Test Authentication</button>
+        <button onclick="testAPIEndpoints()">3. Test API Endpoints</button>
+        <button onclick="testComponentRendering()">4. Test Component Rendering</button>
+        <button onclick="runAllTests()">Run All Tests</button>
+    </div>
+
+    <div class="test-section">
+        <h2>Direct Access Links</h2>
+        <p><a href="http://localhost:3000/manual-job-config" target="_blank">Manual Job Configuration Page</a></p>
+        <p><a href="http://localhost:3000/dashboard" target="_blank">Dashboard (Home)</a></p>
+        <p><a href="http://localhost:3000" target="_blank">Root Page</a></p>
+    </div>
+
+    <div id="results"></div>
+
+    <script>
+        function log(message, type = 'info') {
+            const results = document.getElementById('results');
+            const logDiv = document.createElement('div');
+            logDiv.className = `log ${type}`;
+            logDiv.innerHTML = `<strong>[${new Date().toLocaleTimeString()}]</strong> ${message}`;
+            results.appendChild(logDiv);
+            results.scrollTop = results.scrollHeight;
+        }
+
+        async function testPageAccess() {
+            log('Testing page access...', 'info');
+            try {
+                const response = await fetch('http://localhost:3000/manual-job-config');
+                if (response.ok) {
+                    const html = await response.text();
+                    if (html.includes('Manual Job') || html.includes('bundle.js')) {
+                        log('✅ Page accessible and serving React app', 'success');
+                    } else {
+                        log('⚠️ Page accessible but content unclear', 'warning');
+                    }
+                } else {
+                    log(`❌ Page not accessible: ${response.status}`, 'error');
+                }
+            } catch (error) {
+                log(`❌ Error accessing page: ${error.message}`, 'error');
+            }
+        }
+
+        async function testAuthentication() {
+            log('Testing authentication mock...', 'info');
+            // This test would check localStorage for auth tokens after visiting the page
+            const hasToken = localStorage.getItem('fabric_access_token');
+            if (hasToken) {
+                log('✅ Authentication token found in localStorage', 'success');
+            } else {
+                log('⚠️ No authentication token found - may need to visit page first', 'warning');
+            }
+        }
+
+        async function testAPIEndpoints() {
+            log('Testing API endpoint availability...', 'info');
+            try {
+                // Test if backend is running
+                const backendResponse = await fetch('http://localhost:8080/actuator/health');
+                if (backendResponse.ok) {
+                    log('✅ Backend server is running', 'success');
+                } else {
+                    log('⚠️ Backend server may not be running properly', 'warning');
+                }
+            } catch (error) {
+                log('⚠️ Backend server not accessible - using mock APIs', 'warning');
+            }
+
+            // Test React development server
+            try {
+                const frontendResponse = await fetch('http://localhost:3000');
+                if (frontendResponse.ok) {
+                    log('✅ Frontend development server is running', 'success');
+                } else {
+                    log('❌ Frontend development server not responding', 'error');
+                }
+            } catch (error) {
+                log(`❌ Frontend server error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testComponentRendering() {
+            log('Testing component rendering...', 'info');
+            log('🔄 This test requires manual verification:', 'info');
+            log('1. Click "Manual Job Configuration Page" link above', 'info');
+            log('2. Check for auto-login with test user', 'info');
+            log('3. Verify job configurations list displays', 'info');
+            log('4. Test "Create Configuration" button', 'info');
+            log('5. Check browser console for any errors', 'info');
+        }
+
+        async function runAllTests() {
+            log('Running all tests...', 'info');
+            await testPageAccess();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            await testAuthentication();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            await testAPIEndpoints();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            await testComponentRendering();
+            log('All tests completed!', 'success');
+        }
+
+        // Auto-run basic tests on page load
+        window.addEventListener('load', () => {
+            log('Manual Job Configuration Test Page Loaded', 'success');
+            log('Click "Run All Tests" to verify functionality', 'info');
+        });
+    </script>
+</body>
+</html>

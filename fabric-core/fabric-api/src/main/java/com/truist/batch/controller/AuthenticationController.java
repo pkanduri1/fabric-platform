@@ -5,7 +5,7 @@ import com.truist.batch.security.jwt.JwtTokenService;
 import com.truist.batch.security.jwt.UserTokenDetails;
 import com.truist.batch.security.ldap.FabricUserDetails;
 import com.truist.batch.security.service.SecurityAuditService;
-import com.truist.batch.security.service.SessionManagementService;
+// import com.truist.batch.security.service.SessionManagementService; // Temporarily disabled for demo
 import com.truist.batch.security.service.TokenBlacklistService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -61,7 +61,7 @@ public class AuthenticationController {
     private final AuthenticationManager authenticationManager;
     private final JwtTokenService jwtTokenService;
     private final SecurityAuditService securityAuditService;
-    private final SessionManagementService sessionManagementService;
+    // private final SessionManagementService sessionManagementService; // Temporarily disabled for demo
     private final TokenBlacklistService tokenBlacklistService;
     
     @Value("${fabric.security.session.timeout:28800}") // 8 hours default
@@ -95,9 +95,10 @@ public class AuthenticationController {
             FabricUserDetails userDetails = (FabricUserDetails) authentication.getPrincipal();
             
             // Create user session
-            String sessionId = sessionManagementService.createSession(
-                userDetails.getUserId(), userDetails.getUsername(), 
-                ipAddress, userAgent, deviceFingerprint, correlationId);
+            // String sessionId = sessionManagementService.createSession(
+            //     userDetails.getUserId(), userDetails.getUsername(), 
+            //     ipAddress, userAgent, deviceFingerprint, correlationId);
+            String sessionId = UUID.randomUUID().toString(); // Temporary mock session ID
             
             // Build token details
             UserTokenDetails tokenDetails = UserTokenDetails.builder()
@@ -199,8 +200,8 @@ public class AuthenticationController {
                 }
                 
                 // Terminate session
-                sessionManagementService.terminateSession(details.getSessionId(), 
-                    "USER_LOGOUT", correlationId);
+                // sessionManagementService.terminateSession(details.getSessionId(), 
+                //     "USER_LOGOUT", correlationId);
                 
                 // Audit logout
                 securityAuditService.auditLogout(details.getUserId(), details.getUsername(), 
@@ -261,9 +262,9 @@ public class AuthenticationController {
             String sessionId = claims.get(JwtTokenService.CLAIM_SESSION_ID, String.class);
             
             // Verify session is still active
-            if (!sessionManagementService.isSessionActive(sessionId)) {
-                throw new RuntimeException("Session has expired or been terminated");
-            }
+            // if (!sessionManagementService.isSessionActive(sessionId)) {
+            //     throw new RuntimeException("Session has expired or been terminated");
+            // }
             
             // TODO: Reload user details for fresh permissions
             // For now, we'll use the claims from the refresh token

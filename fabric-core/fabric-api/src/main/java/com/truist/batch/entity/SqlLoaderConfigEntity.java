@@ -2,6 +2,10 @@ package com.truist.batch.entity;
 
 import lombok.Builder;
 import lombok.Data;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
+import jakarta.persistence.Id;
+import jakarta.persistence.Column;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -12,8 +16,12 @@ import java.util.List;
  */
 @Data
 @Builder(toBuilder = true)
+@Entity
+@Table(name = "SQL_LOADER_CONFIG")
 public class SqlLoaderConfigEntity {
     
+    @Id
+    @Column(name = "config_id")
     private String configId;
     private String jobName;
     private String sourceSystem;

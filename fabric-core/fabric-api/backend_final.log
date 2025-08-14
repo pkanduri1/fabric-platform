@@ -1,0 +1,223 @@
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] -----------------------< com.truist:fabric-api >------------------------
+[INFO] Building fabric-api 0.0.1-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] >>> spring-boot:3.4.6:run (default-cli) > test-compile @ fabric-api >>>
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ fabric-api ---
+[INFO] Copying 2 resources from src/main/resources to target/classes
+[INFO] Copying 48 resources from src/main/resources to target/classes
+[INFO] 
+[INFO] --- liquibase:4.20.0:update (default) @ fabric-api ---
+[WARNING]  Parameter 'promptOnNonLocalDatabase' (user property 'liquibase.promptOnNonLocalDatabase') is deprecated: No longer prompts
+[INFO] ------------------------------------------------------------------------
+[INFO] Parsing Liquibase Properties File
+[INFO]   File: src/main/resources/liquibase.properties
+[INFO]   'liquibaseSchemaName' in properties file is not being used by this task.
+[INFO]   'classpath' in properties file is not being used by this task.
+[INFO]   'author' in properties file is not being used by this task.
+[INFO]   'rollbackScript' in properties file is not being used by this task.
+[INFO]   'outputFile' in properties file is not being used by this task.
+[INFO]   'logLevel' in properties file is not being used by this task.
+[INFO]   'rollbackCount' in properties file is not being used by this task.
+[INFO]   'outputChangeLogFile' in properties file is not being used by this task.
+[INFO]   'company' in properties file is not being used by this task.
+[INFO]   'tag' in properties file is not being used by this task.
+[INFO]   'includeSystemClasspath' in properties file is not being used by this task.
+[INFO] ------------------------------------------------------------------------
+[INFO] ####################################################
+##   _     _             _ _                      ##
+##  | |   (_)           (_) |                     ##
+##  | |    _  __ _ _   _ _| |__   __ _ ___  ___   ##
+##  | |   | |/ _` | | | | | '_ \ / _` / __|/ _ \  ##
+##  | |___| | (_| | |_| | | |_) | (_| \__ \  __/  ##
+##  \_____/_|\__, |\__,_|_|_.__/ \__,_|___/\___|  ##
+##              | |                               ##
+##              |_|                               ##
+##                                                ## 
+##  Get documentation at docs.liquibase.com       ##
+##  Get certified courses at learn.liquibase.com  ## 
+##  Free schema change activity reports at        ##
+##      https://hub.liquibase.com                 ##
+##                                                ##
+####################################################
+Starting Liquibase at 22:33:16 (version 4.29.2 #3683 built at 2024-08-29 16:45+0000)
+[INFO] Parsing Liquibase Properties File src/main/resources/liquibase.properties for changeLog parameters
+[INFO] Executing on Database: jdbc:oracle:thin:@localhost:1521/ORCLPDB1
+[INFO] Reading from CM3INT.DATABASECHANGELOG
+[INFO] Changelog query completed.
+Database is up to date, no changesets to execute
+[INFO] ------------------------------------------------------------------------
+[INFO] 
+[INFO] 
+[INFO] --- compiler:3.13.0:compile (default-compile) @ fabric-api ---
+[INFO] Recompiling the module because of changed source code.
+[INFO] Compiling 131 source files with javac [debug parameters release 17] to target/classes
+[WARNING] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/dto/JobExecutionRequest.java:[60,20] @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
+[WARNING] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/dto/JobExecutionRequest.java:[91,20] @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
+[WARNING] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/dto/JobExecutionRequest.java:[98,21] @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
+[WARNING] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/dto/JobExecutionRequest.java:[140,20] @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
+[WARNING] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/dto/JobExecutionRequest.java:[161,21] @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
+[WARNING] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/dto/JobExecutionRequest.java:[172,21] @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
+[WARNING] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/websocket/service/RealTimeMonitoringService.java:[477,25] @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
+[WARNING] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/websocket/service/RealTimeMonitoringService.java:[478,24] @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
+[WARNING] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/websocket/service/RealTimeMonitoringService.java:[479,24] @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
+[WARNING] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/websocket/service/RealTimeMonitoringService.java:[480,24] @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
+[WARNING] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/websocket/service/RealTimeMonitoringService.java:[481,24] @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
+[WARNING] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/websocket/service/RealTimeMonitoringService.java:[482,24] @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
+[WARNING] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/websocket/service/RealTimeMonitoringService.java:[483,24] @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
+[WARNING] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/websocket/service/RealTimeMonitoringService.java:[484,34] @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
+[WARNING] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/websocket/service/RealTimeMonitoringService.java:[532,24] @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
+[WARNING] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/websocket/service/RealTimeMonitoringService.java:[533,24] @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
+[WARNING] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/websocket/service/RealTimeMonitoringService.java:[534,24] @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
+[WARNING] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/monitor/Epic2PerformanceMonitor.java:[98,35] @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
+[WARNING] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/dto/ManualJobConfigRequest.java:[110,20] @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
+[WARNING] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/dto/ManualJobConfigRequest.java:[148,20] @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
+[WARNING] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/dto/ManualJobConfigRequest.java:[165,20] @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
+[WARNING] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/dto/ManualJobConfigRequest.java:[173,21] @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
+[WARNING] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/websocket/handler/EnterpriseWebSocketHandler.java:[43,1] Field 'log' already exists.
+[WARNING] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/audit/NoOpAuditTrailManager.java:[24,1] Field 'log' already exists.
+[WARNING] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/security/config/SecurityConfig.java:[144,17] frameOptions() in org.springframework.security.config.annotation.web.configurers.HeadersConfigurer has been deprecated and marked for removal
+[WARNING] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/security/config/SecurityConfig.java:[145,17] contentTypeOptions() in org.springframework.security.config.annotation.web.configurers.HeadersConfigurer has been deprecated and marked for removal
+[WARNING] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/security/config/SecurityConfig.java:[145,38] and() in org.springframework.security.config.annotation.web.configurers.HeadersConfigurer.ContentTypeOptionsConfig has been deprecated and marked for removal
+[WARNING] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/security/config/SecurityConfig.java:[149,17] referrerPolicy(org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter.ReferrerPolicy) in org.springframework.security.config.annotation.web.configurers.HeadersConfigurer has been deprecated and marked for removal
+[WARNING] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/security/config/SecurityConfig.java:[150,17] and() in org.springframework.security.config.annotation.web.configurers.HeadersConfigurer.ReferrerPolicyConfig has been deprecated and marked for removal
+[INFO] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/security/jwt/JwtTokenService.java: /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/security/jwt/JwtTokenService.java uses or overrides a deprecated API.
+[INFO] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/security/jwt/JwtTokenService.java: Recompile with -Xlint:deprecation for details.
+[INFO] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/controller/ManualJobConfigController.java: /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/controller/ManualJobConfigController.java uses unchecked or unsafe operations.
+[INFO] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/controller/ManualJobConfigController.java: Recompile with -Xlint:unchecked for details.
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ fabric-api ---
+[INFO] Copying 6 resources from src/test/resources to target/test-classes
+[INFO] 
+[INFO] --- compiler:3.13.0:testCompile (default-testCompile) @ fabric-api ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 5 source files with javac [debug parameters release 17] to target/test-classes
+[INFO] 
+[INFO] <<< spring-boot:3.4.6:run (default-cli) < test-compile @ fabric-api <<<
+[INFO] 
+[INFO] 
+[INFO] --- spring-boot:3.4.6:run (default-cli) @ fabric-api ---
+[INFO] Attaching agents: []
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v3.4.6)
+
+2025-08-13T22:33:23.869-04:00  INFO 82910 --- [fabric-platform] [           main] c.t.batch.InterfaceBatchApplication      : Starting InterfaceBatchApplication using Java 17.0.14 with PID 82910 (/Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/target/classes started by pavankanduri in /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api)
+2025-08-13T22:33:23.871-04:00  INFO 82910 --- [fabric-platform] [           main] c.t.batch.InterfaceBatchApplication      : No active profile set, falling back to 1 default profile: "default"
+2025-08-13T22:33:24.428-04:00  INFO 82910 --- [fabric-platform] [           main] o.s.b.c.c.annotation.BatchRegistrar      : Bean jobRepository already defined in the application context, skipping the registration of a jobRepository
+2025-08-13T22:33:24.431-04:00  INFO 82910 --- [fabric-platform] [           main] o.s.b.c.c.annotation.BatchRegistrar      : Finished Spring Batch infrastructure beans configuration in 2 ms.
+2025-08-13T22:33:24.431-04:00  INFO 82910 --- [fabric-platform] [           main] o.s.b.c.c.annotation.BatchRegistrar      : Bean jobRepository already defined in the application context, skipping the registration of a jobRepository
+2025-08-13T22:33:24.431-04:00  INFO 82910 --- [fabric-platform] [           main] o.s.b.c.c.annotation.BatchRegistrar      : Bean jobExplorer already defined in the application context, skipping the registration of a jobExplorer
+2025-08-13T22:33:24.431-04:00  INFO 82910 --- [fabric-platform] [           main] o.s.b.c.c.annotation.BatchRegistrar      : Bean jobLauncher already defined in the application context, skipping the registration of a jobLauncher
+2025-08-13T22:33:24.431-04:00  INFO 82910 --- [fabric-platform] [           main] o.s.b.c.c.annotation.BatchRegistrar      : Bean jobRegistry already defined in the application context, skipping the registration of a jobRegistry
+2025-08-13T22:33:24.431-04:00  INFO 82910 --- [fabric-platform] [           main] o.s.b.c.c.annotation.BatchRegistrar      : Bean jobRegistrySmartInitializingSingleton already defined in the application context, skipping the registration of a jobRegistrySmartInitializingSingleton
+2025-08-13T22:33:24.431-04:00  INFO 82910 --- [fabric-platform] [           main] o.s.b.c.c.annotation.BatchRegistrar      : Bean jobOperator already defined in the application context, skipping the registration of a jobOperator
+2025-08-13T22:33:24.431-04:00  INFO 82910 --- [fabric-platform] [           main] o.s.b.c.c.annotation.BatchRegistrar      : Finished Spring Batch infrastructure beans configuration in 0 ms.
+2025-08-13T22:33:24.431-04:00  INFO 82910 --- [fabric-platform] [           main] o.s.b.c.c.annotation.BatchRegistrar      : Bean jobRepository already defined in the application context, skipping the registration of a jobRepository
+2025-08-13T22:33:24.431-04:00  INFO 82910 --- [fabric-platform] [           main] o.s.b.c.c.annotation.BatchRegistrar      : Bean jobExplorer already defined in the application context, skipping the registration of a jobExplorer
+2025-08-13T22:33:24.431-04:00  INFO 82910 --- [fabric-platform] [           main] o.s.b.c.c.annotation.BatchRegistrar      : Bean jobLauncher already defined in the application context, skipping the registration of a jobLauncher
+2025-08-13T22:33:24.431-04:00  INFO 82910 --- [fabric-platform] [           main] o.s.b.c.c.annotation.BatchRegistrar      : Bean jobRegistry already defined in the application context, skipping the registration of a jobRegistry
+2025-08-13T22:33:24.431-04:00  INFO 82910 --- [fabric-platform] [           main] o.s.b.c.c.annotation.BatchRegistrar      : Bean jobRegistrySmartInitializingSingleton already defined in the application context, skipping the registration of a jobRegistrySmartInitializingSingleton
+2025-08-13T22:33:24.432-04:00  INFO 82910 --- [fabric-platform] [           main] o.s.b.c.c.annotation.BatchRegistrar      : Bean jobOperator already defined in the application context, skipping the registration of a jobOperator
+2025-08-13T22:33:24.432-04:00  INFO 82910 --- [fabric-platform] [           main] o.s.b.c.c.annotation.BatchRegistrar      : Finished Spring Batch infrastructure beans configuration in 0 ms.
+2025-08-13T22:33:25.250-04:00  INFO 82910 --- [fabric-platform] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8080 (http)
+2025-08-13T22:33:25.256-04:00  INFO 82910 --- [fabric-platform] [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2025-08-13T22:33:25.257-04:00  INFO 82910 --- [fabric-platform] [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.41]
+2025-08-13T22:33:25.283-04:00  INFO 82910 --- [fabric-platform] [           main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2025-08-13T22:33:25.284-04:00  INFO 82910 --- [fabric-platform] [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 1392 ms
+2025-08-13T22:33:25.814-04:00  INFO 82910 --- [fabric-platform] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2025-08-13T22:33:26.107-04:00  INFO 82910 --- [fabric-platform] [           main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection oracle.jdbc.driver.T4CConnection@69dc7b24
+2025-08-13T22:33:26.108-04:00  INFO 82910 --- [fabric-platform] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2025-08-13T22:33:26.214-04:00  INFO 82910 --- [fabric-platform] [           main] c.t.b.i.config.IdempotencyConfiguration  : Initializing Fabric Platform Idempotency Framework with properties: IdempotencyProperties[enabled=true, ttl=24h, retries=3, cache=true, cleanup=true, dev=false]
+2025-08-13T22:33:26.327-04:00  WARN 82910 --- [fabric-platform] [           main] ConfigServletWebServerApplicationContext : Exception encountered during context initialization - cancelling refresh attempt: org.springframework.beans.factory.UnsatisfiedDependencyException: Error creating bean with name 'sqlLoaderController' defined in file [/Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/target/classes/com/truist/batch/controller/SqlLoaderController.class]: Unsatisfied dependency expressed through constructor parameter 0: Error creating bean with name 'sqlLoaderConfigServiceImpl' defined in file [/Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/target/classes/com/truist/batch/service/impl/SqlLoaderConfigServiceImpl.class]: Unsatisfied dependency expressed through constructor parameter 0: Error creating bean with name 'sqlLoaderConfigurationManagementService' defined in URL [jar:file:/Users/pavankanduri/.m2/repository/com/truist/fabric-data-loader/0.0.1-SNAPSHOT/fabric-data-loader-0.0.1-SNAPSHOT.jar!/com/truist/batch/service/SqlLoaderConfigurationManagementService.class]: Failed to instantiate [com.truist.batch.service.SqlLoaderConfigurationManagementService]: Specified class is an interface
+2025-08-13T22:33:26.327-04:00  INFO 82910 --- [fabric-platform] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown initiated...
+2025-08-13T22:33:26.393-04:00  INFO 82910 --- [fabric-platform] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown completed.
+2025-08-13T22:33:26.397-04:00  INFO 82910 --- [fabric-platform] [           main] o.apache.catalina.core.StandardService   : Stopping service [Tomcat]
+2025-08-13T22:33:26.410-04:00  INFO 82910 --- [fabric-platform] [           main] .s.b.a.l.ConditionEvaluationReportLogger : 
+
+Error starting ApplicationContext. To display the condition evaluation report re-run your application with 'debug' enabled.
+2025-08-13T22:33:26.418-04:00 ERROR 82910 --- [fabric-platform] [           main] o.s.boot.SpringApplication               : Application run failed
+
+org.springframework.beans.factory.UnsatisfiedDependencyException: Error creating bean with name 'sqlLoaderController' defined in file [/Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/target/classes/com/truist/batch/controller/SqlLoaderController.class]: Unsatisfied dependency expressed through constructor parameter 0: Error creating bean with name 'sqlLoaderConfigServiceImpl' defined in file [/Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/target/classes/com/truist/batch/service/impl/SqlLoaderConfigServiceImpl.class]: Unsatisfied dependency expressed through constructor parameter 0: Error creating bean with name 'sqlLoaderConfigurationManagementService' defined in URL [jar:file:/Users/pavankanduri/.m2/repository/com/truist/fabric-data-loader/0.0.1-SNAPSHOT/fabric-data-loader-0.0.1-SNAPSHOT.jar!/com/truist/batch/service/SqlLoaderConfigurationManagementService.class]: Failed to instantiate [com.truist.batch.service.SqlLoaderConfigurationManagementService]: Specified class is an interface
+	at org.springframework.beans.factory.support.ConstructorResolver.createArgumentArray(ConstructorResolver.java:804) ~[spring-beans-6.2.7.jar:6.2.7]
+	at org.springframework.beans.factory.support.ConstructorResolver.autowireConstructor(ConstructorResolver.java:240) ~[spring-beans-6.2.7.jar:6.2.7]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.autowireConstructor(AbstractAutowireCapableBeanFactory.java:1395) ~[spring-beans-6.2.7.jar:6.2.7]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBeanInstance(AbstractAutowireCapableBeanFactory.java:1232) ~[spring-beans-6.2.7.jar:6.2.7]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.doCreateBean(AbstractAutowireCapableBeanFactory.java:569) ~[spring-beans-6.2.7.jar:6.2.7]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBean(AbstractAutowireCapableBeanFactory.java:529) ~[spring-beans-6.2.7.jar:6.2.7]
+	at org.springframework.beans.factory.support.AbstractBeanFactory.lambda$doGetBean$0(AbstractBeanFactory.java:339) ~[spring-beans-6.2.7.jar:6.2.7]
+	at org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.getSingleton(DefaultSingletonBeanRegistry.java:373) ~[spring-beans-6.2.7.jar:6.2.7]
+	at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:337) ~[spring-beans-6.2.7.jar:6.2.7]
+	at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:202) ~[spring-beans-6.2.7.jar:6.2.7]
+	at org.springframework.beans.factory.support.DefaultListableBeanFactory.instantiateSingleton(DefaultListableBeanFactory.java:1222) ~[spring-beans-6.2.7.jar:6.2.7]
+	at org.springframework.beans.factory.support.DefaultListableBeanFactory.preInstantiateSingleton(DefaultListableBeanFactory.java:1188) ~[spring-beans-6.2.7.jar:6.2.7]
+	at org.springframework.beans.factory.support.DefaultListableBeanFactory.preInstantiateSingletons(DefaultListableBeanFactory.java:1123) ~[spring-beans-6.2.7.jar:6.2.7]
+	at org.springframework.context.support.AbstractApplicationContext.finishBeanFactoryInitialization(AbstractApplicationContext.java:987) ~[spring-context-6.2.7.jar:6.2.7]
+	at org.springframework.context.support.AbstractApplicationContext.refresh(AbstractApplicationContext.java:627) ~[spring-context-6.2.7.jar:6.2.7]
+	at org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext.refresh(ServletWebServerApplicationContext.java:146) ~[spring-boot-3.4.6.jar:3.4.6]
+	at org.springframework.boot.SpringApplication.refresh(SpringApplication.java:753) ~[spring-boot-3.4.6.jar:3.4.6]
+	at org.springframework.boot.SpringApplication.refreshContext(SpringApplication.java:439) ~[spring-boot-3.4.6.jar:3.4.6]
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:318) ~[spring-boot-3.4.6.jar:3.4.6]
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:1362) ~[spring-boot-3.4.6.jar:3.4.6]
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:1351) ~[spring-boot-3.4.6.jar:3.4.6]
+	at com.truist.batch.InterfaceBatchApplication.main(InterfaceBatchApplication.java:32) ~[classes/:na]
+Caused by: org.springframework.beans.factory.UnsatisfiedDependencyException: Error creating bean with name 'sqlLoaderConfigServiceImpl' defined in file [/Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/target/classes/com/truist/batch/service/impl/SqlLoaderConfigServiceImpl.class]: Unsatisfied dependency expressed through constructor parameter 0: Error creating bean with name 'sqlLoaderConfigurationManagementService' defined in URL [jar:file:/Users/pavankanduri/.m2/repository/com/truist/fabric-data-loader/0.0.1-SNAPSHOT/fabric-data-loader-0.0.1-SNAPSHOT.jar!/com/truist/batch/service/SqlLoaderConfigurationManagementService.class]: Failed to instantiate [com.truist.batch.service.SqlLoaderConfigurationManagementService]: Specified class is an interface
+	at org.springframework.beans.factory.support.ConstructorResolver.createArgumentArray(ConstructorResolver.java:804) ~[spring-beans-6.2.7.jar:6.2.7]
+	at org.springframework.beans.factory.support.ConstructorResolver.autowireConstructor(ConstructorResolver.java:240) ~[spring-beans-6.2.7.jar:6.2.7]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.autowireConstructor(AbstractAutowireCapableBeanFactory.java:1395) ~[spring-beans-6.2.7.jar:6.2.7]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBeanInstance(AbstractAutowireCapableBeanFactory.java:1232) ~[spring-beans-6.2.7.jar:6.2.7]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.doCreateBean(AbstractAutowireCapableBeanFactory.java:569) ~[spring-beans-6.2.7.jar:6.2.7]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBean(AbstractAutowireCapableBeanFactory.java:529) ~[spring-beans-6.2.7.jar:6.2.7]
+	at org.springframework.beans.factory.support.AbstractBeanFactory.lambda$doGetBean$0(AbstractBeanFactory.java:339) ~[spring-beans-6.2.7.jar:6.2.7]
+	at org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.getSingleton(DefaultSingletonBeanRegistry.java:373) ~[spring-beans-6.2.7.jar:6.2.7]
+	at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:337) ~[spring-beans-6.2.7.jar:6.2.7]
+	at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:202) ~[spring-beans-6.2.7.jar:6.2.7]
+	at org.springframework.beans.factory.config.DependencyDescriptor.resolveCandidate(DependencyDescriptor.java:254) ~[spring-beans-6.2.7.jar:6.2.7]
+	at org.springframework.beans.factory.support.DefaultListableBeanFactory.doResolveDependency(DefaultListableBeanFactory.java:1740) ~[spring-beans-6.2.7.jar:6.2.7]
+	at org.springframework.beans.factory.support.DefaultListableBeanFactory.resolveDependency(DefaultListableBeanFactory.java:1628) ~[spring-beans-6.2.7.jar:6.2.7]
+	at org.springframework.beans.factory.support.ConstructorResolver.resolveAutowiredArgument(ConstructorResolver.java:913) ~[spring-beans-6.2.7.jar:6.2.7]
+	at org.springframework.beans.factory.support.ConstructorResolver.createArgumentArray(ConstructorResolver.java:791) ~[spring-beans-6.2.7.jar:6.2.7]
+	... 21 common frames omitted
+Caused by: org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'sqlLoaderConfigurationManagementService' defined in URL [jar:file:/Users/pavankanduri/.m2/repository/com/truist/fabric-data-loader/0.0.1-SNAPSHOT/fabric-data-loader-0.0.1-SNAPSHOT.jar!/com/truist/batch/service/SqlLoaderConfigurationManagementService.class]: Failed to instantiate [com.truist.batch.service.SqlLoaderConfigurationManagementService]: Specified class is an interface
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.instantiateBean(AbstractAutowireCapableBeanFactory.java:1357) ~[spring-beans-6.2.7.jar:6.2.7]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBeanInstance(AbstractAutowireCapableBeanFactory.java:1242) ~[spring-beans-6.2.7.jar:6.2.7]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.doCreateBean(AbstractAutowireCapableBeanFactory.java:569) ~[spring-beans-6.2.7.jar:6.2.7]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBean(AbstractAutowireCapableBeanFactory.java:529) ~[spring-beans-6.2.7.jar:6.2.7]
+	at org.springframework.beans.factory.support.AbstractBeanFactory.lambda$doGetBean$0(AbstractBeanFactory.java:339) ~[spring-beans-6.2.7.jar:6.2.7]
+	at org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.getSingleton(DefaultSingletonBeanRegistry.java:373) ~[spring-beans-6.2.7.jar:6.2.7]
+	at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:337) ~[spring-beans-6.2.7.jar:6.2.7]
+	at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:202) ~[spring-beans-6.2.7.jar:6.2.7]
+	at org.springframework.beans.factory.config.DependencyDescriptor.resolveCandidate(DependencyDescriptor.java:254) ~[spring-beans-6.2.7.jar:6.2.7]
+	at org.springframework.beans.factory.support.DefaultListableBeanFactory.doResolveDependency(DefaultListableBeanFactory.java:1740) ~[spring-beans-6.2.7.jar:6.2.7]
+	at org.springframework.beans.factory.support.DefaultListableBeanFactory.resolveDependency(DefaultListableBeanFactory.java:1628) ~[spring-beans-6.2.7.jar:6.2.7]
+	at org.springframework.beans.factory.support.ConstructorResolver.resolveAutowiredArgument(ConstructorResolver.java:913) ~[spring-beans-6.2.7.jar:6.2.7]
+	at org.springframework.beans.factory.support.ConstructorResolver.createArgumentArray(ConstructorResolver.java:791) ~[spring-beans-6.2.7.jar:6.2.7]
+	... 35 common frames omitted
+Caused by: org.springframework.beans.BeanInstantiationException: Failed to instantiate [com.truist.batch.service.SqlLoaderConfigurationManagementService]: Specified class is an interface
+	at org.springframework.beans.factory.support.SimpleInstantiationStrategy.instantiate(SimpleInstantiationStrategy.java:111) ~[spring-beans-6.2.7.jar:6.2.7]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.instantiateBean(AbstractAutowireCapableBeanFactory.java:1351) ~[spring-beans-6.2.7.jar:6.2.7]
+	... 47 common frames omitted
+
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD FAILURE
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  10.750 s
+[INFO] Finished at: 2025-08-13T22:33:26-04:00
+[INFO] ------------------------------------------------------------------------
+[ERROR] Failed to execute goal org.springframework.boot:spring-boot-maven-plugin:3.4.6:run (default-cli) on project fabric-api: Process terminated with exit code: 1 -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoExecutionException

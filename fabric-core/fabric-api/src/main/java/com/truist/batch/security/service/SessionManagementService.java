@@ -7,6 +7,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.context.annotation.Profile;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -37,6 +38,7 @@ import java.util.concurrent.TimeUnit;
 @Service
 @RequiredArgsConstructor
 @Profile("!local")  // Exclude from local profile to avoid Redis dependencies
+@ConditionalOnProperty(name = "fabric.security.redis.enabled", havingValue = "true", matchIfMissing = false)
 public class SessionManagementService {
     
     private final RedisTemplate<String, String> redisTemplate;

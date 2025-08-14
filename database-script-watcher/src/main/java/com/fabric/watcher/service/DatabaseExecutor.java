@@ -290,6 +290,20 @@ public class DatabaseExecutor {
     }
     
     /**
+     * Execute a parameterized update statement with retry logic.
+     * Used for INSERT, UPDATE, DELETE operations with parameters.
+     * 
+     * @param sql the SQL statement with parameter placeholders
+     * @param params the parameters for the SQL statement
+     * @return the number of rows affected
+     */
+    public int executeUpdate(String sql, Object... params) {
+        return retryService.executeDatabaseOperationWithRetry(() -> {
+            return jdbcTemplate.update(sql, params);
+        }, "UPDATE: " + truncateStatement(sql));
+    }
+    
+    /**
      * Execute an operation with exponential backoff retry logic.
      * @deprecated Use RetryService instead for better error handling and metrics
      */

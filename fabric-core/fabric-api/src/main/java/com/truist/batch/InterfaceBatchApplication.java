@@ -26,8 +26,6 @@ import com.truist.batch.config.DatabaseConfig;
         )
     }
 )
-// JPA configuration removed - now using JdbcTemplate-based repositories
-// @EnableJpaRepositories removed as we no longer use JPA repositories
 @EnableTransactionManagement
 public class InterfaceBatchApplication {
 	public static void main(String[] args) {

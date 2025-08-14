@@ -1,12 +1,13 @@
 package com.truist.batch.security.config;
 
 import com.truist.batch.security.jwt.JwtAuthenticationFilter;
-import com.truist.batch.security.ldap.LdapAuthenticationProvider;
+// import com.truist.batch.security.ldap.LdapAuthenticationProvider; // Temporarily disabled for demo
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -54,7 +55,7 @@ import java.util.List;
 public class SecurityConfig {
     
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
-    private final LdapAuthenticationProvider ldapAuthenticationProvider;
+    // private final LdapAuthenticationProvider ldapAuthenticationProvider; // Temporarily disabled for demo
     private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
     
     @Value("${fabric.security.cors.allowed-origins:http://localhost:3000,https://localhost:3000}")
@@ -105,6 +106,26 @@ public class SecurityConfig {
                 // API endpoints with role-based access
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
                 .requestMatchers("/api/management/**").hasAnyRole("ADMIN", "MANAGER")
+                
+                // Phase 2 - Manual Job Configuration API with RBAC
+                .requestMatchers("/api/v2/manual-job-config/statistics").hasAnyRole("JOB_VIEWER", "JOB_CREATOR", "JOB_MODIFIER", "JOB_EXECUTOR")
+                .requestMatchers(HttpMethod.POST, "/api/v2/manual-job-config").hasAnyRole("JOB_CREATOR", "JOB_MODIFIER")
+                .requestMatchers(HttpMethod.PUT, "/api/v2/manual-job-config/**").hasRole("JOB_MODIFIER")
+                .requestMatchers(HttpMethod.DELETE, "/api/v2/manual-job-config/**").hasRole("JOB_MODIFIER")
+                .requestMatchers(HttpMethod.GET, "/api/v2/manual-job-config/**").hasAnyRole("JOB_VIEWER", "JOB_CREATOR", "JOB_MODIFIER", "JOB_EXECUTOR")
+                
+                // Job Execution API
+                .requestMatchers("/api/v2/job-execution/execute").hasRole("JOB_EXECUTOR")
+                .requestMatchers("/api/v2/job-execution/cancel/**").hasAnyRole("JOB_EXECUTOR", "JOB_MODIFIER")
+                .requestMatchers("/api/v2/job-execution/retry/**").hasRole("JOB_EXECUTOR")
+                .requestMatchers("/api/v2/job-execution/**").hasAnyRole("JOB_VIEWER", "JOB_EXECUTOR")
+                
+                // Parameter Template API
+                .requestMatchers(HttpMethod.POST, "/api/v2/parameter-templates").hasRole("JOB_CREATOR")
+                .requestMatchers(HttpMethod.PUT, "/api/v2/parameter-templates/**").hasRole("JOB_MODIFIER")
+                .requestMatchers("/api/v2/parameter-templates/**").hasAnyRole("JOB_VIEWER", "JOB_CREATOR", "JOB_MODIFIER")
+                
+                // Legacy API endpoints
                 .requestMatchers("/api/configurations/create").hasAuthority("CONFIG_CREATE")
                 .requestMatchers("/api/configurations/update/**").hasAuthority("CONFIG_UPDATE")
                 .requestMatchers("/api/configurations/delete/**").hasAuthority("CONFIG_DELETE")
@@ -143,7 +164,7 @@ public class SecurityConfig {
         AuthenticationManagerBuilder authBuilder = 
             http.getSharedObject(AuthenticationManagerBuilder.class);
         
-        authBuilder.authenticationProvider(ldapAuthenticationProvider);
+        // authBuilder.authenticationProvider(ldapAuthenticationProvider); // Temporarily disabled for demo
         
         return authBuilder.build();
     }

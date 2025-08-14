@@ -1,0 +1,98 @@
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] -----------------------< com.truist:fabric-api >------------------------
+[INFO] Building fabric-api 0.0.1-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- clean:3.4.1:clean (default-clean) @ fabric-api ---
+[INFO] Deleting /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/target
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ fabric-api ---
+[INFO] Copying 2 resources from src/main/resources to target/classes
+[INFO] Copying 48 resources from src/main/resources to target/classes
+[INFO] 
+[INFO] --- liquibase:4.20.0:update (default) @ fabric-api ---
+[WARNING]  Parameter 'promptOnNonLocalDatabase' (user property 'liquibase.promptOnNonLocalDatabase') is deprecated: No longer prompts
+[INFO] ------------------------------------------------------------------------
+[INFO] Parsing Liquibase Properties File
+[INFO]   File: src/main/resources/liquibase.properties
+[INFO]   'liquibaseSchemaName' in properties file is not being used by this task.
+[INFO]   'classpath' in properties file is not being used by this task.
+[INFO]   'author' in properties file is not being used by this task.
+[INFO]   'rollbackScript' in properties file is not being used by this task.
+[INFO]   'outputFile' in properties file is not being used by this task.
+[INFO]   'logLevel' in properties file is not being used by this task.
+[INFO]   'rollbackCount' in properties file is not being used by this task.
+[INFO]   'outputChangeLogFile' in properties file is not being used by this task.
+[INFO]   'company' in properties file is not being used by this task.
+[INFO]   'tag' in properties file is not being used by this task.
+[INFO]   'includeSystemClasspath' in properties file is not being used by this task.
+[INFO] ------------------------------------------------------------------------
+[INFO] ####################################################
+##   _     _             _ _                      ##
+##  | |   (_)           (_) |                     ##
+##  | |    _  __ _ _   _ _| |__   __ _ ___  ___   ##
+##  | |   | |/ _` | | | | | '_ \ / _` / __|/ _ \  ##
+##  | |___| | (_| | |_| | | |_) | (_| \__ \  __/  ##
+##  \_____/_|\__, |\__,_|_|_.__/ \__,_|___/\___|  ##
+##              | |                               ##
+##              |_|                               ##
+##                                                ## 
+##  Get documentation at docs.liquibase.com       ##
+##  Get certified courses at learn.liquibase.com  ## 
+##  Free schema change activity reports at        ##
+##      https://hub.liquibase.com                 ##
+##                                                ##
+####################################################
+Starting Liquibase at 22:42:24 (version 4.29.2 #3683 built at 2024-08-29 16:45+0000)
+[INFO] Parsing Liquibase Properties File src/main/resources/liquibase.properties for changeLog parameters
+[INFO] Executing on Database: jdbc:oracle:thin:@localhost:1521/ORCLPDB1
+[INFO] Reading from CM3INT.DATABASECHANGELOG
+[INFO] Changelog query completed.
+Database is up to date, no changesets to execute
+[INFO] ------------------------------------------------------------------------
+[INFO] 
+[INFO] 
+[INFO] --- compiler:3.13.0:compile (default-compile) @ fabric-api ---
+[INFO] Recompiling the module because of changed source code.
+[INFO] Compiling 131 source files with javac [debug parameters release 17] to target/classes
+[WARNING] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/websocket/service/RealTimeMonitoringService.java:[477,25] @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
+[WARNING] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/websocket/service/RealTimeMonitoringService.java:[478,24] @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
+[WARNING] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/websocket/service/RealTimeMonitoringService.java:[479,24] @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
+[WARNING] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/websocket/service/RealTimeMonitoringService.java:[480,24] @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
+[WARNING] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/websocket/service/RealTimeMonitoringService.java:[481,24] @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
+[WARNING] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/websocket/service/RealTimeMonitoringService.java:[482,24] @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
+[WARNING] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/websocket/service/RealTimeMonitoringService.java:[483,24] @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
+[WARNING] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/websocket/service/RealTimeMonitoringService.java:[484,34] @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
+[WARNING] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/websocket/service/RealTimeMonitoringService.java:[532,24] @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
+[WARNING] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/websocket/service/RealTimeMonitoringService.java:[533,24] @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
+[WARNING] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/websocket/service/RealTimeMonitoringService.java:[534,24] @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
+[WARNING] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/monitor/Epic2PerformanceMonitor.java:[98,35] @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
+[WARNING] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/dto/JobExecutionRequest.java:[60,20] @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
+[WARNING] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/dto/JobExecutionRequest.java:[91,20] @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
+[WARNING] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/dto/JobExecutionRequest.java:[98,21] @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
+[WARNING] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/dto/JobExecutionRequest.java:[140,20] @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
+[WARNING] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/dto/JobExecutionRequest.java:[161,21] @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
+[WARNING] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/dto/JobExecutionRequest.java:[172,21] @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
+[WARNING] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/dto/ManualJobConfigRequest.java:[110,20] @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
+[WARNING] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/dto/ManualJobConfigRequest.java:[148,20] @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
+[WARNING] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/dto/ManualJobConfigRequest.java:[165,20] @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
+[WARNING] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/dto/ManualJobConfigRequest.java:[173,21] @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
+[WARNING] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/websocket/handler/EnterpriseWebSocketHandler.java:[43,1] Field 'log' already exists.
+[WARNING] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/audit/NoOpAuditTrailManager.java:[24,1] Field 'log' already exists.
+[WARNING] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/security/config/SecurityConfig.java:[144,17] frameOptions() in org.springframework.security.config.annotation.web.configurers.HeadersConfigurer has been deprecated and marked for removal
+[WARNING] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/security/config/SecurityConfig.java:[145,17] contentTypeOptions() in org.springframework.security.config.annotation.web.configurers.HeadersConfigurer has been deprecated and marked for removal
+[WARNING] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/security/config/SecurityConfig.java:[145,38] and() in org.springframework.security.config.annotation.web.configurers.HeadersConfigurer.ContentTypeOptionsConfig has been deprecated and marked for removal
+[WARNING] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/security/config/SecurityConfig.java:[149,17] referrerPolicy(org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter.ReferrerPolicy) in org.springframework.security.config.annotation.web.configurers.HeadersConfigurer has been deprecated and marked for removal
+[WARNING] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/security/config/SecurityConfig.java:[150,17] and() in org.springframework.security.config.annotation.web.configurers.HeadersConfigurer.ReferrerPolicyConfig has been deprecated and marked for removal
+[INFO] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/security/jwt/JwtTokenService.java: /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/security/jwt/JwtTokenService.java uses or overrides a deprecated API.
+[INFO] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/security/jwt/JwtTokenService.java: Recompile with -Xlint:deprecation for details.
+[INFO] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/controller/ManualJobConfigController.java: /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/controller/ManualJobConfigController.java uses unchecked or unsafe operations.
+[INFO] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/controller/ManualJobConfigController.java: Recompile with -Xlint:unchecked for details.
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  7.096 s
+[INFO] Finished at: 2025-08-13T22:42:30-04:00
+[INFO] ------------------------------------------------------------------------

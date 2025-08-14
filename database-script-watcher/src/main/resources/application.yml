@@ -64,6 +64,27 @@ file-watcher:
       enabled: false
 
 # Resilience4j Configuration
+# Archive Search API Configuration
+archive:
+  search:
+    enabled: ${ARCHIVE_SEARCH_ENABLED:false}
+    allowed-paths:
+      - "./data/archive"
+      - "./temp/search"
+    excluded-paths:
+      - "./data/archive/sensitive"
+    max-file-size: 104857600  # 100MB
+    max-search-results: 100
+    search-timeout-seconds: 30
+    supported-archive-types:
+      - zip
+      - tar
+      - tar.gz
+      - jar
+    max-concurrent-operations: 5
+    audit-logging-enabled: true
+    max-directory-depth: 10
+
 resilience4j:
   circuitbreaker:
     configs:
@@ -104,41 +125,3 @@ resilience4j:
         slidingWindowSize: 15
         minimumNumberOfCalls: 8
   
-  retry:
-    configs:
-      default:
-        maxAttempts: 3
-        waitDuration: 1000ms
-        enableExponentialBackoff: true
-        exponentialBackoffMultiplier: 2
-        retryExceptions:
-          - org.springframework.dao.DataAccessException
-          - java.io.IOException
-          - java.net.SocketException
-          - java.net.SocketTimeoutException
-          - java.util.concurrent.TimeoutException
-    instances:
-      database:
-        baseConfig: default
-        maxAttempts: 3
-        waitDuration: 1000ms
-        enableExponentialBackoff: true
-        exponentialBackoffMultiplier: 2
-      filesystem:
-        baseConfig: default
-        maxAttempts: 5
-        waitDuration: 500ms
-        enableExponentialBackoff: false
-      network:
-        baseConfig: default
-        maxAttempts: 4
-        waitDuration: 2000ms
-        enableExponentialBackoff: true
-        exponentialBackoffMultiplier: 2
-        enableRandomizedWait: true
-        randomizedWaitFactor: 0.5
-      simple:
-        baseConfig: default
-        maxAttempts: 2
-        waitDuration: 1000ms
-        enableExponentialBackoff: false

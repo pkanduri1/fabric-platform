@@ -153,7 +153,8 @@ public class ErrorHandler {
      * Get a user-friendly error message based on category.
      */
     private String getErrorMessage(Throwable exception, ErrorCategory category) {
-        String baseMessage = exception.getMessage() != null ? exception.getMessage() : "Unknown error";
+        String baseMessage = exception != null && exception.getMessage() != null ? 
+            exception.getMessage() : "Unknown error";
         
         switch (category) {
             case DATABASE:

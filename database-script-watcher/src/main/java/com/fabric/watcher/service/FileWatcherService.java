@@ -403,6 +403,17 @@ public class FileWatcherService {
     }
     
     /**
+     * Check if watching is enabled for a specific configuration.
+     * 
+     * @param configName the configuration name
+     * @return true if watching is enabled and running, false otherwise
+     */
+    public boolean isWatchingEnabled(String configName) {
+        WatcherTask task = watcherTasks.get(configName);
+        return task != null && task.isRunning();
+    }
+    
+    /**
      * Perform health check and update degradation states.
      */
     private void performHealthCheck() {
