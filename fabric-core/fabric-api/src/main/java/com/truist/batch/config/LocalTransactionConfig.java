@@ -4,11 +4,11 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
-import org.springframework.orm.jpa.JpaTransactionManager;
+import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
-import jakarta.persistence.EntityManagerFactory;
+import javax.sql.DataSource;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -19,7 +19,7 @@ import lombok.extern.slf4j.Slf4j;
  * and provides enhanced transaction debugging capabilities.
  * 
  * Key Features:
- * - Explicit JPA transaction manager configuration
+ * - JDBC DataSource transaction manager configuration
  * - Enhanced logging for transaction debugging
  * - Oracle-optimized transaction settings
  * - Connection pool integration
@@ -36,21 +36,20 @@ import lombok.extern.slf4j.Slf4j;
 public class LocalTransactionConfig {
 
     /**
-     * Explicitly configure JPA Transaction Manager for local development.
+     * Explicitly configure DataSource Transaction Manager for local development.
      * 
-     * While Spring Boot auto-configuration usually handles this,
-     * explicit configuration ensures proper transaction management
-     * when security and other auto-configurations are disabled.
+     * Since JPA is disabled, we use DataSourceTransactionManager which works
+     * directly with JDBC and Spring's JdbcTemplate.
      * 
-     * @param entityManagerFactory The JPA EntityManagerFactory
-     * @return Configured JPA Transaction Manager
+     * @param dataSource The configured DataSource
+     * @return Configured DataSource Transaction Manager
      */
     @Bean
-    public PlatformTransactionManager transactionManager(EntityManagerFactory entityManagerFactory) {
-        log.info("🔧 Configuring JPA Transaction Manager for local development");
+    public PlatformTransactionManager transactionManager(DataSource dataSource) {
+        log.info("🔧 Configuring DataSource Transaction Manager for local development");
         
-        JpaTransactionManager transactionManager = new JpaTransactionManager();
-        transactionManager.setEntityManagerFactory(entityManagerFactory);
+        DataSourceTransactionManager transactionManager = new DataSourceTransactionManager();
+        transactionManager.setDataSource(dataSource);
         
         // Enable transaction debugging
         transactionManager.setRollbackOnCommitFailure(true);
@@ -59,7 +58,7 @@ public class LocalTransactionConfig {
         // Enhanced logging for transaction lifecycle
         transactionManager.setGlobalRollbackOnParticipationFailure(true);
         
-        log.info("✅ JPA Transaction Manager configured successfully");
+        log.info("✅ DataSource Transaction Manager configured successfully");
         return transactionManager;
     }
 }
