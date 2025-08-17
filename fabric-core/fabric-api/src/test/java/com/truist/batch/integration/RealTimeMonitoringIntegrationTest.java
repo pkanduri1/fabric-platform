@@ -508,8 +508,8 @@ class RealTimeMonitoringIntegrationTest {
             // When - simulate some activity to generate performance data
             for (int i = 0; i < 20; i++) {
                 session.sendMessage(new TextMessage("""
-                    {"type": "heartbeat", "timestamp": """ + System.currentTimeMillis() + """}
-                    """));
+                    {"type": "heartbeat", "timestamp": %d}
+                    """.formatted(System.currentTimeMillis())));
                 Thread.sleep(10);
             }
 

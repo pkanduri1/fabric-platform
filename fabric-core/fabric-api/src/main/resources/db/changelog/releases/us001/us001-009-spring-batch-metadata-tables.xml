@@ -1,0 +1,369 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext"
+    xmlns:oracle="http://www.liquibase.org/xml/ns/dbchangelog/oracle"
+    xsi:schemaLocation="
+        http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd
+        http://www.liquibase.org/xml/ns/dbchangelog-ext
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd
+        http://www.liquibase.org/xml/ns/dbchangelog/oracle
+        http://www.liquibase.org/xml/ns/oracle/oracle.xsd">
+
+    <!--
+    =========================================================================
+    US001-009: SPRING BATCH METADATA TABLES FOR ORACLE
+    =========================================================================
+    
+    Purpose: Create Spring Batch metadata tables required for batch job execution
+    Author: Senior Full Stack Developer Agent
+    Date: 2025-08-15
+    Context: development,test,staging,production
+    
+    Spring Batch Framework requires these metadata tables for:
+    - Job instance tracking (BATCH_JOB_INSTANCE)
+    - Job execution tracking (BATCH_JOB_EXECUTION)
+    - Job parameters storage (BATCH_JOB_EXECUTION_PARAMS)
+    - Step execution tracking (BATCH_STEP_EXECUTION)
+    - Execution context storage (BATCH_JOB_EXECUTION_CONTEXT, BATCH_STEP_EXECUTION_CONTEXT)
+    
+    These tables are based on Spring Batch schema-oracle.sql from spring-batch-core
+    =========================================================================
+    -->
+
+    <changeSet id="us001-009-01-batch-job-instance" author="Senior Full Stack Developer Agent" context="development,test,staging,production">
+        <comment>Create BATCH_JOB_INSTANCE table for Spring Batch job instance tracking</comment>
+        <createTable tableName="BATCH_JOB_INSTANCE">
+            <column name="JOB_INSTANCE_ID" type="NUMBER(19)" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="VERSION" type="NUMBER(19)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="JOB_NAME" type="VARCHAR2(100)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="JOB_KEY" type="VARCHAR2(32)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        
+        <createSequence sequenceName="BATCH_JOB_INSTANCE_SEQ" startValue="1" incrementBy="1"/>
+        
+        <addUniqueConstraint tableName="BATCH_JOB_INSTANCE" 
+                           columnNames="JOB_NAME, JOB_KEY" 
+                           constraintName="JOB_INST_UN"/>
+    </changeSet>
+
+    <changeSet id="us001-009-02-batch-job-execution" author="Senior Full Stack Developer Agent" context="development,test,staging,production">
+        <comment>Create BATCH_JOB_EXECUTION table for Spring Batch job execution tracking</comment>
+        <createTable tableName="BATCH_JOB_EXECUTION">
+            <column name="JOB_EXECUTION_ID" type="NUMBER(19)" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="VERSION" type="NUMBER(19)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="JOB_INSTANCE_ID" type="NUMBER(19)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="CREATE_TIME" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="START_TIME" type="TIMESTAMP">
+                <constraints nullable="true"/>
+            </column>
+            <column name="END_TIME" type="TIMESTAMP">
+                <constraints nullable="true"/>
+            </column>
+            <column name="STATUS" type="VARCHAR2(10)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="EXIT_CODE" type="VARCHAR2(2500)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="EXIT_MESSAGE" type="VARCHAR2(2500)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="LAST_UPDATED" type="TIMESTAMP">
+                <constraints nullable="true"/>
+            </column>
+        </createTable>
+        
+        <createSequence sequenceName="BATCH_JOB_EXECUTION_SEQ" startValue="1" incrementBy="1"/>
+        
+        <addForeignKeyConstraint baseTableName="BATCH_JOB_EXECUTION"
+                               baseColumnNames="JOB_INSTANCE_ID"
+                               referencedTableName="BATCH_JOB_INSTANCE"
+                               referencedColumnNames="JOB_INSTANCE_ID"
+                               constraintName="JOB_EXEC_INST_FK"/>
+    </changeSet>
+
+    <changeSet id="us001-009-03-batch-job-execution-params" author="Senior Full Stack Developer Agent" context="development,test,staging,production">
+        <comment>Create BATCH_JOB_EXECUTION_PARAMS table for Spring Batch job parameters</comment>
+        <createTable tableName="BATCH_JOB_EXECUTION_PARAMS">
+            <column name="JOB_EXECUTION_ID" type="NUMBER(19)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="PARAMETER_NAME" type="VARCHAR2(100)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="PARAMETER_TYPE" type="VARCHAR2(100)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="PARAMETER_VALUE" type="VARCHAR2(2500)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="IDENTIFYING" type="CHAR(1)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        
+        <addForeignKeyConstraint baseTableName="BATCH_JOB_EXECUTION_PARAMS"
+                               baseColumnNames="JOB_EXECUTION_ID"
+                               referencedTableName="BATCH_JOB_EXECUTION"
+                               referencedColumnNames="JOB_EXECUTION_ID"
+                               constraintName="JOB_EXEC_PARAMS_FK"/>
+    </changeSet>
+
+    <changeSet id="us001-009-04-batch-step-execution" author="Senior Full Stack Developer Agent" context="development,test,staging,production">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="BATCH_STEP_EXECUTION"/>
+            </not>
+        </preConditions>
+        <comment>Create BATCH_STEP_EXECUTION table for Spring Batch step execution tracking</comment>
+        <createTable tableName="BATCH_STEP_EXECUTION">
+            <column name="STEP_EXECUTION_ID" type="NUMBER(19)" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="VERSION" type="NUMBER(19)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="STEP_NAME" type="VARCHAR2(100)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="JOB_EXECUTION_ID" type="NUMBER(19)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="CREATE_TIME" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="START_TIME" type="TIMESTAMP">
+                <constraints nullable="true"/>
+            </column>
+            <column name="END_TIME" type="TIMESTAMP">
+                <constraints nullable="true"/>
+            </column>
+            <column name="STATUS" type="VARCHAR2(10)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="COMMIT_COUNT" type="NUMBER(19)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="READ_COUNT" type="NUMBER(19)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="FILTER_COUNT" type="NUMBER(19)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="WRITE_COUNT" type="NUMBER(19)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="READ_SKIP_COUNT" type="NUMBER(19)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="WRITE_SKIP_COUNT" type="NUMBER(19)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="PROCESS_SKIP_COUNT" type="NUMBER(19)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="ROLLBACK_COUNT" type="NUMBER(19)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="EXIT_CODE" type="VARCHAR2(2500)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="EXIT_MESSAGE" type="VARCHAR2(2500)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="LAST_UPDATED" type="TIMESTAMP">
+                <constraints nullable="true"/>
+            </column>
+        </createTable>
+        
+        <addForeignKeyConstraint baseTableName="BATCH_STEP_EXECUTION"
+                               baseColumnNames="JOB_EXECUTION_ID"
+                               referencedTableName="BATCH_JOB_EXECUTION"
+                               referencedColumnNames="JOB_EXECUTION_ID"
+                               constraintName="JOB_EXEC_STEP_FK"/>
+    </changeSet>
+
+    <changeSet id="us001-009-04b-batch-step-execution-sequence" author="Senior Full Stack Developer Agent" context="development,test,staging,production">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <sequenceExists sequenceName="BATCH_STEP_EXECUTION_SEQ"/>
+            </not>
+        </preConditions>
+        <comment>Create BATCH_STEP_EXECUTION_SEQ sequence if it doesn't exist</comment>
+        <createSequence sequenceName="BATCH_STEP_EXECUTION_SEQ" startValue="1" incrementBy="1"/>
+    </changeSet>
+
+    <changeSet id="us001-009-05-batch-job-execution-context" author="Senior Full Stack Developer Agent" context="development,test,staging,production">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="BATCH_JOB_EXECUTION_CONTEXT"/>
+            </not>
+        </preConditions>
+        <comment>Create BATCH_JOB_EXECUTION_CONTEXT table for Spring Batch job execution context</comment>
+        <createTable tableName="BATCH_JOB_EXECUTION_CONTEXT">
+            <column name="JOB_EXECUTION_ID" type="NUMBER(19)">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="SHORT_CONTEXT" type="VARCHAR2(2500)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="SERIALIZED_CONTEXT" type="CLOB">
+                <constraints nullable="true"/>
+            </column>
+        </createTable>
+        
+        <addForeignKeyConstraint baseTableName="BATCH_JOB_EXECUTION_CONTEXT"
+                               baseColumnNames="JOB_EXECUTION_ID"
+                               referencedTableName="BATCH_JOB_EXECUTION"
+                               referencedColumnNames="JOB_EXECUTION_ID"
+                               constraintName="JOB_EXEC_CTX_FK"/>
+    </changeSet>
+
+    <changeSet id="us001-009-06-batch-step-execution-context" author="Senior Full Stack Developer Agent" context="development,test,staging,production">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="BATCH_STEP_EXECUTION_CONTEXT"/>
+            </not>
+        </preConditions>
+        <comment>Create BATCH_STEP_EXECUTION_CONTEXT table for Spring Batch step execution context</comment>
+        <createTable tableName="BATCH_STEP_EXECUTION_CONTEXT">
+            <column name="STEP_EXECUTION_ID" type="NUMBER(19)">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="SHORT_CONTEXT" type="VARCHAR2(2500)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="SERIALIZED_CONTEXT" type="CLOB">
+                <constraints nullable="true"/>
+            </column>
+        </createTable>
+        
+        <addForeignKeyConstraint baseTableName="BATCH_STEP_EXECUTION_CONTEXT"
+                               baseColumnNames="STEP_EXECUTION_ID"
+                               referencedTableName="BATCH_STEP_EXECUTION"
+                               referencedColumnNames="STEP_EXECUTION_ID"
+                               constraintName="STEP_EXEC_CTX_FK"/>
+    </changeSet>
+
+    <changeSet id="us001-009-07-create-indexes" author="Senior Full Stack Developer Agent" context="development,test,staging,production">
+        <comment>Create performance indexes for Spring Batch metadata tables</comment>
+        
+        <!-- Indexes for BATCH_JOB_EXECUTION -->
+        <createIndex tableName="BATCH_JOB_EXECUTION" indexName="JOB_INST_EXEC_FK">
+            <column name="JOB_INSTANCE_ID"/>
+        </createIndex>
+        
+        <createIndex tableName="BATCH_JOB_EXECUTION" indexName="IDX_JOB_EXEC_STATUS">
+            <column name="STATUS"/>
+        </createIndex>
+        
+        <createIndex tableName="BATCH_JOB_EXECUTION" indexName="IDX_JOB_EXEC_CREATE_TIME">
+            <column name="CREATE_TIME"/>
+        </createIndex>
+        
+        <!-- Indexes for BATCH_STEP_EXECUTION -->
+        <createIndex tableName="BATCH_STEP_EXECUTION" indexName="JOB_EXEC_STEP_FK">
+            <column name="JOB_EXECUTION_ID"/>
+        </createIndex>
+        
+        <createIndex tableName="BATCH_STEP_EXECUTION" indexName="IDX_STEP_EXEC_STATUS">
+            <column name="STATUS"/>
+        </createIndex>
+        
+        <!-- Indexes for BATCH_JOB_EXECUTION_PARAMS -->
+        <createIndex tableName="BATCH_JOB_EXECUTION_PARAMS" indexName="JOB_EXEC_PARAMS_FK">
+            <column name="JOB_EXECUTION_ID"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="us001-009-08-create-views" author="Senior Full Stack Developer Agent" context="development,test,staging,production">
+        <comment>Create views for Spring Batch monitoring and reporting</comment>
+        
+        <createView viewName="V_BATCH_JOB_STATUS" replaceIfExists="true">
+            <![CDATA[
+            SELECT 
+                ji.JOB_INSTANCE_ID,
+                ji.JOB_NAME,
+                je.JOB_EXECUTION_ID,
+                je.STATUS,
+                je.START_TIME,
+                je.END_TIME,
+                je.CREATE_TIME,
+                je.LAST_UPDATED,
+                CASE 
+                    WHEN je.END_TIME IS NOT NULL AND je.START_TIME IS NOT NULL 
+                    THEN EXTRACT(DAY FROM (je.END_TIME - je.START_TIME)) * 24 * 60 * 60 * 1000 +
+                         EXTRACT(HOUR FROM (je.END_TIME - je.START_TIME)) * 60 * 60 * 1000 +
+                         EXTRACT(MINUTE FROM (je.END_TIME - je.START_TIME)) * 60 * 1000 +
+                         EXTRACT(SECOND FROM (je.END_TIME - je.START_TIME)) * 1000
+                    ELSE NULL 
+                END AS DURATION_MS,
+                (SELECT COUNT(*) FROM BATCH_STEP_EXECUTION se WHERE se.JOB_EXECUTION_ID = je.JOB_EXECUTION_ID) AS STEP_COUNT,
+                (SELECT COUNT(*) FROM BATCH_STEP_EXECUTION se WHERE se.JOB_EXECUTION_ID = je.JOB_EXECUTION_ID AND se.STATUS = 'COMPLETED') AS COMPLETED_STEPS,
+                (SELECT COUNT(*) FROM BATCH_STEP_EXECUTION se WHERE se.JOB_EXECUTION_ID = je.JOB_EXECUTION_ID AND se.STATUS = 'FAILED') AS FAILED_STEPS
+            FROM BATCH_JOB_INSTANCE ji
+            JOIN BATCH_JOB_EXECUTION je ON ji.JOB_INSTANCE_ID = je.JOB_INSTANCE_ID
+            ]]>
+        </createView>
+
+        <createView viewName="V_BATCH_STEP_METRICS" replaceIfExists="true">
+            <![CDATA[
+            SELECT 
+                se.STEP_EXECUTION_ID,
+                se.STEP_NAME,
+                se.JOB_EXECUTION_ID,
+                ji.JOB_NAME,
+                se.STATUS,
+                se.START_TIME,
+                se.END_TIME,
+                se.READ_COUNT,
+                se.WRITE_COUNT,
+                se.COMMIT_COUNT,
+                se.ROLLBACK_COUNT,
+                se.READ_SKIP_COUNT + se.WRITE_SKIP_COUNT + se.PROCESS_SKIP_COUNT AS TOTAL_SKIP_COUNT,
+                CASE 
+                    WHEN se.READ_COUNT > 0 
+                    THEN ROUND((se.WRITE_COUNT * 100.0) / se.READ_COUNT, 2)
+                    ELSE 0 
+                END AS PROCESSING_SUCCESS_RATE,
+                CASE 
+                    WHEN se.END_TIME IS NOT NULL AND se.START_TIME IS NOT NULL 
+                    THEN EXTRACT(DAY FROM (se.END_TIME - se.START_TIME)) * 24 * 60 * 60 * 1000 +
+                         EXTRACT(HOUR FROM (se.END_TIME - se.START_TIME)) * 60 * 60 * 1000 +
+                         EXTRACT(MINUTE FROM (se.END_TIME - se.START_TIME)) * 60 * 1000 +
+                         EXTRACT(SECOND FROM (se.END_TIME - se.START_TIME)) * 1000
+                    ELSE NULL 
+                END AS DURATION_MS
+            FROM BATCH_STEP_EXECUTION se
+            JOIN BATCH_JOB_EXECUTION je ON se.JOB_EXECUTION_ID = je.JOB_EXECUTION_ID
+            JOIN BATCH_JOB_INSTANCE ji ON je.JOB_INSTANCE_ID = ji.JOB_INSTANCE_ID
+            ]]>
+        </createView>
+    </changeSet>
+
+    <!-- Database Tagging for Spring Batch Schema -->
+    <changeSet id="tag-spring-batch-metadata-schema-v1.0" author="Senior Full Stack Developer Agent" context="development,test,staging,production">
+        <comment>Release tag for Spring Batch Metadata Schema v1.0 - Complete Oracle-compatible Spring Batch framework tables with performance indexes and monitoring views</comment>
+        <sql>SELECT 'Spring Batch Metadata Schema v1.0 Complete' AS release_tag FROM DUAL</sql>
+    </changeSet>
+
+</databaseChangeLog>

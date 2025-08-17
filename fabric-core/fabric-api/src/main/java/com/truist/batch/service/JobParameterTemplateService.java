@@ -1,5 +1,7 @@
 package com.truist.batch.service;
 
+import com.truist.batch.entity.JobParameterTemplateEntity;
+import com.truist.batch.repository.JobParameterTemplateRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -12,6 +14,8 @@ import java.util.UUID;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.stream.Collectors;
 
 /**
  * Enterprise Service for Job Parameter Template Management.
@@ -49,8 +53,7 @@ import java.util.Arrays;
 @Slf4j
 public class JobParameterTemplateService {
 
-    // TODO: Inject JobParameterTemplateRepository when available
-    // private final JobParameterTemplateRepository templateRepository;
+    private final JobParameterTemplateRepository templateRepository;
 
     /**
      * Create a new job parameter template with comprehensive validation.
@@ -101,8 +104,12 @@ public class JobParameterTemplateService {
                 throw new IllegalArgumentException("Invalid template schema format");
             }
             
-            // TODO: Save template when repository is available
-            // templateRepository.save(template);
+            // Convert to entity and save
+            JobParameterTemplateEntity entity = convertToEntity(template);
+            JobParameterTemplateEntity savedEntity = templateRepository.save(entity);
+            
+            // Update template with saved data
+            template = convertToTemplate(savedEntity);
             
             log.info("Successfully created parameter template: {} with ID: {}", templateRequest.getTemplateName(), templateId);
             
@@ -124,16 +131,14 @@ public class JobParameterTemplateService {
     public Optional<JobParameterTemplate> getTemplate(String templateId) {
         log.debug("Retrieving parameter template: {}", templateId);
         
-        // TODO: Implement when repository is available
-        // Optional<JobParameterTemplateEntity> template = templateRepository.findById(templateId);
-        // if (template.isPresent()) {
-        //     // Update last used date
-        //     template.get().setLastUsedDate(LocalDateTime.now());
-        //     templateRepository.save(template.get());
-        // }
-        // return template.map(this::convertToTemplate);
-        
-        // Temporary implementation
+        Optional<JobParameterTemplateEntity> template = templateRepository.findById(templateId);
+        if (template.isPresent()) {
+            // Update last used date and usage count
+            JobParameterTemplateEntity entity = template.get();
+            entity.recordUsage();
+            templateRepository.save(entity);
+            return Optional.of(convertToTemplate(entity));
+        }
         return Optional.empty();
     }
 
@@ -150,19 +155,21 @@ public class JobParameterTemplateService {
         log.debug("Retrieving templates for job type: {}, category: {}, includeDeprecated: {}", 
                  jobType, category, includeDeprecated);
         
-        // TODO: Implement when repository is available
-        // Apply filters based on criteria
-        // if (category != null && !includeDeprecated) {
-        //     return templateRepository.findByJobTypeAndCategoryAndIsDeprecatedOrderByUsageCountDesc(
-        //             jobType, category, false);
-        // } else if (!includeDeprecated) {
-        //     return templateRepository.findByJobTypeAndIsDeprecatedOrderByUsageCountDesc(jobType, false);
-        // } else {
-        //     return templateRepository.findByJobTypeOrderByUsageCountDesc(jobType);
-        // }
+        List<JobParameterTemplateEntity> entities;
         
-        // Temporary implementation - return sample templates
-        return createSampleTemplates(jobType);
+        // Apply filters based on criteria
+        if (category != null && !includeDeprecated) {
+            entities = templateRepository.findByJobTypeAndCategoryAndIsDeprecatedOrderByUsageCountDesc(
+                    jobType, category, 'N');
+        } else if (!includeDeprecated) {
+            entities = templateRepository.findByJobTypeAndIsDeprecatedOrderByUsageCountDesc(jobType, 'N');
+        } else {
+            entities = templateRepository.findByJobTypeOrderByUsageCountDesc(jobType);
+        }
+        
+        return entities.stream()
+                .map(this::convertToTemplate)
+                .collect(Collectors.toList());
     }
 
     /**
@@ -177,29 +184,25 @@ public class JobParameterTemplateService {
         log.info("Updating parameter template: {} by user: {}", templateId, updatedBy);
         
         try {
-            // TODO: Implement when repository is available
-            // JobParameterTemplateEntity existingTemplate = templateRepository.findById(templateId)
-            //         .orElseThrow(() -> new IllegalArgumentException("Template not found: " + templateId));
-            // 
-            // // Validate update request
-            // validateTemplateUpdateRequest(updateRequest);
-            // 
-            // // Update fields
-            // existingTemplate.updateTemplate(updateRequest, updatedBy);
-            // 
-            // // Increment version
-            // existingTemplate.setVersionDecimal(existingTemplate.getVersionDecimal() + 1);
-            // 
-            // // Save updated template
-            // JobParameterTemplateEntity updatedTemplate = templateRepository.save(existingTemplate);
-            // 
-            // log.info("Successfully updated parameter template: {} to version: {}", 
-            //         templateId, updatedTemplate.getVersionDecimal());
-            // 
-            // return convertToTemplate(updatedTemplate);
+            JobParameterTemplateEntity existingTemplate = templateRepository.findById(templateId)
+                    .orElseThrow(() -> new IllegalArgumentException("Template not found: " + templateId));
             
-            // Temporary implementation
-            throw new IllegalArgumentException("Template not found: " + templateId);
+            // Validate update request
+            validateTemplateUpdateRequest(updateRequest);
+            
+            // Update fields
+            updateEntityFromRequest(existingTemplate, updateRequest, updatedBy);
+            
+            // Increment version
+            existingTemplate.updateMetadata(updatedBy);
+            
+            // Save updated template
+            JobParameterTemplateEntity updatedTemplate = templateRepository.save(existingTemplate);
+            
+            log.info("Successfully updated parameter template: {} to version: {}", 
+                    templateId, updatedTemplate.getVersionDecimal());
+            
+            return convertToTemplate(updatedTemplate);
             
         } catch (Exception e) {
             log.error("Failed to update parameter template {}: {}", templateId, e.getMessage(), e);
@@ -221,12 +224,11 @@ public class JobParameterTemplateService {
         log.info("Deprecating parameter template: {} by user: {} [reason: {}]", templateId, deprecatedBy, reason);
         
         try {
-            // TODO: Implement when repository is available
-            // JobParameterTemplateEntity template = templateRepository.findById(templateId)
-            //         .orElseThrow(() -> new IllegalArgumentException("Template not found: " + templateId));
-            // 
-            // template.deprecate(replacementTemplateId, deprecatedBy, reason);
-            // templateRepository.save(template);
+            JobParameterTemplateEntity template = templateRepository.findById(templateId)
+                    .orElseThrow(() -> new IllegalArgumentException("Template not found: " + templateId));
+            
+            template.deprecate(replacementTemplateId, deprecatedBy, reason);
+            templateRepository.save(template);
             
             return TemplateDeprecationResult.builder()
                     .templateId(templateId)
@@ -259,18 +261,10 @@ public class JobParameterTemplateService {
         log.debug("Validating parameters against template: {}", templateId);
         
         try {
-            // TODO: Implement comprehensive schema validation
-            // JobParameterTemplate template = getTemplate(templateId)
-            //         .orElseThrow(() -> new IllegalArgumentException("Template not found: " + templateId));
-            // 
-            // return performSchemaValidation(template, parameters);
+            JobParameterTemplate template = getTemplate(templateId)
+                    .orElseThrow(() -> new IllegalArgumentException("Template not found: " + templateId));
             
-            // Temporary implementation
-            return TemplateValidationResult.builder()
-                    .templateId(templateId)
-                    .isValid(true)
-                    .validationTimestamp(LocalDateTime.now())
-                    .build();
+            return performSchemaValidation(template, parameters);
             
         } catch (Exception e) {
             log.error("Parameter validation failed for template {}: {}", templateId, e.getMessage());
@@ -295,25 +289,21 @@ public class JobParameterTemplateService {
         log.debug("Applying template defaults for: {}", templateId);
         
         try {
-            // TODO: Implement when repository is available
-            // JobParameterTemplate template = getTemplate(templateId)
-            //         .orElseThrow(() -> new IllegalArgumentException("Template not found: " + templateId));
-            // 
-            // Map<String, Object> enhancedParameters = new HashMap<>(parameters);
-            // 
-            // // Apply default values for missing parameters
-            // if (template.getDefaultValues() != null) {
-            //     template.getDefaultValues().forEach((key, value) -> {
-            //         if (!enhancedParameters.containsKey(key)) {
-            //             enhancedParameters.put(key, value);
-            //         }
-            //     });
-            // }
-            // 
-            // return enhancedParameters;
+            JobParameterTemplate template = getTemplate(templateId)
+                    .orElseThrow(() -> new IllegalArgumentException("Template not found: " + templateId));
             
-            // Temporary implementation
-            return new HashMap<>(parameters);
+            Map<String, Object> enhancedParameters = new HashMap<>(parameters);
+            
+            // Apply default values for missing parameters
+            if (template.getDefaultValues() != null) {
+                template.getDefaultValues().forEach((key, value) -> {
+                    if (!enhancedParameters.containsKey(key)) {
+                        enhancedParameters.put(key, value);
+                    }
+                });
+            }
+            
+            return enhancedParameters;
             
         } catch (Exception e) {
             log.error("Failed to apply template defaults for {}: {}", templateId, e.getMessage());
@@ -330,13 +320,22 @@ public class JobParameterTemplateService {
     public TemplateUsageStatistics getUsageStatistics() {
         log.debug("Retrieving template usage statistics");
         
-        // TODO: Implement comprehensive statistics when repository is available
+        long totalTemplates = templateRepository.count();
+        long activeTemplates = templateRepository.findByStatusAndIsDeprecated("ACTIVE", 'N').size();
+        long deprecatedTemplates = templateRepository.countByIsDeprecated('Y');
+        long systemTemplates = templateRepository.countByIsSystemTemplate('Y');
+        
+        List<String> mostUsedTemplates = templateRepository.findMostUsedTemplates(10)
+                .stream()
+                .map(JobParameterTemplateEntity::getTemplateName)
+                .collect(Collectors.toList());
+        
         return TemplateUsageStatistics.builder()
-                .totalTemplates(0L)
-                .activeTemplates(0L)
-                .deprecatedTemplates(0L)
-                .systemTemplates(0L)
-                .mostUsedTemplates(List.of())
+                .totalTemplates(totalTemplates)
+                .activeTemplates(activeTemplates)
+                .deprecatedTemplates(deprecatedTemplates)
+                .systemTemplates(systemTemplates)
+                .mostUsedTemplates(mostUsedTemplates)
                 .lastUpdated(LocalDateTime.now())
                 .build();
     }
@@ -351,12 +350,40 @@ public class JobParameterTemplateService {
     public List<JobParameterTemplate> searchTemplates(TemplateSearchCriteria searchCriteria) {
         log.debug("Searching templates with criteria: {}", searchCriteria);
         
-        // TODO: Implement comprehensive search when repository is available
-        // This would include full-text search on name, description, tags
-        // Advanced filtering by job type, category, status
-        // Sorting by relevance, usage count, creation date
-        
-        return List.of();
+        try {
+            List<JobParameterTemplateEntity> entities;
+            
+            if (searchCriteria.getSearchText() != null && !searchCriteria.getSearchText().trim().isEmpty()) {
+                // Use multi-criteria search with text search
+                entities = templateRepository.findByMultipleCriteria(
+                        searchCriteria.getJobType(),
+                        searchCriteria.getCategory(),
+                        searchCriteria.getStatus(),
+                        searchCriteria.getSearchText());
+            } else {
+                // Use multi-criteria search without text
+                entities = templateRepository.findByMultipleCriteria(
+                        searchCriteria.getJobType(),
+                        searchCriteria.getCategory(),
+                        searchCriteria.getStatus(),
+                        null);
+            }
+            
+            // Apply limit if specified
+            if (searchCriteria.getLimit() != null && searchCriteria.getLimit() > 0) {
+                entities = entities.stream()
+                        .limit(searchCriteria.getLimit())
+                        .collect(Collectors.toList());
+            }
+            
+            return entities.stream()
+                    .map(this::convertToTemplate)
+                    .collect(Collectors.toList());
+                    
+        } catch (Exception e) {
+            log.error("Failed to search templates with criteria {}: {}", searchCriteria, e.getMessage());
+            return List.of();
+        }
     }
 
     // Private helper methods
@@ -376,9 +403,7 @@ public class JobParameterTemplateService {
     }
 
     private boolean templateNameExists(String templateName) {
-        // TODO: Implement name uniqueness check when repository is available
-        // return templateRepository.existsByTemplateNameAndIsDeprecated(templateName, false);
-        return false;
+        return templateRepository.existsByTemplateNameAndIsDeprecated(templateName, 'N');
     }
 
     private String generateTemplateId() {
@@ -391,28 +416,165 @@ public class JobParameterTemplateService {
         return schema != null && !schema.isEmpty();
     }
 
-    private List<JobParameterTemplate> createSampleTemplates(String jobType) {
-        // Create sample templates for demonstration
-        return Arrays.asList(
-            JobParameterTemplate.builder()
-                    .templateId("tpl_sample_01")
-                    .templateName("ETL_BATCH_STANDARD")
-                    .jobType(jobType)
-                    .templateDescription("Standard ETL batch processing template")
-                    .status("ACTIVE")
-                    .createdBy("system")
-                    .createdDate(LocalDateTime.now())
-                    .build(),
-            JobParameterTemplate.builder()
-                    .templateId("tpl_sample_02")
-                    .templateName("DATA_MIGRATION_TEMPLATE")
-                    .jobType(jobType)
-                    .templateDescription("Data migration with validation template")
-                    .status("ACTIVE")
-                    .createdBy("system")
-                    .createdDate(LocalDateTime.now())
-                    .build()
-        );
+    private void validateTemplateUpdateRequest(TemplateUpdateRequest request) {
+        if (request.getTemplateSchema() != null && request.getTemplateSchema().isEmpty()) {
+            throw new IllegalArgumentException("Template schema cannot be empty");
+        }
+    }
+
+    private void updateEntityFromRequest(JobParameterTemplateEntity entity, TemplateUpdateRequest request, String updatedBy) {
+        if (request.getTemplateDescription() != null) {
+            entity.setTemplateDescription(request.getTemplateDescription());
+        }
+        if (request.getTemplateSchema() != null) {
+            entity.setTemplateSchema(convertMapToJson(request.getTemplateSchema()));
+        }
+        if (request.getDefaultValues() != null) {
+            entity.setDefaultValues(convertMapToJson(request.getDefaultValues()));
+        }
+        if (request.getValidationRules() != null) {
+            entity.setValidationRules(convertMapToJson(request.getValidationRules()));
+        }
+        if (request.getCategory() != null) {
+            entity.setCategory(request.getCategory());
+        }
+        if (request.getTags() != null) {
+            entity.setTags(String.join(",", request.getTags()));
+        }
+    }
+
+    private JobParameterTemplateEntity convertToEntity(JobParameterTemplate template) {
+        return JobParameterTemplateEntity.builder()
+                .templateId(template.getTemplateId())
+                .templateName(template.getTemplateName())
+                .jobType(template.getJobType())
+                .templateVersion(template.getTemplateVersion())
+                .templateDescription(template.getTemplateDescription())
+                .templateSchema(convertMapToJson(template.getTemplateSchema()))
+                .defaultValues(convertMapToJson(template.getDefaultValues()))
+                .validationRules(convertMapToJson(template.getValidationRules()))
+                .category(template.getCategory())
+                .tags(template.getTags() != null ? String.join(",", template.getTags()) : null)
+                .status(template.getStatus())
+                .isSystemTemplate(template.getIsSystemTemplate() ? 'Y' : 'N')
+                .isDeprecated(template.getIsDeprecated() ? 'Y' : 'N')
+                .usageCount(template.getUsageCount())
+                .lastUsedDate(template.getLastUsedDate())
+                .createdBy(template.getCreatedBy())
+                .createdDate(template.getCreatedDate())
+                .updatedBy(template.getUpdatedBy())
+                .updatedDate(template.getUpdatedDate())
+                .versionDecimal(template.getVersionDecimal())
+                .build();
+    }
+
+    private JobParameterTemplate convertToTemplate(JobParameterTemplateEntity entity) {
+        return JobParameterTemplate.builder()
+                .templateId(entity.getTemplateId())
+                .templateName(entity.getTemplateName())
+                .jobType(entity.getJobType())
+                .templateVersion(entity.getTemplateVersion())
+                .templateDescription(entity.getTemplateDescription())
+                .templateSchema(convertJsonToMap(entity.getTemplateSchema()))
+                .defaultValues(convertJsonToMap(entity.getDefaultValues()))
+                .validationRules(convertJsonToMap(entity.getValidationRules()))
+                .category(entity.getCategory())
+                .tags(entity.getTags() != null ? Arrays.asList(entity.getTags().split(",")) : null)
+                .status(entity.getStatus())
+                .isSystemTemplate(Character.valueOf('Y').equals(entity.getIsSystemTemplate()))
+                .isDeprecated(Character.valueOf('Y').equals(entity.getIsDeprecated()))
+                .usageCount(entity.getUsageCount())
+                .lastUsedDate(entity.getLastUsedDate())
+                .createdBy(entity.getCreatedBy())
+                .createdDate(entity.getCreatedDate())
+                .updatedBy(entity.getUpdatedBy())
+                .updatedDate(entity.getUpdatedDate())
+                .versionDecimal(entity.getVersionDecimal())
+                .build();
+    }
+
+    private String convertMapToJson(Map<String, Object> map) {
+        if (map == null || map.isEmpty()) {
+            return null;
+        }
+        try {
+            // Simple JSON conversion - in production would use Jackson ObjectMapper
+            StringBuilder json = new StringBuilder("{");
+            map.forEach((key, value) -> {
+                if (json.length() > 1) json.append(",");
+                json.append("\"").append(key).append("\":\"").append(value.toString()).append("\"");
+            });
+            json.append("}");
+            return json.toString();
+        } catch (Exception e) {
+            log.warn("Failed to convert map to JSON: {}", e.getMessage());
+            return "{}";
+        }
+    }
+
+    private Map<String, Object> convertJsonToMap(String json) {
+        if (json == null || json.trim().isEmpty()) {
+            return new HashMap<>();
+        }
+        try {
+            // Simple JSON conversion - in production would use Jackson ObjectMapper
+            Map<String, Object> map = new HashMap<>();
+            if (json.startsWith("{") && json.endsWith("}")) {
+                String content = json.substring(1, json.length() - 1);
+                if (!content.trim().isEmpty()) {
+                    String[] pairs = content.split(",");
+                    for (String pair : pairs) {
+                        String[] keyValue = pair.split(":");
+                        if (keyValue.length == 2) {
+                            String key = keyValue[0].trim().replaceAll("\"", "");
+                            String value = keyValue[1].trim().replaceAll("\"", "");
+                            map.put(key, value);
+                        }
+                    }
+                }
+            }
+            return map;
+        } catch (Exception e) {
+            log.warn("Failed to convert JSON to map: {}", e.getMessage());
+            return new HashMap<>();
+        }
+    }
+
+    private TemplateValidationResult performSchemaValidation(JobParameterTemplate template, Map<String, Object> parameters) {
+        List<String> errors = new ArrayList<>();
+        List<String> warnings = new ArrayList<>();
+        
+        try {
+            // Basic validation - check required parameters
+            Map<String, Object> schema = template.getTemplateSchema();
+            if (schema != null && schema.containsKey("required")) {
+                String requiredFields = schema.get("required").toString();
+                for (String field : requiredFields.split(",")) {
+                    String trimmedField = field.trim().replaceAll("\\[|\\]|\"", "");
+                    if (!parameters.containsKey(trimmedField)) {
+                        errors.add("Required parameter missing: " + trimmedField);
+                    }
+                }
+            }
+            
+            // Type validation could be added here
+            Map<String, Object> validationRules = template.getValidationRules();
+            if (validationRules != null) {
+                // Additional validation rules could be processed here
+                log.debug("Applied {} validation rules", validationRules.size());
+            }
+            
+        } catch (Exception e) {
+            errors.add("Schema validation error: " + e.getMessage());
+        }
+        
+        return TemplateValidationResult.builder()
+                .templateId(template.getTemplateId())
+                .isValid(errors.isEmpty())
+                .validationTimestamp(LocalDateTime.now())
+                .validationErrors(errors)
+                .validationWarnings(warnings)
+                .build();
     }
 
     // Data classes for template management

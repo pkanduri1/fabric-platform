@@ -167,7 +167,7 @@ class ManualJobConfigControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request))
                 .header("Authorization", "Bearer valid-jwt-token"))
-                .andExpected(status().isConflict());
+                .andExpect(status().isConflict());
     }
 
     @Test
@@ -234,7 +234,7 @@ class ManualJobConfigControllerTest {
                 .andExpect(jsonPath("$.content").isNotEmpty())
                 .andExpect(jsonPath("$.totalElements").value(mockEntities.size()))
                 .andExpect(jsonPath("$.currentPage").value(0))
-                .andExpected(jsonPath("$.pageSize").value(20));
+                .andExpect(jsonPath("$.pageSize").value(20));
     }
 
     @Test
@@ -265,7 +265,7 @@ class ManualJobConfigControllerTest {
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.configId").value(configId))
                 .andExpect(jsonPath("$.jobName").value("UPDATED_JOB_NAME"))
-                .andExpected(jsonPath("$.versionNumber").value(2));
+                .andExpect(jsonPath("$.versionNumber").value(2));
 
         // Verify service interaction
         verify(manualJobConfigService).updateJobConfiguration(eq(configId), any(), eq("test.user@bank.com"));
@@ -364,7 +364,7 @@ class ManualJobConfigControllerTest {
                 .with(csrf())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
-                .andExpected(status().isUnauthorized());
+                .andExpect(status().isUnauthorized());
     }
 
     @Test
@@ -398,7 +398,7 @@ class ManualJobConfigControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request))
                 .header("Authorization", "Bearer valid-jwt-token"))
-                .andExpected(status().isInternalServerError());
+                .andExpect(status().isInternalServerError());
     }
 
     // Helper methods

@@ -2,10 +2,13 @@ package com.truist.batch.service;
 
 import com.truist.batch.dto.JobExecutionRequest;
 import com.truist.batch.entity.ManualJobConfigEntity;
+import com.truist.batch.entity.ManualJobExecutionEntity;
 import com.truist.batch.repository.ManualJobConfigRepository;
+import com.truist.batch.repository.ManualJobExecutionRepository;
 import com.truist.batch.service.JobExecutionService.JobExecutionResult;
 import com.truist.batch.service.JobExecutionService.JobCancellationResult;
 import com.truist.batch.service.JobExecutionService.ExecutionStatistics;
+import com.truist.batch.service.JobExecutionService.JobExecutionStatus;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -15,9 +18,11 @@ import org.mockito.Mock;
 import org.mockito.InjectMocks;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.*;
 
+import static org.assertj.core.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
@@ -48,6 +53,9 @@ class JobExecutionServiceTest {
     @Mock
     private ManualJobConfigRepository configRepository;
 
+    @Mock
+    private ManualJobExecutionRepository executionRepository;
+
     @InjectMocks
     private JobExecutionService jobExecutionService;
 
@@ -68,6 +76,27 @@ class JobExecutionServiceTest {
         
         when(configRepository.findById(validExecutionRequest.getConfigId()))
             .thenReturn(Optional.of(validConfiguration));
+        
+        // Mock execution repository save operation
+        when(executionRepository.save(any(ManualJobExecutionEntity.class)))
+            .thenAnswer(invocation -> invocation.getArgument(0));
+        
+        // Mock execution repository find for updates
+        when(executionRepository.findById(anyString()))
+            .thenAnswer(invocation -> {
+                String executionId = invocation.getArgument(0);
+                ManualJobExecutionEntity entity = ManualJobExecutionEntity.builder()
+                    .executionId(executionId)
+                    .configId(validConfiguration.getConfigId())
+                    .jobName(validConfiguration.getJobName())
+                    .status("STARTED")
+                    .build();
+                return Optional.of(entity);
+            });
+        
+        // Mock status update
+        when(executionRepository.updateExecutionStatus(anyString(), anyString(), any()))
+            .thenReturn(1);
 
         // Act
         JobExecutionResult result = jobExecutionService.executeJob(validExecutionRequest, executedBy);
@@ -89,8 +118,10 @@ class JobExecutionServiceTest {
         assertEquals(0L, result.getRecordsError());
         assertNull(result.getErrorMessage());
 
-        // Verify repository interaction
+        // Verify repository interactions
         verify(configRepository).findById(validExecutionRequest.getConfigId());
+        verify(executionRepository, atLeastOnce()).save(any(ManualJobExecutionEntity.class));
+        verify(executionRepository).updateExecutionStatus(anyString(), eq("RUNNING"), isNull());
     }
 
     @Test
@@ -416,6 +447,136 @@ class JobExecutionServiceTest {
         assertNotNull(result);
         assertEquals("COMPLETED", result.getStatus());
         // High-risk production execution should be logged
+    }
+
+    @Test
+    @DisplayName("Should get execution status successfully")
+    void getExecutionStatus_WithValidId_ShouldReturnStatus() {
+        // Arrange
+        String executionId = "exec_test_001";
+        ManualJobExecutionEntity executionEntity = ManualJobExecutionEntity.builder()
+                .executionId(executionId)
+                .configId("cfg_test_001")
+                .jobName("Test Job")
+                .status("RUNNING")
+                .startTime(LocalDateTime.now().minusMinutes(10))
+                .recordsProcessed(500L)
+                .recordsSuccess(500L)
+                .recordsError(0L)
+                .build();
+        
+        when(executionRepository.findById(executionId)).thenReturn(Optional.of(executionEntity));
+
+        // Act
+        Optional<JobExecutionStatus> result = jobExecutionService.getExecutionStatus(executionId);
+
+        // Assert
+        assertThat(result).isPresent();
+        assertEquals(executionId, result.get().getExecutionId());
+        assertEquals("RUNNING", result.get().getStatus());
+        assertEquals(500L, result.get().getRecordsProcessed());
+        
+        verify(executionRepository).findById(executionId);
+    }
+
+    @Test
+    @DisplayName("Should cancel execution successfully")
+    void cancelExecution_WithValidId_ShouldReturnCancellationResult() {
+        // Arrange
+        String executionId = "exec_test_001";
+        String cancelledBy = "admin.user";
+        String reason = "Emergency maintenance";
+        
+        ManualJobExecutionEntity runningExecution = ManualJobExecutionEntity.builder()
+                .executionId(executionId)
+                .status("RUNNING")
+                .startTime(LocalDateTime.now().minusMinutes(10))
+                .build();
+        
+        when(executionRepository.findById(executionId)).thenReturn(Optional.of(runningExecution));
+        when(executionRepository.save(any(ManualJobExecutionEntity.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        // Act
+        JobCancellationResult result = jobExecutionService.cancelExecution(executionId, cancelledBy, reason);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(executionId, result.getExecutionId());
+        assertTrue(result.isCancelled());
+        assertEquals(cancelledBy, result.getCancelledBy());
+        assertEquals(reason, result.getCancellationReason());
+        
+        verify(executionRepository).findById(executionId);
+        verify(executionRepository).save(any(ManualJobExecutionEntity.class));
+    }
+
+    @Test
+    @DisplayName("Should get active executions successfully")
+    void getActiveExecutions_ShouldReturnActiveExecutionsList() {
+        // Arrange
+        List<ManualJobExecutionEntity> activeExecutions = Arrays.asList(
+                ManualJobExecutionEntity.builder()
+                        .executionId("exec_001")
+                        .status("RUNNING")
+                        .startTime(LocalDateTime.now().minusMinutes(5))
+                        .build(),
+                ManualJobExecutionEntity.builder()
+                        .executionId("exec_002")
+                        .status("STARTED")
+                        .startTime(LocalDateTime.now().minusMinutes(2))
+                        .build()
+        );
+        
+        when(executionRepository.findActiveExecutions()).thenReturn(activeExecutions);
+
+        // Act
+        List<JobExecutionStatus> result = jobExecutionService.getActiveExecutions();
+
+        // Assert
+        assertThat(result).hasSize(2);
+        assertEquals("exec_001", result.get(0).getExecutionId());
+        assertEquals("exec_002", result.get(1).getExecutionId());
+        
+        verify(executionRepository).findActiveExecutions();
+    }
+
+    @Test
+    @DisplayName("Should get execution statistics with repository data")
+    void getExecutionStatistics_ShouldReturnComprehensiveStatistics() {
+        // Arrange
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime dayAgo = now.minusDays(1);
+        
+        when(executionRepository.count()).thenReturn(100L);
+        when(executionRepository.countByStatus("COMPLETED")).thenReturn(85L);
+        when(executionRepository.countByStatus("FAILED")).thenReturn(10L);
+        when(executionRepository.countByStatus("CANCELLED")).thenReturn(5L);
+        when(executionRepository.findActiveExecutions()).thenReturn(Arrays.asList(
+                ManualJobExecutionEntity.builder().executionId("exec_001").build()
+        ));
+        when(executionRepository.getAverageExecutionDuration(any(LocalDateTime.class), any(LocalDateTime.class)))
+                .thenReturn(BigDecimal.valueOf(1800.5));
+
+        // Act
+        ExecutionStatistics result = jobExecutionService.getExecutionStatistics();
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(100L, result.getTotalExecutions());
+        assertEquals(85L, result.getSuccessfulExecutions());
+        assertEquals(10L, result.getFailedExecutions());
+        assertEquals(5L, result.getCancelledExecutions());
+        assertEquals(1L, result.getActiveExecutions());
+        assertEquals(1800.5, result.getAverageExecutionDurationSeconds());
+        assertEquals(85.0, result.getSuccessRate());
+        
+        verify(executionRepository).count();
+        verify(executionRepository).countByStatus("COMPLETED");
+        verify(executionRepository).countByStatus("FAILED");
+        verify(executionRepository).countByStatus("CANCELLED");
+        verify(executionRepository).findActiveExecutions();
+        verify(executionRepository).getAverageExecutionDuration(any(LocalDateTime.class), any(LocalDateTime.class));
     }
 
     // Helper methods

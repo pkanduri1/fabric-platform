@@ -216,9 +216,9 @@ class WebSocketSessionManagementIntegrationTest {
             String validationMessage = """
                 {
                     "type": "session-validate",
-                    "timestamp": """ + System.currentTimeMillis() + """
+                    "timestamp": %d
                 }
-                """;
+                """.formatted(System.currentTimeMillis());
             session.sendMessage(new TextMessage(validationMessage));
 
             // Then - should receive validation response
@@ -557,9 +557,9 @@ class WebSocketSessionManagementIntegrationTest {
             String heartbeatMessage = """
                 {
                     "type": "heartbeat",
-                    "timestamp": """ + System.currentTimeMillis() + """
+                    "timestamp": %d
                 }
-                """;
+                """.formatted(System.currentTimeMillis());
             session.sendMessage(new TextMessage(heartbeatMessage));
 
             // Then - should receive heartbeat response
@@ -776,9 +776,9 @@ class WebSocketSessionManagementIntegrationTest {
                             {
                                 "type": "session-operation",
                                 "operation": "update-metadata",
-                                "data": {"key": "value""" + index + """"}
+                                "data": {"key": "value%d"}
                             }
-                            """));
+                            """.formatted(index)));
                     } catch (Exception e) {
                         // Handle concurrent access
                     }
