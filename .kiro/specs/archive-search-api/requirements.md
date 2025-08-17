@@ -2,7 +2,7 @@
 
 ## Introduction
 
-This feature provides a REST API for searching and downloading files from both regular directories and archive files. The API enables users to locate specific files using wildcard patterns and search through file contents, with options to either preview content or download complete files. This functionality will be implemented as part of the interfaces-utils project.
+This feature provides a comprehensive REST API for searching, downloading, and uploading files from both regular directories and archive files. The API includes LDAP-based user authentication, secure file operations, and comprehensive audit logging. Users can locate specific files using wildcard patterns, search through file contents, upload files to specified server paths, and all activities are logged with timestamps for compliance and security monitoring. This functionality will be implemented as part of the interfaces-utils project.
 
 ## Requirements
 
@@ -93,12 +93,62 @@ This feature provides a REST API for searching and downloading files from both r
 
 ### Requirement 8
 
+**User Story:** As a system administrator, I want users to authenticate via LDAP before accessing file operations, so that only authorized personnel can search, download, or upload files.
+
+#### Acceptance Criteria
+
+1. WHEN a user attempts to access any file operation THEN the system SHALL prompt for user ID credentials
+2. WHEN user credentials are provided THEN the system SHALL validate the user ID against Active Directory using LDAP protocol
+3. IF LDAP authentication fails THEN the system SHALL deny access and log the failed attempt
+4. WHEN LDAP authentication succeeds THEN the system SHALL grant access to file operations
+5. WHEN authentication occurs THEN the system SHALL log the authentication event with timestamp and user ID
+
+### Requirement 9
+
+**User Story:** As an authorized user, I want to upload files to specific paths on Linux servers in lower environments, so that I can deploy or update necessary files for testing and development.
+
+#### Acceptance Criteria
+
+1. WHEN an authenticated user selects a file for upload THEN the system SHALL validate the file meets security requirements
+2. WHEN a valid file is selected THEN the system SHALL allow the user to specify the target Linux server path
+3. WHEN the upload is initiated THEN the system SHALL transfer the file to the specified path on the Linux server
+4. IF the upload fails THEN the system SHALL provide clear error messages and retry options
+5. WHEN the upload completes successfully THEN the system SHALL confirm successful transfer to the user
+6. WHEN any upload operation occurs THEN the system SHALL log the activity with timestamp, user ID, filename, and target path
+
+### Requirement 10
+
+**User Story:** As a compliance officer, I want all user activities to be logged with timestamps in a centralized audit file, so that I can track who performed what actions and when for security and compliance purposes.
+
+#### Acceptance Criteria
+
+1. WHEN any user performs a search operation THEN the system SHALL log the search string, user ID, and timestamp
+2. WHEN any user downloads a file THEN the system SHALL log the filename, user ID, and timestamp
+3. WHEN any user uploads a file THEN the system SHALL log the filename, target path, user ID, and timestamp
+4. WHEN multiple users use the system concurrently THEN the system SHALL append all activities to the same audit log file
+5. WHEN logging occurs THEN the system SHALL ensure thread-safe writing to prevent log corruption
+6. WHEN the audit log is created THEN the system SHALL include headers indicating log format and purpose
+
+### Requirement 11
+
+**User Story:** As a security administrator, I want comprehensive error handling and security logging, so that any suspicious activities or system issues are properly tracked and investigated.
+
+#### Acceptance Criteria
+
+1. WHEN authentication failures occur THEN the system SHALL log detailed failure information without exposing sensitive data
+2. WHEN file operations fail THEN the system SHALL log error details and user context
+3. WHEN multiple failed authentication attempts occur from the same user THEN the system SHALL implement rate limiting
+4. WHEN system errors occur THEN the system SHALL log technical details for troubleshooting
+5. WHEN security events occur THEN the system SHALL ensure logs are tamper-resistant and properly formatted
+
+### Requirement 12
+
 **User Story:** As a developer, I want the archive search API to be accessible through Swagger UI, so that I can easily test and explore the API endpoints without writing custom client code.
 
 #### Acceptance Criteria
 
 1. WHEN the application starts in non-production mode THEN the system SHALL expose the archive search API endpoints in the Swagger UI documentation
 2. WHEN accessing the Swagger UI THEN users SHALL be able to see detailed documentation for all archive search endpoints
-3. WHEN using Swagger UI THEN users SHALL be able to test file search, content search, and download operations directly from the interface
+3. WHEN using Swagger UI THEN users SHALL be able to test file search, content search, download, and upload operations directly from the interface
 4. WHEN the API is disabled in production THEN the archive search endpoints SHALL not appear in the Swagger UI documentation
 5. WHEN API parameters are documented THEN they SHALL include clear descriptions, examples, and validation rules

@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Archive Search API provides REST endpoints for searching and downloading files from both regular directories and archive files. This feature will be integrated into the existing database-script-watcher project (interfaces-utils) and will be restricted to non-production environments only. The API will be fully documented and testable through Swagger UI.
+The Archive Search API provides comprehensive REST endpoints for searching, downloading, and uploading files from both regular directories and archive files. The API includes LDAP-based user authentication, secure file operations, and comprehensive audit logging. This feature will be integrated into the existing database-script-watcher project (interfaces-utils) and will be restricted to non-production environments only. The API will be fully documented and testable through Swagger UI.
 
 ## Architecture
 
@@ -10,27 +10,48 @@ The Archive Search API provides REST endpoints for searching and downloading fil
 
 ```mermaid
 graph TB
-    A[REST Controller] --> B[Archive Search Service]
-    B --> C[File System Service]
-    B --> D[Archive Handler Service]
-    B --> E[Content Search Service]
-    C --> F[Directory Scanner]
-    D --> G[ZIP Handler]
-    D --> H[TAR Handler]
-    D --> I[Other Archive Handlers]
-    E --> J[Text Search Engine]
-    B --> K[Security Validator]
-    A --> L[Environment Guard]
+    A[Web UI] --> B[Authentication Controller]
+    B --> C[LDAP Service]
+    C --> D[Active Directory]
+    
+    A --> E[Archive Search Controller]
+    E --> F[Archive Search Service]
+    E --> G[File Upload Service]
+    
+    F --> H[File System Service]
+    F --> I[Archive Handler Service]
+    F --> J[Content Search Service]
+    
+    G --> K[Upload Validator]
+    G --> H
+    
+    H --> L[Directory Scanner]
+    I --> M[ZIP Handler]
+    I --> N[TAR Handler]
+    I --> O[Other Archive Handlers]
+    J --> P[Text Search Engine]
+    
+    B --> Q[Audit Service]
+    E --> Q
+    G --> Q
+    Q --> R[Audit Log File]
+    
+    S[Environment Guard] --> E
+    S --> B
+    T[Security Validator] --> E
+    T --> B
     
     subgraph "External Dependencies"
-        M[File System]
-        N[Archive Files]
+        U[File System]
+        V[Archive Files]
+        W[Linux Server]
     end
     
-    F --> M
-    G --> N
-    H --> N
-    I --> N
+    L --> U
+    M --> V
+    N --> V
+    O --> V
+    G --> W
 ```
 
 ### Integration with Existing Project
@@ -45,6 +66,24 @@ The Archive Search API will be integrated into the database-script-watcher proje
 ## Components and Interfaces
 
 ### 1. REST Controller Layer
+
+#### AuthenticationController
+```java
+@RestController
+@RequestMapping("/api/v1/auth")
+@ConditionalOnProperty(name = "archive.search.enabled", havingValue = "true")
+public class AuthenticationController {
+    
+    @PostMapping("/login")
+    public ResponseEntity<AuthResponse> authenticate(@RequestBody AuthRequest request);
+    
+    @PostMapping("/logout")
+    public ResponseEntity<Void> logout(HttpServletRequest request);
+    
+    @GetMapping("/validate")
+    public ResponseEntity<ValidationResponse> validateSession();
+}
+```
 
 #### ArchiveSearchController
 ```java
@@ -68,21 +107,50 @@ public class ArchiveSearchController {
     public ResponseEntity<ContentSearchResponse> searchContent(
         @RequestBody ContentSearchRequest request
     );
+    
+    @PostMapping("/upload")
+    public ResponseEntity<UploadResponse> uploadFile(
+        @RequestParam MultipartFile file,
+        @RequestParam String targetPath
+    );
 }
 ```
 
 ### 2. Service Layer
+
+#### LdapAuthenticationService
+```java
+@Service
+public class LdapAuthenticationService {
+    
+    public AuthenticationResult authenticate(String userId, String password);
+    public UserDetails getUserDetails(String userId);
+    public boolean isUserAuthorized(String userId, String operation);
+}
+```
 
 #### ArchiveSearchService
 ```java
 @Service
 public class ArchiveSearchService {
     
-    public FileSearchResponse searchFiles(String path, String pattern);
-    public InputStream downloadFile(String filePath);
-    public ContentSearchResponse searchContent(String filePath, String searchTerm);
+    public FileSearchResponse searchFiles(String path, String pattern, String userId);
+    public InputStream downloadFile(String filePath, String userId);
+    public ContentSearchResponse searchContent(String filePath, String searchTerm, String userId);
     private boolean isPathAllowed(String path);
     private List<FileInfo> searchInArchive(Path archivePath, String pattern);
+}
+```
+
+#### FileUploadService
+```java
+@Service
+public class FileUploadService {
+    
+    public UploadResult uploadFile(MultipartFile file, String targetPath, String userId);
+    public boolean validateUploadPath(String path);
+    public boolean validateFileType(String fileName);
+    private void transferToServer(MultipartFile file, String targetPath);
 }
 ```
 
@@ -120,6 +188,20 @@ public class ContentSearchService {
 }
 ```
 
+#### ArchiveSearchAuditService
+```java
+@Service
+public class ArchiveSearchAuditService {
+    
+    public void logAuthentication(String userId, boolean success, String ipAddress);
+    public void logFileUpload(String userId, String fileName, String targetPath, boolean success);
+    public void logFileDownload(String userId, String fileName, boolean success);
+    public void logFileSearch(String userId, String searchTerm, int resultCount);
+    public void logSecurityEvent(String userId, String eventType, String details);
+    private void writeAuditEntry(AuditEntry entry);
+}
+```
+
 ### 3. Security and Validation Layer
 
 #### SecurityValidator
@@ -150,7 +232,29 @@ public class EnvironmentGuard {
 
 ### Request/Response Models
 
-#### FileSearchResponse
+#### Authentication Models
+```java
+public class AuthRequest {
+    private String userId;
+    private String password;
+}
+
+public class AuthResponse {
+    private String token;
+    private String userId;
+    private long expiresIn;
+    private List<String> permissions;
+}
+
+public class AuthenticationResult {
+    private boolean success;
+    private String userId;
+    private String errorMessage;
+    private UserDetails userDetails;
+}
+```
+
+#### File Operation Models
 ```java
 public class FileSearchResponse {
     private List<FileInfo> files;
@@ -159,10 +263,7 @@ public class FileSearchResponse {
     private String searchPattern;
     private long searchTimeMs;
 }
-```
 
-#### FileInfo
-```java
 public class FileInfo {
     private String fileName;
     private String fullPath;
@@ -172,20 +273,28 @@ public class FileInfo {
     private FileType type; // REGULAR, ARCHIVE_ENTRY
     private String archivePath; // null for regular files
 }
-```
 
-#### ContentSearchRequest
-```java
+public class UploadRequest {
+    private MultipartFile file;
+    private String targetPath;
+    private boolean overwrite;
+}
+
+public class UploadResponse {
+    private boolean success;
+    private String fileName;
+    private String targetPath;
+    private long fileSize;
+    private String message;
+}
+
 public class ContentSearchRequest {
     private String filePath;
     private String searchTerm;
     private boolean caseSensitive = false;
     private boolean wholeWord = false;
 }
-```
 
-#### ContentSearchResponse
-```java
 public class ContentSearchResponse {
     private List<SearchMatch> matches;
     private int totalMatches;
@@ -193,15 +302,25 @@ public class ContentSearchResponse {
     private String downloadSuggestion;
     private long searchTimeMs;
 }
-```
 
-#### SearchMatch
-```java
 public class SearchMatch {
     private int lineNumber;
     private String lineContent;
     private int columnStart;
     private int columnEnd;
+}
+```
+
+#### Audit Models
+```java
+public class AuditEntry {
+    private LocalDateTime timestamp;
+    private String userId;
+    private String operation;
+    private String resource;
+    private boolean success;
+    private String details;
+    private String ipAddress;
 }
 ```
 
@@ -218,6 +337,37 @@ public class ArchiveSearchProperties {
     private int maxSearchResults = 100;
     private int searchTimeoutSeconds = 30;
     private List<String> supportedArchiveTypes = Arrays.asList("zip", "tar", "tar.gz", "jar");
+    
+    // LDAP Configuration
+    private LdapConfig ldap = new LdapConfig();
+    
+    // Upload Configuration
+    private UploadConfig upload = new UploadConfig();
+    
+    // Audit Configuration
+    private AuditConfig audit = new AuditConfig();
+    
+    public static class LdapConfig {
+        private String url;
+        private String baseDn;
+        private String userSearchBase;
+        private String userSearchFilter;
+        private int connectionTimeout = 5000;
+        private int readTimeout = 10000;
+    }
+    
+    public static class UploadConfig {
+        private String uploadDirectory;
+        private List<String> allowedExtensions;
+        private long maxUploadSize = 100 * 1024 * 1024; // 100MB
+        private String tempDirectory;
+    }
+    
+    public static class AuditConfig {
+        private String logFile;
+        private String maxFileSize = "10MB";
+        private int maxHistory = 30;
+    }
 }
 ```
 
@@ -318,11 +468,39 @@ archive:
       - tar
       - tar.gz
       - jar
+    
+    # LDAP Configuration
+    ldap:
+      url: ${LDAP_URL:ldap://your-ad-server:389}
+      base-dn: ${LDAP_BASE_DN:dc=company,dc=com}
+      user-search-base: ${LDAP_USER_SEARCH_BASE:ou=users}
+      user-search-filter: ${LDAP_USER_SEARCH_FILTER:(sAMAccountName={0})}
+      connection-timeout: 5000
+      read-timeout: 10000
+    
+    # Upload Configuration
+    upload:
+      upload-directory: ${UPLOAD_DIRECTORY:/opt/uploads}
+      allowed-extensions: [.txt, .sql, .xml, .json, .properties, .yml, .yaml]
+      max-upload-size: 104857600  # 100MB
+      temp-directory: ${TEMP_DIRECTORY:/tmp/file-uploads}
+    
+    # Audit Configuration
+    audit:
+      log-file: ${AUDIT_LOG_FILE:/var/log/archive-search/audit.log}
+      max-file-size: 10MB
+      max-history: 30
 
 # Environment detection
 spring:
   profiles:
     active: ${SPRING_PROFILES_ACTIVE:dev}
+
+# Security Configuration
+security:
+  session-timeout: 30m
+  max-login-attempts: 3
+  lockout-duration: 15m
 
 # Swagger configuration
 springdoc:
@@ -331,8 +509,8 @@ springdoc:
       enabled: true
   group-configs:
     - group: archive-search
-      paths-to-match: /api/v1/archive/**
-      display-name: Archive Search API
+      paths-to-match: /api/v1/archive/**,/api/v1/auth/**
+      display-name: Archive Search API with Authentication
 ```
 
 ### Environment Variables
