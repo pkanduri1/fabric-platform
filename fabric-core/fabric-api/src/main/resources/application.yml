@@ -1,0 +1,238 @@
+# =========================================================================
+# FABRIC PLATFORM - SPRING BOOT APPLICATION CONFIGURATION
+# =========================================================================
+# 
+# Document Control:
+# - Project: FABRIC Platform - Master Query Integration
+# - Version: 1.1
+# - Date: 2025-08-18
+# - Author: Senior Full Stack Developer Agent
+# - Classification: INTERNAL - BANKING CONFIDENTIAL
+# 
+# Enterprise Standards:
+# - SOX Compliance: All configurations audited and tracked
+# - Banking Regulations: PCI-DSS, Basel III compliance  
+# - Security First: Read-only datasource for query operations
+# - Configuration Management: Environment-specific profiles
+# 
+# =========================================================================
+
+spring:
+  application:
+    name: fabric-platform
+    
+  # Bean Configuration
+  main:
+    allow-bean-definition-overriding: true
+    allow-circular-references: true
+    
+  # Autoconfiguration Exclusions
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
+      - org.springframework.boot.autoconfigure.websocket.servlet.WebSocketServletAutoConfiguration
+      - org.springframework.boot.autoconfigure.batch.BatchAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.mongo.MongoDataAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.mongo.MongoRepositoriesAutoConfiguration
+      - org.springframework.boot.autoconfigure.ldap.LdapAutoConfiguration
+      - org.springframework.boot.autoconfigure.security.ldap.LdapRepositoriesAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.jpa.JpaRepositoriesAutoConfiguration
+      - org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration
+
+  # Primary Database Configuration (Read-Write Operations)
+  datasource:
+    primary:
+      url: ${DB_URL:jdbc:oracle:thin:@localhost:1521/ORCLPDB1}
+      driver-class-name: oracle.jdbc.OracleDriver
+      username: ${DB_USERNAME:cm3int}
+      password: ${DB_PASSWORD:MySecurePass123}
+      hikari:
+        pool-name: PrimaryConnectionPool
+        maximum-pool-size: 20
+        minimum-idle: 5
+        idle-timeout: 300000
+        max-lifetime: 1800000
+        connection-timeout: 30000
+        leak-detection-threshold: 60000
+        
+    # Read-Only Database Configuration for Master Query Operations
+    readonly:
+      url: ${DB_READONLY_URL:${spring.datasource.primary.url}}
+      driver-class-name: oracle.jdbc.OracleDriver
+      username: ${DB_READONLY_USERNAME:${spring.datasource.primary.username}}
+      password: ${DB_READONLY_PASSWORD:${spring.datasource.primary.password}}
+      hikari:
+        pool-name: ReadOnlyConnectionPool
+        maximum-pool-size: 10
+        minimum-idle: 2
+        idle-timeout: 300000
+        max-lifetime: 1800000
+        connection-timeout: 20000
+        leak-detection-threshold: 30000
+    
+  # File Upload Configuration
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
+      
+  # Liquibase Configuration for Enterprise Database Change Management
+  liquibase:
+    enabled: false
+    change-log: classpath:db/changelog/db.changelog-master.xml
+    contexts: development,test
+    drop-first: false
+
+# Server Configuration
+server:
+  port: 8080
+
+# WebSocket Configuration
+fabric:
+  monitoring:
+    websocket:
+      allowed-origins: http://localhost:3000,http://localhost:8080
+      development-mode: true
+      debug-logging: true
+      
+  # Security Configuration
+  security:
+    ldap:
+      enabled: false
+    redis:
+      enabled: false
+      
+  # Master Query Configuration - Banking Grade Security
+  master-query:
+    execution:
+      max-timeout-seconds: 30
+      max-result-rows: 100
+      allowed-query-types:
+        - SELECT
+        - WITH
+      read-only-enforced: true
+      require-parameterized-queries: true
+      correlation-tracking: true
+    validation:
+      prevent-dml: true
+      prevent-ddl: true
+      prevent-system-calls: true
+      sql-injection-protection: true
+    security:
+      classification-enforcement: true
+      audit-all-queries: true
+      role-based-access: true
+
+# OpenAPI/Swagger Configuration
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operations-sorter: method
+    tags-sorter: alpha
+    try-it-out-enabled: true
+
+# Logging Configuration
+logging:
+  level:
+    com.truist.batch: INFO
+    com.truist.batch.masterquery: DEBUG
+    org.springframework.web.socket: DEBUG
+    org.springframework.security: INFO
+    liquibase: INFO
+    liquibase.sql: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level [%X{correlationId:-}] %logger{36} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level [%X{correlationId:-}] %logger{36} - %msg%n"
+
+# Management and Monitoring
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: when-authorized
+  info:
+    env:
+      enabled: true
+
+# Application Information
+info:
+  app:
+    name: Fabric Platform
+    description: Enterprise Batch Processing and Job Configuration Management
+    version: 1.1.0
+    phase: Master Query Integration - Phase 1
+
+---
+# Development Profile
+spring:
+  config:
+    activate:
+      on-profile: development
+  datasource:
+    primary:
+      hikari:
+        maximum-pool-size: 5
+    readonly:
+      hikari:
+        maximum-pool-size: 3
+  liquibase:
+    enabled: true
+    contexts: development
+
+logging:
+  level:
+    com.truist.batch: DEBUG
+    com.truist.batch.masterquery: TRACE
+
+---
+# Test Profile  
+spring:
+  config:
+    activate:
+      on-profile: test
+  datasource:
+    primary:
+      url: ${TEST_DB_URL:jdbc:oracle:thin:@localhost:1521/ORCLPDB1}
+      username: ${TEST_DB_USERNAME:cm3int_test}
+      password: ${TEST_DB_PASSWORD:MySecurePass123}
+    readonly:
+      url: ${TEST_DB_READONLY_URL:${spring.datasource.primary.url}}
+      username: ${TEST_DB_READONLY_USERNAME:${spring.datasource.primary.username}}
+      password: ${TEST_DB_READONLY_PASSWORD:${spring.datasource.primary.password}}
+  liquibase:
+    enabled: true
+    contexts: test
+
+---
+# Production Profile
+spring:
+  config:
+    activate:
+      on-profile: production
+  datasource:
+    primary:
+      hikari:
+        maximum-pool-size: 50
+        minimum-idle: 10
+    readonly:
+      hikari:
+        maximum-pool-size: 20
+        minimum-idle: 5
+  liquibase:
+    enabled: false
+
+logging:
+  level:
+    com.truist.batch: WARN
+    com.truist.batch.masterquery: INFO
+
+fabric:
+  monitoring:
+    websocket:
+      development-mode: false
+      debug-logging: false

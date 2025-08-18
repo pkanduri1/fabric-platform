@@ -1,0 +1,510 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:oracle="http://www.liquibase.org/xml/ns/dbchangelog/oracle"
+    xsi:schemaLocation="
+        http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd
+        http://www.liquibase.org/xml/ns/dbchangelog/oracle
+        http://www.liquibase.org/xml/ns/oracle/oracle.xsd">
+
+    <!-- 
+    =========================================================================
+    US001-010: MASTER QUERY INTEGRATION TABLES
+    =========================================================================
+    
+    Purpose: Master query integration for job configuration templates
+    - TEMPLATE_MASTER_QUERY_MAPPING: Links job templates to master queries
+    - MASTER_QUERY_COLUMNS: Metadata for query column definitions
+    - Banking-grade security with read-only query execution
+    - SOX-compliant audit trail integration
+    
+    Security: 
+    - Read-only query execution with parameterized queries only
+    - 30-second timeout enforcement for all query operations
+    - Result pagination limited to 100 rows maximum
+    - Query validation to prevent DML/DDL operations
+    
+    =========================================================================
+    -->
+
+    <!-- Create TEMPLATE_MASTER_QUERY_MAPPING Table -->
+    <changeSet id="us001-010-create-template-master-query-mapping" 
+               author="Senior Full Stack Developer Agent" 
+               context="development,test,staging,production"
+               labels="us001,master-query,sox-compliant,banking-grade">
+        
+        <comment>
+            Create TEMPLATE_MASTER_QUERY_MAPPING table for linking job configuration templates
+            to master queries. This enables dynamic query execution within job configurations
+            while maintaining banking-grade security and SOX compliance.
+        </comment>
+
+        <createTable tableName="TEMPLATE_MASTER_QUERY_MAPPING">
+            <!-- Primary Key -->
+            <column name="MAPPING_ID" type="VARCHAR(50)">
+                <constraints primaryKey="true" primaryKeyName="PK_TEMPLATE_MASTER_QUERY_MAPPING"/>
+            </column>
+            
+            <!-- Foreign Key to Manual Job Config -->
+            <column name="CONFIG_ID" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+            
+            <!-- Master Query Information -->
+            <column name="MASTER_QUERY_ID" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+            
+            <column name="QUERY_NAME" type="VARCHAR(100)">
+                <constraints nullable="false"/>
+            </column>
+            
+            <column name="QUERY_SQL" type="CLOB">
+                <constraints nullable="false"/>
+            </column>
+            
+            <column name="QUERY_DESCRIPTION" type="VARCHAR(500)">
+                <constraints nullable="true"/>
+            </column>
+            
+            <!-- Query Configuration -->
+            <column name="QUERY_TYPE" type="VARCHAR(50)" defaultValue="SELECT">
+                <constraints nullable="false"/>
+            </column>
+            
+            <column name="MAX_EXECUTION_TIME_SECONDS" type="NUMBER(3)" defaultValue="30">
+                <constraints nullable="false"/>
+            </column>
+            
+            <column name="MAX_RESULT_ROWS" type="NUMBER(5)" defaultValue="100">
+                <constraints nullable="false"/>
+            </column>
+            
+            <!-- Parameter Configuration -->
+            <column name="QUERY_PARAMETERS" type="CLOB">
+                <constraints nullable="true"/>
+            </column>
+            
+            <column name="PARAMETER_VALIDATION_RULES" type="CLOB">
+                <constraints nullable="true"/>
+            </column>
+            
+            <!-- Status and Control -->
+            <column name="STATUS" type="VARCHAR(20)" defaultValue="ACTIVE">
+                <constraints nullable="false"/>
+            </column>
+            
+            <column name="IS_READ_ONLY" type="CHAR(1)" defaultValue="Y">
+                <constraints nullable="false"/>
+            </column>
+            
+            <!-- Security and Compliance -->
+            <column name="SECURITY_CLASSIFICATION" type="VARCHAR(20)" defaultValue="INTERNAL">
+                <constraints nullable="false"/>
+            </column>
+            
+            <column name="REQUIRES_APPROVAL" type="CHAR(1)" defaultValue="Y">
+                <constraints nullable="false"/>
+            </column>
+            
+            <!-- Audit Trail -->
+            <column name="CREATED_BY" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+            
+            <column name="CREATED_DATE" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            
+            <column name="UPDATED_BY" type="VARCHAR(50)">
+                <constraints nullable="true"/>
+            </column>
+            
+            <column name="UPDATED_DATE" type="TIMESTAMP">
+                <constraints nullable="true"/>
+            </column>
+            
+            <column name="CORRELATION_ID" type="VARCHAR(50)">
+                <constraints nullable="true"/>
+            </column>
+            
+        </createTable>
+
+        <rollback>
+            <dropTable tableName="TEMPLATE_MASTER_QUERY_MAPPING" />
+        </rollback>
+
+    </changeSet>
+
+    <!-- Create MASTER_QUERY_COLUMNS Table -->
+    <changeSet id="us001-010-create-master-query-columns" 
+               author="Senior Full Stack Developer Agent" 
+               context="development,test,staging,production"
+               labels="us001,master-query,metadata,sox-compliant">
+        
+        <comment>
+            Create MASTER_QUERY_COLUMNS table for storing column metadata for master queries.
+            This enables dynamic column validation, data type checking, and UI generation
+            for master query results.
+        </comment>
+
+        <createTable tableName="MASTER_QUERY_COLUMNS">
+            <!-- Primary Key -->
+            <column name="COLUMN_ID" type="VARCHAR(50)">
+                <constraints primaryKey="true" primaryKeyName="PK_MASTER_QUERY_COLUMNS"/>
+            </column>
+            
+            <!-- Foreign Key to Master Query -->
+            <column name="MASTER_QUERY_ID" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+            
+            <!-- Column Definition -->
+            <column name="COLUMN_NAME" type="VARCHAR(100)">
+                <constraints nullable="false"/>
+            </column>
+            
+            <column name="COLUMN_ALIAS" type="VARCHAR(100)">
+                <constraints nullable="true"/>
+            </column>
+            
+            <column name="COLUMN_TYPE" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+            
+            <column name="COLUMN_LENGTH" type="NUMBER(10)">
+                <constraints nullable="true"/>
+            </column>
+            
+            <column name="COLUMN_PRECISION" type="NUMBER(5)">
+                <constraints nullable="true"/>
+            </column>
+            
+            <column name="COLUMN_SCALE" type="NUMBER(5)">
+                <constraints nullable="true"/>
+            </column>
+            
+            <!-- Column Properties -->
+            <column name="IS_NULLABLE" type="CHAR(1)" defaultValue="Y">
+                <constraints nullable="false"/>
+            </column>
+            
+            <column name="IS_PRIMARY_KEY" type="CHAR(1)" defaultValue="N">
+                <constraints nullable="false"/>
+            </column>
+            
+            <column name="COLUMN_ORDER" type="NUMBER(3)">
+                <constraints nullable="false"/>
+            </column>
+            
+            <!-- Validation and Display -->
+            <column name="VALIDATION_RULES" type="CLOB">
+                <constraints nullable="true"/>
+            </column>
+            
+            <column name="DISPLAY_FORMAT" type="VARCHAR(100)">
+                <constraints nullable="true"/>
+            </column>
+            
+            <column name="COLUMN_DESCRIPTION" type="VARCHAR(500)">
+                <constraints nullable="true"/>
+            </column>
+            
+            <!-- Security Classification -->
+            <column name="IS_SENSITIVE_DATA" type="CHAR(1)" defaultValue="N">
+                <constraints nullable="false"/>
+            </column>
+            
+            <column name="DATA_CLASSIFICATION" type="VARCHAR(20)" defaultValue="INTERNAL">
+                <constraints nullable="false"/>
+            </column>
+            
+            <!-- Audit Trail -->
+            <column name="CREATED_BY" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+            
+            <column name="CREATED_DATE" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            
+            <column name="UPDATED_BY" type="VARCHAR(50)">
+                <constraints nullable="true"/>
+            </column>
+            
+            <column name="UPDATED_DATE" type="TIMESTAMP">
+                <constraints nullable="true"/>
+            </column>
+            
+        </createTable>
+
+        <rollback>
+            <dropTable tableName="MASTER_QUERY_COLUMNS" />
+        </rollback>
+
+    </changeSet>
+
+    <!-- Add Foreign Key Constraints -->
+    <changeSet id="us001-010-add-foreign-key-constraints" 
+               author="Senior Full Stack Developer Agent" 
+               context="development,test,staging,production"
+               labels="us001,master-query,referential-integrity">
+        
+        <comment>
+            Add foreign key constraints to ensure referential integrity between
+            master query tables and existing job configuration tables.
+        </comment>
+
+        <!-- Foreign key from TEMPLATE_MASTER_QUERY_MAPPING to MANUAL_JOB_CONFIG -->
+        <addForeignKeyConstraint 
+            baseTableName="TEMPLATE_MASTER_QUERY_MAPPING" 
+            baseColumnNames="CONFIG_ID"
+            constraintName="FK_TEMPLATE_MAPPING_CONFIG"
+            referencedTableName="MANUAL_JOB_CONFIG"
+            referencedColumnNames="CONFIG_ID"
+            onDelete="CASCADE"
+            onUpdate="RESTRICT"
+        />
+
+        <!-- Foreign key from MASTER_QUERY_COLUMNS to TEMPLATE_MASTER_QUERY_MAPPING -->
+        <addForeignKeyConstraint 
+            baseTableName="MASTER_QUERY_COLUMNS" 
+            baseColumnNames="MASTER_QUERY_ID"
+            constraintName="FK_QUERY_COLUMNS_MAPPING"
+            referencedTableName="TEMPLATE_MASTER_QUERY_MAPPING"
+            referencedColumnNames="MASTER_QUERY_ID"
+            onDelete="CASCADE"
+            onUpdate="RESTRICT"
+        />
+
+        <rollback>
+            <dropForeignKeyConstraint baseTableName="TEMPLATE_MASTER_QUERY_MAPPING" 
+                                    constraintName="FK_TEMPLATE_MAPPING_CONFIG" />
+            <dropForeignKeyConstraint baseTableName="MASTER_QUERY_COLUMNS" 
+                                    constraintName="FK_QUERY_COLUMNS_MAPPING" />
+        </rollback>
+
+    </changeSet>
+
+    <!-- Add Check Constraints for Data Validation -->
+    <changeSet id="us001-010-add-check-constraints" 
+               author="Senior Full Stack Developer Agent" 
+               context="development,test,staging,production"
+               labels="us001,master-query,data-validation">
+        
+        <comment>
+            Add check constraints for master query tables to ensure data integrity.
+        </comment>
+
+        <!-- TEMPLATE_MASTER_QUERY_MAPPING constraints -->
+        <sql>
+            ALTER TABLE TEMPLATE_MASTER_QUERY_MAPPING 
+            ADD CONSTRAINT CHK_TEMPLATE_MAPPING_STATUS 
+            CHECK (STATUS IN ('ACTIVE', 'INACTIVE', 'DEPRECATED'))
+        </sql>
+
+        <sql>
+            ALTER TABLE TEMPLATE_MASTER_QUERY_MAPPING 
+            ADD CONSTRAINT CHK_TEMPLATE_MAPPING_QUERY_TYPE 
+            CHECK (QUERY_TYPE IN ('SELECT', 'WITH_SELECT'))
+        </sql>
+
+        <sql>
+            ALTER TABLE TEMPLATE_MASTER_QUERY_MAPPING 
+            ADD CONSTRAINT CHK_TEMPLATE_MAPPING_READ_ONLY 
+            CHECK (IS_READ_ONLY IN ('Y', 'N'))
+        </sql>
+
+        <sql>
+            ALTER TABLE TEMPLATE_MASTER_QUERY_MAPPING 
+            ADD CONSTRAINT CHK_TEMPLATE_MAPPING_EXEC_TIME 
+            CHECK (MAX_EXECUTION_TIME_SECONDS BETWEEN 1 AND 30)
+        </sql>
+
+        <sql>
+            ALTER TABLE TEMPLATE_MASTER_QUERY_MAPPING 
+            ADD CONSTRAINT CHK_TEMPLATE_MAPPING_MAX_ROWS 
+            CHECK (MAX_RESULT_ROWS BETWEEN 1 AND 100)
+        </sql>
+
+        <sql>
+            ALTER TABLE TEMPLATE_MASTER_QUERY_MAPPING 
+            ADD CONSTRAINT CHK_TEMPLATE_MAPPING_SECURITY 
+            CHECK (SECURITY_CLASSIFICATION IN ('PUBLIC', 'INTERNAL', 'CONFIDENTIAL', 'RESTRICTED'))
+        </sql>
+
+        <sql>
+            ALTER TABLE TEMPLATE_MASTER_QUERY_MAPPING 
+            ADD CONSTRAINT CHK_TEMPLATE_MAPPING_APPROVAL 
+            CHECK (REQUIRES_APPROVAL IN ('Y', 'N'))
+        </sql>
+
+        <!-- MASTER_QUERY_COLUMNS constraints -->
+        <sql>
+            ALTER TABLE MASTER_QUERY_COLUMNS 
+            ADD CONSTRAINT CHK_QUERY_COLUMNS_NULLABLE 
+            CHECK (IS_NULLABLE IN ('Y', 'N'))
+        </sql>
+
+        <sql>
+            ALTER TABLE MASTER_QUERY_COLUMNS 
+            ADD CONSTRAINT CHK_QUERY_COLUMNS_PRIMARY_KEY 
+            CHECK (IS_PRIMARY_KEY IN ('Y', 'N'))
+        </sql>
+
+        <sql>
+            ALTER TABLE MASTER_QUERY_COLUMNS 
+            ADD CONSTRAINT CHK_QUERY_COLUMNS_SENSITIVE 
+            CHECK (IS_SENSITIVE_DATA IN ('Y', 'N'))
+        </sql>
+
+        <sql>
+            ALTER TABLE MASTER_QUERY_COLUMNS 
+            ADD CONSTRAINT CHK_QUERY_COLUMNS_CLASSIFICATION 
+            CHECK (DATA_CLASSIFICATION IN ('PUBLIC', 'INTERNAL', 'CONFIDENTIAL', 'RESTRICTED'))
+        </sql>
+
+        <sql>
+            ALTER TABLE MASTER_QUERY_COLUMNS 
+            ADD CONSTRAINT CHK_QUERY_COLUMNS_ORDER 
+            CHECK (COLUMN_ORDER > 0)
+        </sql>
+
+        <rollback>
+            <sql>ALTER TABLE TEMPLATE_MASTER_QUERY_MAPPING DROP CONSTRAINT CHK_TEMPLATE_MAPPING_STATUS</sql>
+            <sql>ALTER TABLE TEMPLATE_MASTER_QUERY_MAPPING DROP CONSTRAINT CHK_TEMPLATE_MAPPING_QUERY_TYPE</sql>
+            <sql>ALTER TABLE TEMPLATE_MASTER_QUERY_MAPPING DROP CONSTRAINT CHK_TEMPLATE_MAPPING_READ_ONLY</sql>
+            <sql>ALTER TABLE TEMPLATE_MASTER_QUERY_MAPPING DROP CONSTRAINT CHK_TEMPLATE_MAPPING_EXEC_TIME</sql>
+            <sql>ALTER TABLE TEMPLATE_MASTER_QUERY_MAPPING DROP CONSTRAINT CHK_TEMPLATE_MAPPING_MAX_ROWS</sql>
+            <sql>ALTER TABLE TEMPLATE_MASTER_QUERY_MAPPING DROP CONSTRAINT CHK_TEMPLATE_MAPPING_SECURITY</sql>
+            <sql>ALTER TABLE TEMPLATE_MASTER_QUERY_MAPPING DROP CONSTRAINT CHK_TEMPLATE_MAPPING_APPROVAL</sql>
+            <sql>ALTER TABLE MASTER_QUERY_COLUMNS DROP CONSTRAINT CHK_QUERY_COLUMNS_NULLABLE</sql>
+            <sql>ALTER TABLE MASTER_QUERY_COLUMNS DROP CONSTRAINT CHK_QUERY_COLUMNS_PRIMARY_KEY</sql>
+            <sql>ALTER TABLE MASTER_QUERY_COLUMNS DROP CONSTRAINT CHK_QUERY_COLUMNS_SENSITIVE</sql>
+            <sql>ALTER TABLE MASTER_QUERY_COLUMNS DROP CONSTRAINT CHK_QUERY_COLUMNS_CLASSIFICATION</sql>
+            <sql>ALTER TABLE MASTER_QUERY_COLUMNS DROP CONSTRAINT CHK_QUERY_COLUMNS_ORDER</sql>
+        </rollback>
+
+    </changeSet>
+
+    <!-- Add Performance Indexes -->
+    <changeSet id="us001-010-create-performance-indexes" 
+               author="Senior Full Stack Developer Agent"
+               context="development,test,staging,production"
+               labels="us001,master-query,performance">
+        
+        <comment>
+            Create performance indexes for master query tables to optimize common query patterns.
+        </comment>
+
+        <!-- Indexes for TEMPLATE_MASTER_QUERY_MAPPING -->
+        <createIndex tableName="TEMPLATE_MASTER_QUERY_MAPPING" 
+                     indexName="IDX_TEMPLATE_MAPPING_CONFIG_ID">
+            <column name="CONFIG_ID"/>
+        </createIndex>
+
+        <createIndex tableName="TEMPLATE_MASTER_QUERY_MAPPING" 
+                     indexName="IDX_TEMPLATE_MAPPING_QUERY_ID">
+            <column name="MASTER_QUERY_ID"/>
+        </createIndex>
+
+        <createIndex tableName="TEMPLATE_MASTER_QUERY_MAPPING" 
+                     indexName="IDX_TEMPLATE_MAPPING_STATUS">
+            <column name="STATUS"/>
+        </createIndex>
+
+        <createIndex tableName="TEMPLATE_MASTER_QUERY_MAPPING" 
+                     indexName="IDX_TEMPLATE_MAPPING_QUERY_NAME">
+            <column name="QUERY_NAME"/>
+        </createIndex>
+
+        <!-- Indexes for MASTER_QUERY_COLUMNS -->
+        <createIndex tableName="MASTER_QUERY_COLUMNS" 
+                     indexName="IDX_QUERY_COLUMNS_QUERY_ID">
+            <column name="MASTER_QUERY_ID"/>
+        </createIndex>
+
+        <createIndex tableName="MASTER_QUERY_COLUMNS" 
+                     indexName="IDX_QUERY_COLUMNS_NAME">
+            <column name="COLUMN_NAME"/>
+        </createIndex>
+
+        <createIndex tableName="MASTER_QUERY_COLUMNS" 
+                     indexName="IDX_QUERY_COLUMNS_ORDER">
+            <column name="MASTER_QUERY_ID"/>
+            <column name="COLUMN_ORDER"/>
+        </createIndex>
+
+        <rollback>
+            <dropIndex tableName="TEMPLATE_MASTER_QUERY_MAPPING" indexName="IDX_TEMPLATE_MAPPING_CONFIG_ID" />
+            <dropIndex tableName="TEMPLATE_MASTER_QUERY_MAPPING" indexName="IDX_TEMPLATE_MAPPING_QUERY_ID" />
+            <dropIndex tableName="TEMPLATE_MASTER_QUERY_MAPPING" indexName="IDX_TEMPLATE_MAPPING_STATUS" />
+            <dropIndex tableName="TEMPLATE_MASTER_QUERY_MAPPING" indexName="IDX_TEMPLATE_MAPPING_QUERY_NAME" />
+            <dropIndex tableName="MASTER_QUERY_COLUMNS" indexName="IDX_QUERY_COLUMNS_QUERY_ID" />
+            <dropIndex tableName="MASTER_QUERY_COLUMNS" indexName="IDX_QUERY_COLUMNS_NAME" />
+            <dropIndex tableName="MASTER_QUERY_COLUMNS" indexName="IDX_QUERY_COLUMNS_ORDER" />
+        </rollback>
+
+    </changeSet>
+
+    <!-- Add Table and Column Comments -->
+    <changeSet id="us001-010-add-table-comments" 
+               author="Senior Full Stack Developer Agent" 
+               context="development,test,staging,production"
+               labels="us001,master-query,documentation">
+        
+        <comment>
+            Add table and column comments for documentation purposes.
+        </comment>
+
+        <!-- TEMPLATE_MASTER_QUERY_MAPPING table remarks -->
+        <setTableRemarks tableName="TEMPLATE_MASTER_QUERY_MAPPING" 
+                        remarks="Master Query Integration table for linking job templates to parameterized queries with banking-grade security"
+                        />
+
+        <setColumnRemarks tableName="TEMPLATE_MASTER_QUERY_MAPPING" columnName="MAPPING_ID" 
+                         remarks="Unique identifier for template-query mapping (format: tmq_{system}_{sequence}_{date})"
+                         />
+
+        <setColumnRemarks tableName="TEMPLATE_MASTER_QUERY_MAPPING" columnName="QUERY_SQL" 
+                         remarks="Parameterized SQL query - read-only SELECT statements only"
+                         />
+
+        <setColumnRemarks tableName="TEMPLATE_MASTER_QUERY_MAPPING" columnName="QUERY_PARAMETERS" 
+                         remarks="JSON-formatted query parameters with validation rules"
+                         />
+
+        <setColumnRemarks tableName="TEMPLATE_MASTER_QUERY_MAPPING" columnName="MAX_EXECUTION_TIME_SECONDS" 
+                         remarks="Maximum query execution time in seconds (1-30 seconds enforced)"
+                         />
+
+        <setColumnRemarks tableName="TEMPLATE_MASTER_QUERY_MAPPING" columnName="MAX_RESULT_ROWS" 
+                         remarks="Maximum number of result rows returned (1-100 rows enforced)"
+                         />
+
+        <!-- MASTER_QUERY_COLUMNS table remarks -->
+        <setTableRemarks tableName="MASTER_QUERY_COLUMNS" 
+                        remarks="Column metadata for master queries including data types, validation, and security classification"
+                        />
+
+        <setColumnRemarks tableName="MASTER_QUERY_COLUMNS" columnName="COLUMN_ID" 
+                         remarks="Unique identifier for column definition (format: col_{query_id}_{sequence})"
+                         />
+
+        <setColumnRemarks tableName="MASTER_QUERY_COLUMNS" columnName="VALIDATION_RULES" 
+                         remarks="JSON-formatted column validation rules for data quality"
+                         />
+
+        <setColumnRemarks tableName="MASTER_QUERY_COLUMNS" columnName="IS_SENSITIVE_DATA" 
+                         remarks="Flag indicating if column contains sensitive financial data requiring encryption"
+                         />
+
+        <rollback>
+            <!-- No rollback needed for remarks -->
+        </rollback>
+
+    </changeSet>
+
+</databaseChangeLog>

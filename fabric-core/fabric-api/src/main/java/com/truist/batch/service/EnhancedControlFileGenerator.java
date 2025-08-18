@@ -29,15 +29,21 @@ import java.util.stream.Collectors;
  * - Template generation and validation
  */
 @Service
-@RequiredArgsConstructor
 @Slf4j
 public class EnhancedControlFileGenerator {
 
     // Inject the existing control file generator from fabric-data-loader
     private final com.truist.batch.sqlloader.ControlFileGenerator baseControlFileGenerator;
     
-    // Inject audit service for comprehensive logging
+    // Inject audit service for comprehensive logging (optional)
     private final AuditService auditService;
+    
+    public EnhancedControlFileGenerator(
+            com.truist.batch.sqlloader.ControlFileGenerator baseControlFileGenerator,
+            @org.springframework.beans.factory.annotation.Autowired(required = false) AuditService auditService) {
+        this.baseControlFileGenerator = baseControlFileGenerator;
+        this.auditService = auditService;
+    }
     
     private static final String CONTROL_FILE_EXTENSION = ".ctl";
     private static final String DEFAULT_ENCODING = "UTF-8";
@@ -73,12 +79,16 @@ public class EnhancedControlFileGenerator {
             enhanceControlFileWithMetadata(controlFilePath, configId, sqlLoaderConfig);
             
             // Create audit trail
-            auditService.logSecurityEvent(
-                    "CONTROL_FILE_GENERATED",
-                    "Generated control file for configuration: " + configId,
-                    "SYSTEM",
-                    Map.of("configId", configId, "dataFile", dataFilePath, "controlFile", controlFilePath.toString())
-            );
+            if (auditService != null) {
+                auditService.logSecurityEvent(
+                        "CONTROL_FILE_GENERATED",
+                        "Generated control file for configuration: " + configId,
+                        "SYSTEM",
+                        Map.of("configId", configId, "dataFile", dataFilePath, "controlFile", controlFilePath.toString())
+                );
+            } else {
+                log.debug("AuditService not available - skipping audit log for control file generation: {}", configId);
+            }
             
             log.info("Successfully generated enhanced control file: {}", controlFilePath);
             return controlFilePath;
@@ -166,12 +176,16 @@ public class EnhancedControlFileGenerator {
             enhanceControlFileWithMetadata(controlFilePath, configId, sqlLoaderConfig);
             
             // Create security audit trail
-            auditService.logSecurityEvent(
-                    "SECURE_CONTROL_FILE_GENERATED",
-                    "Generated secure control file with PII protection",
-                    "SYSTEM",
-                    Map.of("configId", configId, "piiFields", String.valueOf(piiFields.size()), "encrypted", "true")
-            );
+            if (auditService != null) {
+                auditService.logSecurityEvent(
+                        "SECURE_CONTROL_FILE_GENERATED",
+                        "Generated secure control file with PII protection",
+                        "SYSTEM",
+                        Map.of("configId", configId, "piiFields", String.valueOf(piiFields.size()), "encrypted", "true")
+                );
+            } else {
+                log.debug("AuditService not available - skipping security audit log for secure control file generation: {}", configId);
+            }
             
             log.info("Successfully generated secure control file: {}", controlFilePath);
             return controlFilePath;

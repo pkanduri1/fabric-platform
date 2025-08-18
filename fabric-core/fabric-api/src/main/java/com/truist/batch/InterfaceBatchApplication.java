@@ -26,7 +26,8 @@ import java.util.List;
         "com.truist.batch.config",
         "com.truist.batch.security",
         "com.truist.batch.audit",
-        "com.truist.batch.service"
+        "com.truist.batch.service",
+        "com.truist.batch.sqlloader"
     },
     includeFilters = {
         @ComponentScan.Filter(

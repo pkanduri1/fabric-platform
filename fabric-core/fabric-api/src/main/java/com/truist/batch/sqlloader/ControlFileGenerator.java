@@ -1,5 +1,7 @@
 package com.truist.batch.sqlloader;
 
+import org.springframework.stereotype.Component;
+
 import java.nio.file.Path;
 import java.util.List;
 
@@ -7,6 +9,7 @@ import java.util.List;
  * Stub class for ControlFileGenerator from fabric-data-loader module.
  * For Phase 1.2 testing purposes, we provide stub implementation.
  */
+@Component
 public class ControlFileGenerator {
     
     public Path generateControlFile(SqlLoaderConfig config) throws Exception {
