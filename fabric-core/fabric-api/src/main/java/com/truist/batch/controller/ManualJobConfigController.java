@@ -80,6 +80,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Slf4j
 @Validated
+@CrossOrigin(origins = {"http://localhost:3000", "https://localhost:3000"})
 @Tag(name = "Manual Job Configuration", 
      description = "Enterprise API for manual job configuration management with banking-grade security and compliance")
 @SecurityRequirement(name = "bearerAuth")
@@ -271,22 +272,38 @@ public class ManualJobConfigController {
             Sort sort = Sort.by(sortDir.equals("asc") ? Sort.Direction.ASC : Sort.Direction.DESC, sortBy);
             Pageable pageable = PageRequest.of(page, size, sort);
             
-            // Apply filters and retrieve configurations
-            List<ManualJobConfigEntity> configurations = applyFiltersAndRetrieve(
-                jobType, sourceSystem, status, pageable);
+            // Get all active configurations first
+            List<ManualJobConfigEntity> allConfigurations = manualJobConfigService.getAllActiveConfigurations();
+            
+            // Apply filtering
+            List<ManualJobConfigEntity> filteredConfigurations = applyFilters(
+                allConfigurations, jobType, sourceSystem, status);
+            
+            // Calculate pagination
+            int totalElements = filteredConfigurations.size();
+            int totalPages = totalElements > 0 ? (totalElements + size - 1) / size : 1;
+            int startIndex = page * size;
+            int endIndex = Math.min(startIndex + size, totalElements);
+            
+            // Apply pagination (handle edge cases)
+            List<ManualJobConfigEntity> pagedConfigurations = totalElements > 0 && startIndex < totalElements 
+                ? filteredConfigurations.subList(startIndex, endIndex)
+                : new java.util.ArrayList<>();
             
             // Convert to response DTOs with role-based filtering
-            List<ManualJobConfigResponse> responses = configurations.stream()
+            List<ManualJobConfigResponse> responses = pagedConfigurations.stream()
                     .map(entity -> convertToResponse(entity, username))
                     .collect(Collectors.toList());
             
             // Build paginated response
             Map<String, Object> response = new HashMap<>();
             response.put("content", responses);
-            response.put("totalElements", configurations.size());
-            response.put("totalPages", (configurations.size() + size - 1) / size);
+            response.put("totalElements", totalElements);
+            response.put("totalPages", totalPages);
             response.put("currentPage", page);
             response.put("pageSize", size);
+            response.put("hasNext", page < totalPages - 1);
+            response.put("hasPrevious", page > 0);
             response.put("correlationId", correlationId);
             
             return ResponseEntity.ok(response);
@@ -458,19 +475,32 @@ public class ManualJobConfigController {
                     manualJobConfigService.getSystemStatistics();
             
             Map<String, Object> response = new HashMap<>();
-            response.put("activeConfigurations", stats.getActiveConfigurations());
-            response.put("inactiveConfigurations", stats.getInactiveConfigurations());
-            response.put("deprecatedConfigurations", stats.getDeprecatedConfigurations());
-            response.put("totalConfigurations", stats.getTotalConfigurations());
-            response.put("lastUpdated", stats.getLastUpdated());
+            response.put("activeConfigurations", stats != null ? stats.getActiveConfigurations() : 0);
+            response.put("inactiveConfigurations", stats != null ? stats.getInactiveConfigurations() : 0);
+            response.put("deprecatedConfigurations", stats != null ? stats.getDeprecatedConfigurations() : 0);
+            response.put("totalConfigurations", stats != null ? stats.getTotalConfigurations() : 0);
+            response.put("lastUpdated", stats != null ? stats.getLastUpdated() : LocalDateTime.now());
             response.put("correlationId", correlationId);
+            response.put("success", true);
             
             return ResponseEntity.ok(response);
             
         } catch (Exception e) {
             log.error("Error retrieving system statistics: {} [correlationId: {}]", 
                      e.getMessage(), correlationId, e);
-            throw new RuntimeException("Failed to retrieve system statistics", e);
+            
+            // Return error response in JSON format instead of throwing exception
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("activeConfigurations", 0);
+            errorResponse.put("inactiveConfigurations", 0);
+            errorResponse.put("deprecatedConfigurations", 0);
+            errorResponse.put("totalConfigurations", 0);
+            errorResponse.put("lastUpdated", LocalDateTime.now());
+            errorResponse.put("correlationId", correlationId);
+            errorResponse.put("success", false);
+            errorResponse.put("error", "Failed to retrieve statistics");
+            
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
         }
     }
 
@@ -545,12 +575,14 @@ public class ManualJobConfigController {
         }
     }
 
-    private List<ManualJobConfigEntity> applyFiltersAndRetrieve(
-            String jobType, String sourceSystem, String status, Pageable pageable) {
+    private List<ManualJobConfigEntity> applyFilters(
+            List<ManualJobConfigEntity> configurations, String jobType, String sourceSystem, String status) {
         
-        // This would integrate with enhanced service methods for filtering
-        // For now, returning basic active configurations
-        return manualJobConfigService.getAllActiveConfigurations();
+        return configurations.stream()
+                .filter(config -> jobType == null || jobType.equals(config.getJobType()))
+                .filter(config -> sourceSystem == null || sourceSystem.equals(config.getSourceSystem()))
+                .filter(config -> status == null || status.equals(config.getStatus()))
+                .collect(Collectors.toList());
     }
 
     private ManualJobConfigResponse createErrorResponse(String message, String correlationId) {

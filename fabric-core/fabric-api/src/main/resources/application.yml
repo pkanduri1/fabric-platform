@@ -181,7 +181,7 @@ spring:
       hikari:
         maximum-pool-size: 3
   liquibase:
-    enabled: true
+    enabled: false
     contexts: development
 
 logging:
@@ -236,3 +236,50 @@ fabric:
     websocket:
       development-mode: false
       debug-logging: false
+
+---
+# Local Profile (for Oracle testing)
+spring:
+  config:
+    activate:
+      on-profile: local
+  # Override datasource for local Oracle development
+  datasource:
+    primary:
+      url: jdbc:oracle:thin:@localhost:1521/ORCLPDB1
+      driver-class-name: oracle.jdbc.OracleDriver
+      username: cm3int
+      password: MySecurePass123
+      hikari:
+        pool-name: LocalPrimaryConnectionPool
+        maximum-pool-size: 10
+        minimum-idle: 2
+        idle-timeout: 300000
+        max-lifetime: 1800000
+        connection-timeout: 30000
+        leak-detection-threshold: 60000
+    readonly:
+      url: jdbc:oracle:thin:@localhost:1521/ORCLPDB1
+      driver-class-name: oracle.jdbc.OracleDriver
+      username: cm3int
+      password: MySecurePass123
+      hikari:
+        pool-name: LocalReadOnlyConnectionPool
+        maximum-pool-size: 5
+        minimum-idle: 1
+        idle-timeout: 300000
+        max-lifetime: 1800000
+        connection-timeout: 20000
+        leak-detection-threshold: 30000
+  # Disable Liquibase for local development
+  liquibase:
+    enabled: false
+  # Disable Spring Batch auto-configuration
+  batch:
+    initialize-schema: never
+
+logging:
+  level:
+    com.truist.batch: DEBUG
+    org.springframework.jdbc: DEBUG
+    oracle.jdbc: DEBUG

@@ -164,7 +164,7 @@ public class TemplateServiceImpl implements TemplateService {
 		config.setModifiedBy(createdBy);
 		config.setVersion(1);
 		config.setCreatedDate(LocalDateTime.now());
-		config.id = sourceSystem + "_" + jobName + "_" + transactionType + "_" + System.currentTimeMillis();
+		config.setId(sourceSystem + "_" + jobName + "_" + transactionType + "_" + System.currentTimeMillis());
 		
 		// Create template metadata (optional - can be null for now)
 		// com.truist.batch.model.TemplateMetadata metadata = new com.truist.batch.model.TemplateMetadata();

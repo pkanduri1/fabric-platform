@@ -9,7 +9,6 @@ import com.truist.batch.model.ConfigurationAudit;
 import com.truist.batch.service.ConfigurationService;
 import com.truist.batch.service.YamlGenerationService;
 import com.truist.batch.model.*;
-import com.truist.batch.mapping.YamlMappingService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -44,7 +43,6 @@ public class ConfigurationServiceImpl implements ConfigurationService {
     private final ConfigurationAuditDao auditDao;
     private final SourceSystemRepository sourceSystemRepository;
     private final YamlGenerationService yamlGenerationService;
-    private final YamlMappingService yamlMappingService;
     private final ObjectMapper objectMapper;
 
     @Value("${batch.yaml.output.basePath:src/main/resources}")

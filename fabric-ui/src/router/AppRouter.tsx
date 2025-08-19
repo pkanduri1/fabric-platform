@@ -6,7 +6,7 @@ import { ConfigurationPage } from '../pages/ConfigurationPage';
 import { YamlPreviewPage } from '../pages/YamlPreviewPage';
 import { TestingPage } from '../pages/TestingPage';
 import { PageLayout } from '../components/layout/PageLayout';
-import { TemplateConfigurationPage } from '../pages/TemplateConfigurationPage/TemplateConfigurationPage';
+import TemplateConfigurationPage from '../pages/TemplateConfigurationPage/TemplateConfigurationPage';
 import TemplateAdminPage from '../pages/TemplateAdminPage/TemplateAdminPage';
 import { MonitoringDashboard } from '../pages/MonitoringDashboard/MonitoringDashboard';
 import { ManualJobConfigurationPage } from '../pages/ManualJobConfigurationPage';

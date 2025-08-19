@@ -55,7 +55,7 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 @RestController
-@RequestMapping("/ui")
+@RequestMapping("/api/config")
 @RequiredArgsConstructor
 @CrossOrigin(origins = {"http://localhost:3000", "http://localhost:3001"})
 @Tag(name = "Configuration Management", description = "APIs for managing batch configurations and YAML generation")

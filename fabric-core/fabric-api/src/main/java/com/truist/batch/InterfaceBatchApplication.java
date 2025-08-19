@@ -23,11 +23,15 @@ import java.util.List;
 @ComponentScan(
     basePackages = {
         "com.truist.batch.repository",
+        "com.truist.batch.dao",
         "com.truist.batch.config",
         "com.truist.batch.security",
         "com.truist.batch.audit",
         "com.truist.batch.service",
-        "com.truist.batch.sqlloader"
+        "com.truist.batch.controller",
+        "com.truist.batch.sqlloader",
+        "com.truist.batch.mapping",
+        "com.truist.batch.adapter"
     },
     includeFilters = {
         @ComponentScan.Filter(
@@ -45,6 +49,18 @@ import java.util.List;
         @ComponentScan.Filter(
             type = FilterType.REGEX,
             pattern = "com\\.truist\\.batch\\.service\\.LocalConfigurationService"
+        ),
+        @ComponentScan.Filter(
+            type = FilterType.REGEX,
+            pattern = "com\\.truist\\.batch\\.controller\\.UIController"
+        ),
+        @ComponentScan.Filter(
+            type = FilterType.REGEX,
+            pattern = "com\\.truist\\.batch\\.controller\\.SourceSystemController"
+        ),
+        @ComponentScan.Filter(
+            type = FilterType.REGEX,
+            pattern = "com\\.truist\\.batch\\.controller\\.TemplateController"
         )
     },
     excludeFilters = {
@@ -63,6 +79,10 @@ import java.util.List;
         @ComponentScan.Filter(
             type = FilterType.REGEX,
             pattern = "com\\.truist\\.batch\\.service\\.impl\\.SqlLoaderConfigServiceImpl"
+        ),
+        @ComponentScan.Filter(
+            type = FilterType.REGEX,
+            pattern = "com\\.truist\\.batch\\.controller\\.SqlLoaderController"
         )
     }
 )

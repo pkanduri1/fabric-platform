@@ -34,19 +34,31 @@
 					<groupId>com.truist</groupId>
 					<artifactId>fabric-data-loader</artifactId>
 				</exclusion>
-				<exclusion>
-					<groupId>org.springframework.boot</groupId>
-					<artifactId>spring-boot-starter-batch</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>org.springframework.batch</groupId>
-					<artifactId>spring-batch-core</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>org.springframework.batch</groupId>
-					<artifactId>spring-batch-infrastructure</artifactId>
-				</exclusion>
 			</exclusions>
+		</dependency>
+
+		<!-- Spring Batch Dependencies -->
+		<!-- Required for DataSourceAdapterRegistry and batch processing functionality -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-batch</artifactId>
+		</dependency>
+		
+		<!-- Additional Spring Batch dependencies for enterprise fintech processing -->
+		<dependency>
+			<groupId>org.springframework.batch</groupId>
+			<artifactId>spring-batch-core</artifactId>
+		</dependency>
+		
+		<dependency>
+			<groupId>org.springframework.batch</groupId>
+			<artifactId>spring-batch-infrastructure</artifactId>
+		</dependency>
+		
+		<!-- Spring Batch Integration for enterprise job orchestration -->
+		<dependency>
+			<groupId>org.springframework.batch</groupId>
+			<artifactId>spring-batch-integration</artifactId>
 		</dependency>
 
 		<!-- Apache POI for Excel processing -->
@@ -308,10 +320,14 @@
 				</configuration>
 				<executions>
 					<execution>
+						<id>liquibase-update</id>
 						<phase>process-resources</phase>
 						<goals>
 							<goal>update</goal>
 						</goals>
+						<configuration>
+							<skip>true</skip>
+						</configuration>
 					</execution>
 				</executions>
 			</plugin>

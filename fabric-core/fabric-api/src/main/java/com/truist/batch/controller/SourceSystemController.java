@@ -23,7 +23,9 @@ import java.util.List;
  */
 @RestController
 @RequestMapping("/api/admin/source-systems")
-@CrossOrigin(origins = {"http://localhost:3000", "https://localhost:3000"})
+@CrossOrigin(origins = {"http://localhost:3000", "https://localhost:3000"}, 
+             allowedHeaders = "*", 
+             methods = {RequestMethod.GET, RequestMethod.POST, RequestMethod.PUT, RequestMethod.DELETE, RequestMethod.OPTIONS})
 public class SourceSystemController {
 
     private static final Logger logger = LoggerFactory.getLogger(SourceSystemController.class);

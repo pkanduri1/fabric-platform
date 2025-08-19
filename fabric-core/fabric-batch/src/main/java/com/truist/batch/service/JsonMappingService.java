@@ -5,6 +5,7 @@ import com.truist.batch.entity.ManualJobConfigEntity;
 import com.truist.batch.model.FieldMapping;
 import com.truist.batch.model.YamlMapping;
 import com.truist.batch.repository.ManualJobConfigRepository;
+import com.truist.batch.mapping.YamlMappingService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.Cacheable;

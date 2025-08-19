@@ -1,114 +1,57 @@
 package com.truist.batch.service;
 
-import com.truist.batch.dao.ConfigurationAuditDao;
-import com.truist.batch.model.ConfigurationAudit;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import java.util.Map;
 
-@Service
-@RequiredArgsConstructor
-public class AuditService {
+/**
+ * Service interface for audit logging operations.
+ * Provides SOX-compliant audit trail functionality for configuration changes,
+ * user actions, and security events.
+ */
+public interface AuditService {
     
-    private final ConfigurationAuditDao auditDao;
-    private final ObjectMapper objectMapper;
+    /**
+     * Log configuration creation event
+     * @param configId Unique identifier for the configuration
+     * @param newValue The new configuration value
+     * @param changedBy User who made the change
+     * @param reason Business reason for the change
+     */
+    void logCreate(String configId, Object newValue, String changedBy, String reason);
     
-    @Transactional
-    public void logCreate(String configId, Object newValue, String changedBy, String reason) {
-        ConfigurationAudit audit = new ConfigurationAudit();
-        audit.setConfigId(configId);
-        audit.setAction("CREATE");
-        audit.setNewValue(toJson(newValue));
-        audit.setChangedBy(changedBy);
-        audit.setReason(reason);
-        auditDao.save(audit);
-    }
+    /**
+     * Log configuration update event
+     * @param configId Unique identifier for the configuration
+     * @param oldValue The previous configuration value
+     * @param newValue The new configuration value
+     * @param changedBy User who made the change
+     * @param reason Business reason for the change
+     */
+    void logUpdate(String configId, Object oldValue, Object newValue, String changedBy, String reason);
     
-    @Transactional
-    public void logUpdate(String configId, Object oldValue, Object newValue, String changedBy, String reason) {
-        ConfigurationAudit audit = new ConfigurationAudit();
-        audit.setConfigId(configId);
-        audit.setAction("UPDATE");
-        audit.setOldValue(toJson(oldValue));
-        audit.setNewValue(toJson(newValue));
-        audit.setChangedBy(changedBy);
-        audit.setReason(reason);
-        auditDao.save(audit);
-    }
-    
-    @Transactional
-    public void logDelete(String configId, Object oldValue, String changedBy, String reason) {
-        ConfigurationAudit audit = new ConfigurationAudit();
-        audit.setConfigId(configId);
-        audit.setAction("DELETE");
-        audit.setOldValue(toJson(oldValue));
-        audit.setChangedBy(changedBy);
-        audit.setReason(reason);
-        auditDao.save(audit);
-    }
+    /**
+     * Log configuration deletion event
+     * @param configId Unique identifier for the configuration
+     * @param oldValue The deleted configuration value
+     * @param changedBy User who made the change
+     * @param reason Business reason for the change
+     */
+    void logDelete(String configId, Object oldValue, String changedBy, String reason);
     
     /**
      * Log security event with String parameters
+     * @param eventType Type of security event
+     * @param description Description of the event
+     * @param changedBy User associated with the event
+     * @param additionalData Additional security context data
      */
-    public void logSecurityEvent(String eventType, String description, String changedBy, java.util.Map<String, String> additionalData) {
-        ConfigurationAudit audit = new ConfigurationAudit();
-        audit.setConfigId("SECURITY_EVENT");
-        audit.setAction(eventType);
-        audit.setNewValue(description);
-        audit.setChangedBy(changedBy);
-        audit.setReason("Security Event: " + eventType);
-        auditDao.save(audit);
-        
-        // Log additional data if present
-        if (additionalData != null && !additionalData.isEmpty()) {
-            auditDao.save(createAdditionalDataAudit(eventType, additionalData, changedBy));
-        }
-    }
+    void logSecurityEvent(String eventType, String description, String changedBy, Map<String, String> additionalData);
     
     /**
-     * Log security event with Object parameters (renamed to avoid erasure conflict)
+     * Log security event with Object parameters
+     * @param eventType Type of security event
+     * @param description Description of the event
+     * @param changedBy User associated with the event
+     * @param additionalData Additional security context data
      */
-    public void logSecurityEventWithObjects(String eventType, String description, String changedBy, java.util.Map<String, ? extends Object> additionalData) {
-        ConfigurationAudit audit = new ConfigurationAudit();
-        audit.setConfigId("SECURITY_EVENT");
-        audit.setAction(eventType);
-        audit.setNewValue(description);
-        audit.setChangedBy(changedBy);
-        audit.setReason("Security Event: " + eventType);
-        auditDao.save(audit);
-        
-        // Log additional data if present
-        if (additionalData != null && !additionalData.isEmpty()) {
-            auditDao.save(createAdditionalDataAuditFromObjects(eventType, additionalData, changedBy));
-        }
-    }
-    
-    private ConfigurationAudit createAdditionalDataAudit(String eventType, java.util.Map<String, String> data, String changedBy) {
-        ConfigurationAudit audit = new ConfigurationAudit();
-        audit.setConfigId("SECURITY_EVENT_DATA");
-        audit.setAction(eventType + "_DATA");
-        audit.setNewValue(toJson(data));
-        audit.setChangedBy(changedBy);
-        audit.setReason("Additional data for security event: " + eventType);
-        return audit;
-    }
-    
-    private ConfigurationAudit createAdditionalDataAuditFromObjects(String eventType, java.util.Map<String, ? extends Object> data, String changedBy) {
-        ConfigurationAudit audit = new ConfigurationAudit();
-        audit.setConfigId("SECURITY_EVENT_DATA");
-        audit.setAction(eventType + "_DATA");
-        audit.setNewValue(toJson(data));
-        audit.setChangedBy(changedBy);
-        audit.setReason("Additional data for security event: " + eventType);
-        return audit;
-    }
-    
-    private String toJson(Object obj) {
-        try {
-            return objectMapper.writeValueAsString(obj);
-        } catch (Exception e) {
-            return obj != null ? obj.toString() : null;
-        }
-    }
+    void logSecurityEventWithObjects(String eventType, String description, String changedBy, Map<String, ? extends Object> additionalData);
 }

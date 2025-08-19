@@ -17,6 +17,15 @@ public class AuditStatistics {
     private double overallSuccessRate = 100.0;
     private double averageDataQualityScore = 100.0;
     
+    // Explicit setters for compatibility (Lombok @Data should generate these, but adding explicitly)
+    public void setFromDate(LocalDateTime fromDate) {
+        this.fromDate = fromDate;
+    }
+    
+    public void setGeneratedAt(LocalDateTime generatedAt) {
+        this.generatedAt = generatedAt;
+    }
+    
     public double getCompliancePercentage() {
         return 100.0;
     }
