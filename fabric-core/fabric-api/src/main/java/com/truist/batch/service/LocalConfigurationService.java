@@ -17,15 +17,15 @@ import java.util.*;
  * This allows the backend to start successfully for manual job configuration testing.
  */
 @Service
-@Profile("local")
+@Profile("disabled-local-mock")
 public class LocalConfigurationService implements ConfigurationService {
 
     @Override
     public List<SourceSystem> getAllSourceSystems() {
         List<SourceSystem> systems = new ArrayList<>();
-        systems.add(new SourceSystem("hr", "HR System", "ORACLE", "Human Resources", true, 2, LocalDateTime.now(), null));
-        systems.add(new SourceSystem("dda", "DDA System", "ORACLE", "Demand Deposit Accounts", true, 3, LocalDateTime.now(), null));
-        systems.add(new SourceSystem("shaw", "Shaw System", "ORACLE", "Shaw Cable Data", true, 1, LocalDateTime.now(), null));
+        systems.add(new SourceSystem("hr", "HR System", "ORACLE", "Human Resources", true, 0, LocalDateTime.now(), null));
+        systems.add(new SourceSystem("encore", "ENCORE System", "ORACLE", "ENCORE Batch Processing", true, 1, LocalDateTime.now(), null));
+        systems.add(new SourceSystem("shaw", "Shaw System", "ORACLE", "Shaw Cable Data", true, 5, LocalDateTime.now(), null));
         return systems;
     }
 
@@ -33,11 +33,11 @@ public class LocalConfigurationService implements ConfigurationService {
     public SourceSystem getSourceSystem(String systemId) {
         switch (systemId) {
             case "hr":
-                return new SourceSystem("hr", "HR System", "ORACLE", "Human Resources", true, 2, LocalDateTime.now(), null);
-            case "dda":
-                return new SourceSystem("dda", "DDA System", "ORACLE", "Demand Deposit Accounts", true, 3, LocalDateTime.now(), null);
+                return new SourceSystem("hr", "HR System", "ORACLE", "Human Resources", true, 0, LocalDateTime.now(), null);
+            case "encore":
+                return new SourceSystem("encore", "ENCORE System", "ORACLE", "ENCORE Batch Processing", true, 1, LocalDateTime.now(), null);
             case "shaw":
-                return new SourceSystem("shaw", "Shaw System", "ORACLE", "Shaw Cable Data", true, 1, LocalDateTime.now(), null);
+                return new SourceSystem("shaw", "Shaw System", "ORACLE", "Shaw Cable Data", true, 5, LocalDateTime.now(), null);
             default:
                 return null;
         }
@@ -48,17 +48,28 @@ public class LocalConfigurationService implements ConfigurationService {
         List<JobConfig> jobs = new ArrayList<>();
         switch (systemId) {
             case "hr":
-                jobs.add(new JobConfig("hr-p327", systemId, "p327", "P327 HR Processing", 
-                    "/data/hr", "/output/hr", "SELECT * FROM hr_staging", true, 
-                    LocalDateTime.now(), Arrays.asList("default", "credit", "debit")));
+                // No jobs for HR system (job count: 0)
                 break;
-            case "dda":
-                jobs.add(new JobConfig("dda-p327", systemId, "p327", "P327 DDA Processing", 
-                    "/data/dda", "/output/dda", "SELECT * FROM dda_staging", true, 
-                    LocalDateTime.now(), Arrays.asList("default", "savings", "checking")));
+            case "encore":
+                jobs.add(new JobConfig("encore-atoctran", systemId, "atoctran", "ATOCTRAN ENCORE Processing", 
+                    "/data/encore", "/output/encore", "SELECT * FROM encore_test_data", true, 
+                    LocalDateTime.now(), Arrays.asList("200", "300", "900")));
                 break;
             case "shaw":
-                jobs.add(new JobConfig("shaw-p327", systemId, "p327", "P327 Shaw Processing", 
+                // Add 5 jobs for Shaw system as per Oracle data
+                jobs.add(new JobConfig("shaw-p327-1", systemId, "p327", "P327 Shaw Processing 1", 
+                    "/data/shaw", "/output/shaw", "SELECT * FROM shaw_staging", true, 
+                    LocalDateTime.now(), Arrays.asList("default")));
+                jobs.add(new JobConfig("shaw-p327-2", systemId, "p327", "P327 Shaw Processing 2", 
+                    "/data/shaw", "/output/shaw", "SELECT * FROM shaw_staging", true, 
+                    LocalDateTime.now(), Arrays.asList("default")));
+                jobs.add(new JobConfig("shaw-p327-3", systemId, "p327", "P327 Shaw Processing 3", 
+                    "/data/shaw", "/output/shaw", "SELECT * FROM shaw_staging", true, 
+                    LocalDateTime.now(), Arrays.asList("default")));
+                jobs.add(new JobConfig("shaw-p327-4", systemId, "p327", "P327 Shaw Processing 4", 
+                    "/data/shaw", "/output/shaw", "SELECT * FROM shaw_staging", true, 
+                    LocalDateTime.now(), Arrays.asList("default")));
+                jobs.add(new JobConfig("shaw-p327-5", systemId, "p327", "P327 Shaw Processing 5", 
                     "/data/shaw", "/output/shaw", "SELECT * FROM shaw_staging", true, 
                     LocalDateTime.now(), Arrays.asList("default")));
                 break;

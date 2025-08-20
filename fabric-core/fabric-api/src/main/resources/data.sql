@@ -10,7 +10,10 @@ VALUES
     ('SYS002', 'Customer Portal', 'REST_API', 'Customer portal REST API', 'https://customer-portal.truist.com/api/v1', 'Y', CURRENT_TIMESTAMP, 3),
     ('SYS003', 'Legacy Mainframe', 'BATCH_FILE', 'Legacy mainframe batch file system', 'ftp://mainframe.internal/batch/', 'Y', CURRENT_TIMESTAMP, 2),
     ('SYS004', 'Risk Management', 'DATABASE', 'Risk management database', 'jdbc:postgresql://risk-db:5432/riskdb', 'Y', CURRENT_TIMESTAMP, 1),
-    ('SYS005', 'Test System', 'DATABASE', 'Testing and development system', 'jdbc:h2:mem:testdb', 'N', CURRENT_TIMESTAMP, 0);
+    ('SYS005', 'Test System', 'DATABASE', 'Testing and development system', 'jdbc:h2:mem:testdb', 'N', CURRENT_TIMESTAMP, 0),
+    ('ENCORE', 'ENCORE', 'ORACLE', 'Lightstream loans', 'jdbc:oracle:thin:@localhost:1521/ORCLPDB1', 'Y', CURRENT_TIMESTAMP, 1),
+    ('HR', 'HR', 'ORACLE', 'Human resources', 'jdbc:oracle:thin:@localhost:1521/ORCLPDB1', 'Y', CURRENT_TIMESTAMP, 0),
+    ('SHAW', 'SHAW', 'ORACLE', 'Loan Origination System', 'jdbc:oracle:thin:@localhost:1521/ORCLPDB1', 'Y', CURRENT_TIMESTAMP, 5);
 
 -- ============================================================================
 -- Sample TEMPLATE_SOURCE_MAPPINGS data

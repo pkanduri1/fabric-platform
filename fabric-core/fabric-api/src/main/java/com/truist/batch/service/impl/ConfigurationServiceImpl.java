@@ -36,7 +36,6 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-@Profile("!local")
 public class ConfigurationServiceImpl implements ConfigurationService {
 
     private final BatchConfigurationDao configDao;
@@ -75,9 +74,9 @@ public class ConfigurationServiceImpl implements ConfigurationService {
             // Fallback to mock data if database fails
             log.warn("🔄 Falling back to mock data due to database error");
             return Arrays.asList(
-                new SourceSystem("hr", "HR System", "ORACLE", "Human Resources", true, 2, LocalDateTime.now(), null),
-                new SourceSystem("dda", "DDA System", "ORACLE", "Demand Deposit Accounts", true, 3, LocalDateTime.now(), null),
-                new SourceSystem("shaw", "Shaw System", "ORACLE", "Shaw Cable Data", true, 1, LocalDateTime.now(), null)
+                new SourceSystem("HR", "HR", "ORACLE", "Human resources", true, 0, LocalDateTime.now(), null),
+                new SourceSystem("ENCORE", "ENCORE", "ORACLE", "Lightstream loans", true, 1, LocalDateTime.now(), null),
+                new SourceSystem("SHAW", "SHAW", "ORACLE", "Loan Origination System", true, 5, LocalDateTime.now(), null)
             );
         }
     }
@@ -330,10 +329,10 @@ public class ConfigurationServiceImpl implements ConfigurationService {
     }
 
     /**
-     * Convert SourceSystemEntity to SourceSystem model object
+     * Convert SourceSystemEntity to SourceSystem model object with frontend-compatible format
      */
     private SourceSystem convertToSourceSystemModel(SourceSystemEntity entity) {
-        return new SourceSystem(
+        SourceSystem sourceSystem = new SourceSystem(
             entity.getId(),
             entity.getName(),
             entity.getType() != null ? entity.getType() : "UNKNOWN",
@@ -343,6 +342,12 @@ public class ConfigurationServiceImpl implements ConfigurationService {
             entity.getCreatedDate(), // Use createdDate as lastModified
             createConnectionPropertiesMap(entity.getConnectionString()) // Convert connection string to map
         );
+        
+        log.debug("Converted SourceSystemEntity to SourceSystem: ID={}, Name={}, Type={}, Enabled={}, JobCount={}", 
+                sourceSystem.getId(), sourceSystem.getName(), sourceSystem.getType(), 
+                sourceSystem.isEnabled(), sourceSystem.getJobCount());
+        
+        return sourceSystem;
     }
 
     private BatchConfiguration saveToDatabase(FieldMappingConfig config, String userId) throws Exception {

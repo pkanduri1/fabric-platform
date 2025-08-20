@@ -381,9 +381,9 @@ export const MasterQuerySelector: React.FC<MasterQuerySelectorProps> = ({
         <ListItemText
           primary={
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <Typography variant="subtitle2" component="span">
+              <span style={{ fontWeight: 600, fontSize: '0.875rem' }}>
                 {query.queryName}
-              </Typography>
+              </span>
               {query.complianceTags?.map(tag => (
                 <Chip
                   key={tag}
@@ -397,9 +397,9 @@ export const MasterQuerySelector: React.FC<MasterQuerySelectorProps> = ({
           }
           secondary={
             <Box>
-              <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
+              <div style={{ fontSize: '0.875rem', color: 'rgba(0, 0, 0, 0.6)', marginBottom: '4px' }}>
                 {query.queryDescription || 'No description available'}
-              </Typography>
+              </div>
               <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
                 <Chip
                   size="small"
@@ -421,9 +421,9 @@ export const MasterQuerySelector: React.FC<MasterQuerySelectorProps> = ({
                     fontSize: '0.6rem'
                   }}
                 />
-                <Typography variant="caption" color="text.secondary">
+                <span style={{ fontSize: '0.75rem', color: 'rgba(0, 0, 0, 0.6)' }}>
                   Modified: {query.lastModifiedAt?.toLocaleDateString() || 'Unknown'}
-                </Typography>
+                </span>
               </Box>
             </Box>
           }

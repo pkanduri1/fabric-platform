@@ -35,6 +35,7 @@ import com.truist.batch.model.SourceField;
 import com.truist.batch.model.SourceSystem;
 import com.truist.batch.model.TestResult;
 import com.truist.batch.model.ValidationResult;
+import com.truist.batch.dto.ConfigSourceSystemResponse;
 import com.truist.batch.service.ConfigurationService;
 import com.truist.batch.service.YamlFileService;
 import com.truist.batch.service.YamlGenerationService;
@@ -70,11 +71,22 @@ public class ConfigurationController {
 
     @GetMapping("/source-systems")
     @Operation(summary = "Get all source systems")
-    public ResponseEntity<List<SourceSystem>> getSourceSystems() {
+    public ResponseEntity<List<ConfigSourceSystemResponse>> getSourceSystems() {
         log.info("📋 API Request: Get all source systems");
         try {
             List<SourceSystem> systems = configurationService.getAllSourceSystems();
-            return ResponseEntity.ok(systems);
+            log.info("✅ Successfully retrieved {} source systems from configuration service", systems.size());
+            
+            // Convert to frontend-compatible format
+            List<ConfigSourceSystemResponse> response = systems.stream()
+                .map(this::convertToConfigResponse)
+                .collect(Collectors.toList());
+            
+            log.info("📤 Sending {} source systems to frontend: {}", 
+                response.size(), 
+                response.stream().map(ConfigSourceSystemResponse::getId).collect(Collectors.toList()));
+            
+            return ResponseEntity.ok(response);
         } catch (Exception e) {
             log.error("❌ Failed to get source systems: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
@@ -660,5 +672,32 @@ public class ConfigurationController {
                 "error", "Failed to get file structure: " + e.getMessage()
             ));
         }
+    }
+    
+    // ==================== PRIVATE UTILITY METHODS ====================
+    
+    /**
+     * Convert SourceSystem model to frontend-compatible ConfigSourceSystemResponse
+     */
+    private ConfigSourceSystemResponse convertToConfigResponse(SourceSystem system) {
+        ConfigSourceSystemResponse response = new ConfigSourceSystemResponse();
+        response.setId(system.getId());
+        response.setName(system.getName());
+        response.setDescription(system.getDescription());
+        response.setSystemType(system.getType()); // Frontend expects 'systemType'
+        response.setType(system.getType()); // Also set 'type' for backwards compatibility
+        response.setJobCount(system.getJobCount());
+        response.setEnabled(system.isEnabled());
+        response.setLastModified(system.getLastModified() != null ? system.getLastModified().toString() : null);
+        response.setConnectionProperties(system.getConnectionProperties());
+        
+        // Set default values for frontend compatibility
+        response.setJobs(List.of()); // Empty jobs list for now
+        response.setInputBasePath("/data/" + system.getId().toLowerCase() + "/input");
+        response.setOutputBasePath("/data/" + system.getId().toLowerCase() + "/output");
+        response.setSupportedFileTypes(Arrays.asList("p327", "atoctran", "default"));
+        response.setSupportedTransactionTypes(Arrays.asList("200", "300", "900", "default"));
+        
+        return response;
     }
 }

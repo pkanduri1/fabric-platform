@@ -3,10 +3,10 @@ import { SourceSystem, SourceField, Configuration } from '../types/configuration
 
 export const mockSourceSystems: SourceSystem[] = [
   {
-    id: 'hr',
-    name: 'HR System',
-    description: 'Human Resources management system for employee data processing',
-    systemType: 'SAP',
+    id: 'HR',
+    name: 'HR',
+    description: 'Human resources',
+    systemType: 'Oracle',
     jobs: [
       {
         name: 'p327',
@@ -35,68 +35,48 @@ export const mockSourceSystems: SourceSystem[] = [
     supportedTransactionTypes: ['200', '900', 'default']
   },
   {
-    id: 'finance',
-    name: 'Finance System',
-    description: 'Financial data processing and accounting system',
+    id: 'ENCORE',
+    name: 'ENCORE',
+    description: 'Lightstream loans',
     systemType: 'Oracle',
     jobs: [
       {
-        name: 'gl_extract',
-        sourceSystem: 'finance',
-        jobName: 'gl_extract',
-        description: 'General ledger data extraction',
-        files: [],
-        multiTxn: true,
-        supportedTransactionTypes: ['100', '200', 'default'],
-        defaultFileType: 'ledger'
-      },
-      {
-        name: 'ap_batch',
-        sourceSystem: 'finance',
-        jobName: 'ap_batch',
-        description: 'Accounts payable batch processing',
+        name: 'atoctran',
+        sourceSystem: 'ENCORE',
+        jobName: 'atoctran',
+        description: 'Transaction code 200 processing',
         files: [],
         multiTxn: false,
-        supportedTransactionTypes: ['default'],
-        defaultFileType: 'invoice'
-      },
-      {
-        name: 'budget_sync',
-        sourceSystem: 'finance',
-        jobName: 'budget_sync',
-        description: 'Budget synchronization process',
-        files: [],
-        multiTxn: false,
-        supportedTransactionTypes: ['default'],
-        defaultFileType: 'budget'
+        supportedTransactionTypes: ['200'],
+        defaultFileType: 'atoctran'
       }
     ],
-    inputBasePath: '/data/finance/input',
-    outputBasePath: '/data/finance/output',
-    supportedFileTypes: ['ledger', 'invoice', 'budget'],
-    supportedTransactionTypes: ['100', '200', 'default']
+    inputBasePath: '/data/encore/input',
+    outputBasePath: '/data/encore/output',
+    supportedFileTypes: ['atoctran'],
+    supportedTransactionTypes: ['200']
   },
   {
-    id: 'inventory',
-    name: 'Inventory Management',
-    description: 'Warehouse and inventory tracking system',
-    systemType: 'Custom',
+    id: 'SHAW',
+    name: 'SHAW',
+    description: 'Loan Origination System',
+    systemType: 'Oracle',
     jobs: [
       {
-        name: 'stock_update',
-        sourceSystem: 'inventory',
-        jobName: 'stock_update',
-        description: 'Real-time stock level updates',
+        name: 'shaw-p327',
+        sourceSystem: 'SHAW',
+        jobName: 'shaw-p327',
+        description: 'Shaw P327 processing',
         files: [],
         multiTxn: true,
-        supportedTransactionTypes: ['stock_in', 'stock_out', 'adjustment'],
-        defaultFileType: 'inventory'
+        supportedTransactionTypes: ['200', '300', 'default'],
+        defaultFileType: 'shaw'
       }
     ],
-    inputBasePath: '/data/inventory/input',
-    outputBasePath: '/data/inventory/output',
-    supportedFileTypes: ['inventory', 'warehouse'],
-    supportedTransactionTypes: ['stock_in', 'stock_out', 'adjustment']
+    inputBasePath: '/data/shaw/input',
+    outputBasePath: '/data/shaw/output',
+    supportedFileTypes: ['shaw', 'loan'],
+    supportedTransactionTypes: ['200', '300', 'default']
   }
 ];
 

@@ -39,11 +39,15 @@ import {
     Tabs,
     Tab,
     Switch,
-    FormControlLabel
+    FormControlLabel,
+    Dialog,
+    DialogTitle,
+    DialogContent,
+    DialogActions
 } from '@mui/material';
 import { 
     Download, Upload, Save, Settings, OpenInNew, ExpandMore, Help, Preview, Code, Psychology,
-    DataUsage, Assessment, Security, PlayArrow, TableChart, Storage
+    DataUsage, Assessment, Security, PlayArrow, TableChart, Storage, Add
 } from '@mui/icons-material';
 import { useConfigurationContext } from '../../contexts/ConfigurationContext';
 import { MasterQueryProvider, useMasterQueryContext } from '../../contexts/MasterQueryContext';
@@ -53,6 +57,7 @@ import { SourceSystem } from '../../types/configuration';
 import { MasterQueryRequest, MasterQuery, ColumnMetadata } from '../../types/masterQuery';
 import { useNavigate } from 'react-router-dom';
 import { useSourceSystems } from '../../hooks/useSourceSystems';
+import { configApi } from '../../services/api/configApi';
 
 // Import master query components
 import MasterQuerySelector from '../../components/masterQuery/MasterQuerySelector';
@@ -96,12 +101,20 @@ const TemplateConfigurationPageContent: React.FC = () => {
     const [bankingIntelligenceEnabled, setBankingIntelligenceEnabled] = useState(true);
     const [currentAnalysisTab, setCurrentAnalysisTab] = useState(0);
     
+    // New Source System Creation State
+    const [showNewSourceSystemDialog, setShowNewSourceSystemDialog] = useState(false);
+    const [newSourceSystemData, setNewSourceSystemData] = useState({
+        name: '',
+        description: '',
+        systemType: 'Oracle'
+    });
+    
     // Master Query Context
     const masterQueryContext = useMasterQueryContext();
 
     const navigate = useNavigate();
     
-    const { sourceSystems, isLoading: sourceSystemsLoading } = useSourceSystems();
+    const { sourceSystems, isLoading: sourceSystemsLoading, refreshData } = useSourceSystems();
 
     const {
         selectedSourceSystem,
@@ -471,6 +484,38 @@ const TemplateConfigurationPageContent: React.FC = () => {
         if (sourceSystem) {
             setLocalSelectedSourceSystem(sourceSystem);
             selectSourceSystem(sourceSystemId);
+        }
+    };
+
+    const handleCreateNewSourceSystem = async () => {
+        try {
+            setLoading(true);
+            setError(null);
+            
+            const newSourceSystem = await configApi.addSourceSystem({
+                name: newSourceSystemData.name,
+                description: newSourceSystemData.description,
+                systemType: newSourceSystemData.systemType,
+                inputBasePath: `/data/${newSourceSystemData.name.toLowerCase()}/input`,
+                outputBasePath: `/data/${newSourceSystemData.name.toLowerCase()}/output`,
+                jobs: [],
+                supportedFileTypes: ['p327', 'atoctran', 'default'],
+                supportedTransactionTypes: ['200', '300', '900', 'default']
+            });
+            
+            setSuccess(`Successfully created source system: ${newSourceSystem.name}`);
+            setShowNewSourceSystemDialog(false);
+            setNewSourceSystemData({ name: '', description: '', systemType: 'Oracle' });
+            
+            // Refresh source systems list
+            await refreshData();
+            
+        } catch (error) {
+            console.error('Error creating source system:', error);
+            const errorMessage = error instanceof Error ? error.message : 'Failed to create source system';
+            setError(`Failed to create source system: ${errorMessage}`);
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -1006,12 +1051,12 @@ Fields prepared: ${enhancedFields.length}
                         </Button>
                     }
                 >
-                    <Typography variant="body2">
+                    <div style={{ fontSize: '0.875rem' }}>
                         <strong>Error:</strong> {error}
-                    </Typography>
-                    <Typography variant="caption" sx={{ mt: 1, display: 'block' }}>
+                    </div>
+                    <div style={{ fontSize: '0.75rem', marginTop: '8px', opacity: 0.8 }}>
                         Check the browser console for detailed error information.
-                    </Typography>
+                    </div>
                 </Alert>
             )}
 
@@ -1048,9 +1093,9 @@ Fields prepared: ${enhancedFields.length}
                         </Box>
                     }
                 >
-                    <Typography variant="body2" sx={{ whiteSpace: 'pre-line' }}>
+                    <div style={{ fontSize: '0.875rem', whiteSpace: 'pre-line' }}>
                         {success}
-                    </Typography>
+                    </div>
                 </Alert>
             )}
 
@@ -1099,21 +1144,34 @@ Fields prepared: ${enhancedFields.length}
                         </Grid>
 
                         <Grid item xs={12} md={3}>
-                            <FormControl fullWidth>
-                                <InputLabel>Source System</InputLabel>
-                                <Select
-                                    value={localSelectedSourceSystem?.id || ''}
-                                    onChange={(e) => handleSourceSystemChange(e.target.value)}
-                                    label="Source System"
-                                    disabled={sourceSystemsLoading}
-                                >
-                                    {sourceSystems.map((system) => (
-                                        <MenuItem key={system.id} value={system.id}>
-                                            {system.name} - {system.systemType}
+                            <Box sx={{ display: 'flex', gap: 1, alignItems: 'flex-end' }}>
+                                <FormControl fullWidth>
+                                    <InputLabel>Source System</InputLabel>
+                                    <Select
+                                        value={localSelectedSourceSystem?.id || ''}
+                                        onChange={(e) => {
+                                            if (e.target.value === '__ADD_NEW__') {
+                                                setShowNewSourceSystemDialog(true);
+                                            } else {
+                                                handleSourceSystemChange(e.target.value);
+                                            }
+                                        }}
+                                        label="Source System"
+                                        disabled={sourceSystemsLoading}
+                                    >
+                                        {sourceSystems.map((system) => (
+                                            <MenuItem key={system.id} value={system.id}>
+                                                {system.name} - {system.systemType}
+                                            </MenuItem>
+                                        ))}
+                                        <Divider />
+                                        <MenuItem value="__ADD_NEW__" sx={{ color: 'primary.main', fontWeight: 'bold' }}>
+                                            <Add sx={{ mr: 1 }} />
+                                            Add New Source System
                                         </MenuItem>
-                                    ))}
-                                </Select>
-                            </FormControl>
+                                    </Select>
+                                </FormControl>
+                            </Box>
                         </Grid>
 
                         <Grid item xs={12} md={3}>
@@ -1399,7 +1457,7 @@ Fields prepared: ${enhancedFields.length}
                         )}
                         
                         <Alert severity="info" sx={{ mb: 2 }}>
-                            <Typography variant="body2">
+                            <div style={{ fontSize: '0.875rem' }}>
                                 💡 <strong>Pro Tip:</strong> You can import field mappings from CSV files. 
                                 <strong>Click "Download Sample CSV"</strong> to see examples including:
                                 <br />
@@ -1410,7 +1468,7 @@ Fields prepared: ${enhancedFields.length}
                                 • <strong>Complex Conditional:</strong> Multi-level if-then-else chains for mappings
                                 <br />
                                 • <strong>Constant:</strong> Fixed values for all records
-                            </Typography>
+                            </div>
                         </Alert>
 
                         {loading ? (
@@ -1879,6 +1937,69 @@ Fields prepared: ${enhancedFields.length}
                     </CardContent>
                 </Card>
             )}
+
+            {/* New Source System Dialog */}
+            <Dialog 
+                open={showNewSourceSystemDialog} 
+                onClose={() => setShowNewSourceSystemDialog(false)}
+                maxWidth="sm"
+                fullWidth
+            >
+                <DialogTitle>Add New Source System</DialogTitle>
+                <DialogContent>
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
+                        <TextField
+                            fullWidth
+                            label="System Name"
+                            value={newSourceSystemData.name}
+                            onChange={(e) => setNewSourceSystemData(prev => ({ ...prev, name: e.target.value }))}
+                            placeholder="e.g., CUSTOMER, LOANS, PAYMENTS"
+                            disabled={loading}
+                        />
+                        <TextField
+                            fullWidth
+                            label="Description"
+                            value={newSourceSystemData.description}
+                            onChange={(e) => setNewSourceSystemData(prev => ({ ...prev, description: e.target.value }))}
+                            placeholder="Brief description of the source system"
+                            multiline
+                            rows={2}
+                            disabled={loading}
+                        />
+                        <FormControl fullWidth>
+                            <InputLabel>System Type</InputLabel>
+                            <Select
+                                value={newSourceSystemData.systemType}
+                                onChange={(e) => setNewSourceSystemData(prev => ({ ...prev, systemType: e.target.value }))}
+                                label="System Type"
+                                disabled={loading}
+                            >
+                                <MenuItem value="Oracle">Oracle Database</MenuItem>
+                                <MenuItem value="MSSQL">SQL Server</MenuItem>
+                                <MenuItem value="MySQL">MySQL</MenuItem>
+                                <MenuItem value="File">File System</MenuItem>
+                                <MenuItem value="API">REST API</MenuItem>
+                            </Select>
+                        </FormControl>
+                    </Box>
+                </DialogContent>
+                <DialogActions>
+                    <Button 
+                        onClick={() => setShowNewSourceSystemDialog(false)}
+                        disabled={loading}
+                    >
+                        Cancel
+                    </Button>
+                    <Button 
+                        onClick={handleCreateNewSourceSystem}
+                        variant="contained"
+                        disabled={loading || !newSourceSystemData.name || !newSourceSystemData.description}
+                        startIcon={loading ? <CircularProgress size={20} /> : <Add />}
+                    >
+                        Create Source System
+                    </Button>
+                </DialogActions>
+            </Dialog>
         </Container>
     );
 };
