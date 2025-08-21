@@ -62,8 +62,7 @@ exports.config = {
     framework: 'mocha',
     mochaOpts: {
         ui: 'bdd',
-        timeout: 60000,
-        require: ['@babel/register']
+        timeout: 60000
     },
     
     // Reporting configuration
