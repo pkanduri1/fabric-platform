@@ -106,7 +106,7 @@
             </column>
             
             <!-- Usage Tracking -->
-            <column name="USAGE_COUNT" type="DECIMAL(10)" defaultValue="0">
+            <column name="USAGE_COUNT" type="NUMBER(10)" defaultValue="0">
                 <constraints nullable="false"/>
             </column>
             
@@ -128,7 +128,7 @@
                 <constraints nullable="false"/>
             </column>
             
-            <column name="CREATED_DATE" type="TIMESTAMP" defaultValueComputed="NOW()">
+            <column name="CREATED_DATE" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
                 <constraints nullable="false"/>
             </column>
             
@@ -140,7 +140,7 @@
                 <constraints nullable="true"/>
             </column>
             
-            <column name="VERSION_DECIMAL" type="DECIMAL(10)" defaultValue="1">
+            <column name="VERSION_DECIMAL" type="NUMBER(10)" defaultValue="1">
                 <constraints nullable="false"/>
             </column>
         </createTable>

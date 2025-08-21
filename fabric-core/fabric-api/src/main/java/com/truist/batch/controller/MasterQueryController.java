@@ -2,7 +2,10 @@ package com.truist.batch.controller;
 
 import com.truist.batch.dto.MasterQueryRequest;
 import com.truist.batch.dto.MasterQueryResponse;
+import com.truist.batch.dto.MasterQueryConfigDTO;
+import com.truist.batch.repository.MasterQueryRepository;
 import com.truist.batch.service.MasterQueryService;
+import com.truist.batch.service.SmartFieldMappingService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -22,6 +25,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.Instant;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -71,6 +75,115 @@ import java.util.Map;
 public class MasterQueryController {
 
     private final MasterQueryService masterQueryService;
+    private final SmartFieldMappingService smartFieldMappingService;
+
+    /**
+     * Get all available master query configurations from MASTER_QUERY_CONFIG table.
+     */
+    @GetMapping
+    @PreAuthorize("hasAnyRole('JOB_VIEWER', 'JOB_CREATOR', 'JOB_MODIFIER', 'JOB_EXECUTOR', 'ADMIN')")
+    @Operation(
+        summary = "Get All Master Query Configurations",
+        description = "Retrieve all available master query configurations from the MASTER_QUERY_CONFIG table. " +
+                     "Returns active and inactive queries with comprehensive metadata for UI master query library. " +
+                     "Results are filtered based on user permissions and data classification levels. " +
+                     "Queries are sorted by business priority: active status, source system (ENCORE first), " +
+                     "query name alphabetically, and version (latest first).",
+        responses = {
+            @ApiResponse(
+                responseCode = "200", 
+                description = "Master query configurations retrieved successfully",
+                content = @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = MasterQueryConfigDTO.class),
+                    examples = @ExampleObject(
+                        name = "Master Query List Response",
+                        description = "Example response showing master query configurations from database",
+                        value = """
+                            [
+                              {
+                                "id": 1,
+                                "sourceSystem": "ENCORE",
+                                "queryName": "atoctran_encore_200_job",
+                                "queryType": "SELECT",
+                                "querySql": "SELECT ACCT_NUM as acct_num, BATCH_DATE as batch_date, CCI as cci, CONTACT_ID as contact_id FROM ENCORE_TEST_DATA WHERE BATCH_DATE = TO_DATE(:batchDate, 'YYYY-MM-DD') ORDER BY ACCT_NUM",
+                                "version": 1,
+                                "isActive": "Y",
+                                "createdBy": "system",
+                                "createdDate": "2025-08-14T18:26:17.978",
+                                "displayName": "atoctran_encore_200_job (v1) - ENCORE",
+                                "dataClassification": "SENSITIVE",
+                                "statusIndicator": "ACTIVE",
+                                "complexityLevel": "LOW",
+                                "parameterCount": 1,
+                                "complianceRequirements": ["SOX", "FFIEC", "BASEL_III"]
+                              }
+                            ]
+                            """
+                    )
+                )
+            ),
+            @ApiResponse(
+                responseCode = "403", 
+                description = "Insufficient permissions to view master query list",
+                content = @Content(mediaType = "application/json")
+            ),
+            @ApiResponse(
+                responseCode = "500", 
+                description = "Database error or internal server error",
+                content = @Content(
+                    mediaType = "application/json",
+                    examples = @ExampleObject(
+                        name = "Database Error Response",
+                        value = """
+                            {
+                              "error": "DATABASE_ERROR",
+                              "message": "Failed to retrieve master query list from database",
+                              "correlationId": "corr_12345678-abcd-1234-5678-123456789012",
+                              "timestamp": "2025-08-20T10:30:45.123Z"
+                            }
+                            """
+                    )
+                )
+            )
+        }
+    )
+    public ResponseEntity<List<MasterQueryConfigDTO>> getAllMasterQueries(
+            @Parameter(description = "User role extracted from JWT token", hidden = true)
+            @RequestHeader(value = "X-User-Role", defaultValue = "JOB_VIEWER") String userRole) {
+        
+        log.info("Received request to get all master query configurations - User: {}", userRole);
+        
+        try {
+            List<MasterQueryConfigDTO> masterQueries = masterQueryService.getAllMasterQueries(userRole);
+            
+            log.info("Successfully retrieved {} master query configurations - User: {}", 
+                    masterQueries.size(), userRole);
+            
+            return ResponseEntity.ok(masterQueries);
+            
+        } catch (MasterQueryRepository.QuerySecurityException e) {
+            log.warn("Access denied for master query list - User: {}, Error: {}", userRole, e.getMessage());
+            
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+            
+        } catch (MasterQueryRepository.QueryExecutionException e) {
+            log.error("Database error retrieving master query list - User: {}, Error: {}, CorrelationId: {}", 
+                     userRole, e.getErrorCode(), e.getCorrelationId());
+            
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+            
+        } catch (IllegalArgumentException e) {
+            log.warn("Invalid request for master query list - User: {}, Error: {}", userRole, e.getMessage());
+            
+            return ResponseEntity.badRequest().build();
+            
+        } catch (Exception e) {
+            log.error("Unexpected error retrieving master query list - User: {}", userRole, e);
+            
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
 
     /**
      * Execute a master query with banking-grade security validation.
@@ -598,5 +711,259 @@ public class MasterQueryController {
             
             return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(health);
         }
+    }
+
+    // =========================================================================
+    // SMART FIELD MAPPING ENDPOINTS
+    // =========================================================================
+
+    /**
+     * Generate smart field mappings for a master query with confidence scoring
+     */
+    @PostMapping("/{masterQueryId}/smart-mapping")
+    @PreAuthorize("hasAnyRole('JOB_EXECUTOR', 'JOB_CREATOR', 'ADMIN')")
+    @Operation(
+        summary = "Generate Smart Field Mappings",
+        description = "Generate intelligent field mappings based on column metadata analysis and banking domain patterns. " +
+                     "Uses AI-powered pattern recognition with confidence scoring to suggest optimal field mappings " +
+                     "for data transformation and integration tasks.",
+        parameters = @Parameter(
+            name = "masterQueryId",
+            description = "Unique identifier of the master query to analyze",
+            example = "mq_encore_account_summary"
+        )
+    )
+    @ApiResponses(value = {
+        @ApiResponse(
+            responseCode = "200",
+            description = "Smart field mappings generated successfully",
+            content = @Content(
+                mediaType = "application/json",
+                examples = @ExampleObject(
+                    name = "Smart Mappings Response",
+                    value = """
+                        [
+                          {
+                            "sourceColumn": "account_id",
+                            "targetField": "account-number",
+                            "confidence": 0.95,
+                            "detectedPattern": {
+                              "fieldType": "ACCOUNT_NUMBER",
+                              "description": "Bank account number field",
+                              "maskingRequired": true
+                            },
+                            "suggestedTransformation": "mask",
+                            "businessConcept": "Account Management",
+                            "dataClassification": "SENSITIVE",
+                            "complianceRequirements": ["PCI_DSS", "SOX", "GLBA"]
+                          }
+                        ]
+                        """
+                )
+            )
+        ),
+        @ApiResponse(responseCode = "404", description = "Master query not found"),
+        @ApiResponse(responseCode = "403", description = "Insufficient permissions")
+    })
+    public ResponseEntity<List<SmartFieldMappingService.SmartFieldMapping>> generateSmartFieldMappings(
+            @PathVariable String masterQueryId,
+            @RequestBody(required = false) Map<String, String> request,
+            @Parameter(description = "User role extracted from JWT token", hidden = true)
+            @RequestHeader(value = "X-User-Role", defaultValue = "JOB_EXECUTOR") String userRole) {
+        
+        log.info("Generating smart field mappings for master query: {} by user role: {}", masterQueryId, userRole);
+        
+        try {
+            String targetSchema = request != null ? request.get("targetSchema") : null;
+            List<SmartFieldMappingService.SmartFieldMapping> mappings = 
+                smartFieldMappingService.generateSmartFieldMappings(masterQueryId, targetSchema);
+            
+            log.info("Generated {} smart field mappings for master query: {}", mappings.size(), masterQueryId);
+            return ResponseEntity.ok(mappings);
+            
+        } catch (Exception e) {
+            log.error("Failed to generate smart field mappings for master query: {}", masterQueryId, e);
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    /**
+     * Validate and score field mappings
+     */
+    @PostMapping("/{masterQueryId}/validate-mappings")
+    @PreAuthorize("hasAnyRole('JOB_EXECUTOR', 'JOB_CREATOR', 'ADMIN')")
+    @Operation(
+        summary = "Validate Field Mappings",
+        description = "Validate and re-score field mappings with enhanced confidence analysis. " +
+                     "Checks mapping consistency, data type compatibility, and compliance requirements.",
+        parameters = @Parameter(
+            name = "masterQueryId",
+            description = "Unique identifier of the master query",
+            example = "mq_encore_account_summary"
+        )
+    )
+    @ApiResponses(value = {
+        @ApiResponse(
+            responseCode = "200",
+            description = "Field mappings validated successfully",
+            content = @Content(mediaType = "application/json")
+        ),
+        @ApiResponse(responseCode = "400", description = "Invalid mapping data"),
+        @ApiResponse(responseCode = "403", description = "Insufficient permissions")
+    })
+    public ResponseEntity<List<SmartFieldMappingService.SmartFieldMapping>> validateFieldMappings(
+            @PathVariable String masterQueryId,
+            @RequestBody Map<String, Object> request,
+            @Parameter(description = "User role extracted from JWT token", hidden = true)
+            @RequestHeader(value = "X-User-Role", defaultValue = "JOB_EXECUTOR") String userRole) {
+        
+        log.info("Validating field mappings for master query: {} by user role: {}", masterQueryId, userRole);
+        
+        try {
+            @SuppressWarnings("unchecked")
+            List<SmartFieldMappingService.SmartFieldMapping> mappings = 
+                (List<SmartFieldMappingService.SmartFieldMapping>) request.get("mappings");
+            
+            if (mappings == null || mappings.isEmpty()) {
+                return ResponseEntity.badRequest().build();
+            }
+            
+            List<SmartFieldMappingService.SmartFieldMapping> validatedMappings = 
+                smartFieldMappingService.validateFieldMappings(masterQueryId, mappings);
+            
+            log.info("Validated {} field mappings for master query: {}", validatedMappings.size(), masterQueryId);
+            return ResponseEntity.ok(validatedMappings);
+            
+        } catch (Exception e) {
+            log.error("Failed to validate field mappings for master query: {}", masterQueryId, e);
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    /**
+     * Get banking field patterns for reference
+     */
+    @GetMapping("/patterns/banking")
+    @PreAuthorize("hasAnyRole('JOB_VIEWER', 'JOB_EXECUTOR', 'JOB_CREATOR', 'ADMIN')")
+    @Operation(
+        summary = "Get Banking Field Patterns",
+        description = "Retrieve available banking field patterns used for smart field mapping. " +
+                     "Provides reference information for manual mapping configuration and validation."
+    )
+    @ApiResponses(value = {
+        @ApiResponse(
+            responseCode = "200",
+            description = "Banking field patterns retrieved successfully",
+            content = @Content(
+                mediaType = "application/json",
+                examples = @ExampleObject(
+                    name = "Banking Patterns Response",
+                    value = """
+                        {
+                          "patterns": {
+                            "ACCOUNT_NUMBER": {
+                              "fieldType": "ACCOUNT_NUMBER",
+                              "description": "Bank account number field",
+                              "maskingRequired": true,
+                              "baseConfidence": 0.95,
+                              "complianceRequirements": ["PCI_DSS", "SOX", "GLBA"]
+                            },
+                            "TRANSACTION_ID": {
+                              "fieldType": "TRANSACTION_ID", 
+                              "description": "Transaction identifier field",
+                              "maskingRequired": false,
+                              "baseConfidence": 0.88,
+                              "complianceRequirements": ["SOX", "FFIEC"]
+                            }
+                          },
+                          "businessConcepts": [
+                            "Account Management",
+                            "Transaction Processing",
+                            "Customer Information",
+                            "Risk Assessment"
+                          ]
+                        }
+                        """
+                )
+            )
+        ),
+        @ApiResponse(responseCode = "403", description = "Insufficient permissions")
+    })
+    public ResponseEntity<Map<String, Object>> getBankingFieldPatterns(
+            @Parameter(description = "User role extracted from JWT token", hidden = true)
+            @RequestHeader(value = "X-User-Role", defaultValue = "JOB_VIEWER") String userRole) {
+        
+        log.info("Retrieving banking field patterns for user role: {}", userRole);
+        
+        try {
+            Map<String, Object> response = Map.of(
+                "patterns", getBankingPatternsMap(),
+                "businessConcepts", getBusinessConceptsList(),
+                "dataClassifications", Arrays.asList("SENSITIVE", "INTERNAL", "PUBLIC"),
+                "complianceStandards", Arrays.asList("PCI_DSS", "SOX", "GLBA", "BASEL_III", "GDPR", "CCPA")
+            );
+            
+            return ResponseEntity.ok(response);
+            
+        } catch (Exception e) {
+            log.error("Failed to retrieve banking field patterns", e);
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    // Helper methods for banking patterns response
+    private Map<String, Object> getBankingPatternsMap() {
+        return Map.of(
+            "ACCOUNT_NUMBER", Map.of(
+                "fieldType", "ACCOUNT_NUMBER",
+                "description", "Bank account number field",
+                "maskingRequired", true,
+                "baseConfidence", 0.95,
+                "complianceRequirements", Arrays.asList("PCI_DSS", "SOX", "GLBA")
+            ),
+            "ROUTING_NUMBER", Map.of(
+                "fieldType", "ROUTING_NUMBER",
+                "description", "Bank routing number field",
+                "maskingRequired", false,
+                "baseConfidence", 0.90,
+                "complianceRequirements", Arrays.asList("NACHA", "FED_REGULATIONS")
+            ),
+            "TRANSACTION_ID", Map.of(
+                "fieldType", "TRANSACTION_ID",
+                "description", "Transaction identifier field",
+                "maskingRequired", false,
+                "baseConfidence", 0.88,
+                "complianceRequirements", Arrays.asList("SOX", "FFIEC")
+            ),
+            "AMOUNT", Map.of(
+                "fieldType", "AMOUNT",
+                "description", "Monetary amount field",
+                "maskingRequired", true,
+                "baseConfidence", 0.92,
+                "complianceRequirements", Arrays.asList("SOX", "BASEL_III")
+            ),
+            "CUSTOMER_ID", Map.of(
+                "fieldType", "CUSTOMER_ID",
+                "description", "Customer identifier field",
+                "maskingRequired", true,
+                "baseConfidence", 0.93,
+                "complianceRequirements", Arrays.asList("PII_PROTECTION", "GDPR", "CCPA")
+            )
+        );
+    }
+
+    private List<String> getBusinessConceptsList() {
+        return Arrays.asList(
+            "Account Management",
+            "Transaction Processing", 
+            "Customer Information",
+            "Risk Assessment",
+            "Regulatory Reporting",
+            "Payment Processing",
+            "Fraud Detection",
+            "Credit Analysis",
+            "Loan Management",
+            "Investment Tracking"
+        );
     }
 }

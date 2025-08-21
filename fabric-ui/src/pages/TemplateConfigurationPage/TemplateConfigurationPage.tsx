@@ -70,7 +70,7 @@ const steps = [
     'Select Template', 
     'Master Query Selection', 
     'Query Analysis & Testing', 
-    'Smart Field Mapping', 
+    'Smart Field Mapping (Future)', 
     'Configure Mappings', 
     'Generate & Save'
 ];
@@ -97,8 +97,8 @@ const TemplateConfigurationPageContent: React.FC = () => {
     const [selectedMasterQuery, setSelectedMasterQuery] = useState<MasterQuery | null>(null);
     const [queryRequest, setQueryRequest] = useState<MasterQueryRequest | null>(null);
     const [extractedColumns, setExtractedColumns] = useState<ColumnMetadata[]>([]);
-    const [smartMappingsEnabled, setSmartMappingsEnabled] = useState(true);
-    const [bankingIntelligenceEnabled, setBankingIntelligenceEnabled] = useState(true);
+    const [smartMappingsEnabled, setSmartMappingsEnabled] = useState(false); // TODO: Future roadmap feature
+    const [bankingIntelligenceEnabled, setBankingIntelligenceEnabled] = useState(false); // TODO: Future roadmap feature
     const [currentAnalysisTab, setCurrentAnalysisTab] = useState(0);
     
     // New Source System Creation State
@@ -327,8 +327,8 @@ const TemplateConfigurationPageContent: React.FC = () => {
                 return selectedMasterQuery !== null;
             case 2: // Query Analysis & Testing
                 return extractedColumns.length > 0;
-            case 3: // Smart Field Mapping
-                return smartMappingsEnabled ? masterQueryContext.smartMappings.length > 0 : true;
+            case 3: // Smart Field Mapping (Future) - Always allow advance
+                return true; // TODO: Smart Field Mapping feature deferred to future roadmap
             case 4: // Configure Mappings
                 return templateFields.length > 0;
             default:
@@ -1216,9 +1216,10 @@ Fields prepared: ${enhancedFields.length}
                                             checked={smartMappingsEnabled}
                                             onChange={(e) => setSmartMappingsEnabled(e.target.checked)}
                                             size="small"
+                                            disabled={true} // TODO: Future roadmap feature
                                         />
                                     }
-                                    label="Smart Mappings"
+                                    label="Smart Mappings (Future)"
                                 />
                                 <FormControlLabel
                                     control={
@@ -1226,16 +1227,17 @@ Fields prepared: ${enhancedFields.length}
                                             checked={bankingIntelligenceEnabled}
                                             onChange={(e) => setBankingIntelligenceEnabled(e.target.checked)}
                                             size="small"
+                                            disabled={true} // TODO: Future roadmap feature
                                         />
                                     }
-                                    label="Banking Intelligence"
+                                    label="Banking Intelligence (Future)"
                                 />
                             </Box>
                         </Box>
 
                         <Alert severity="info" sx={{ mb: 2 }}>
-                            Select a master query to extract column metadata and generate intelligent field mappings. 
-                            Banking intelligence will identify sensitive fields and compliance requirements.
+                            Select a master query to extract column metadata for manual field mapping configuration. 
+                            Smart mapping and banking intelligence features are planned for future releases.
                         </Alert>
 
                         <MasterQuerySelector
@@ -1370,11 +1372,19 @@ Fields prepared: ${enhancedFields.length}
                                     Execute & Extract Metadata
                                 </Button>
                                 <Button
+                                    variant="outlined"
+                                    onClick={() => handleStepNavigation(4)} // Skip to Configure Mappings
+                                    disabled={!canAdvanceFromStep(activeStep)}
+                                    color="success"
+                                >
+                                    Skip to Manual Configuration
+                                </Button>
+                                <Button
                                     variant="contained"
                                     onClick={() => handleStepNavigation(activeStep + 1)}
                                     disabled={!canAdvanceFromStep(activeStep)}
                                 >
-                                    Next: Smart Mapping
+                                    Next: Smart Mapping (Future)
                                 </Button>
                             </Box>
                         </Box>
@@ -1382,50 +1392,77 @@ Fields prepared: ${enhancedFields.length}
                 </Card>
             )}
 
-            {/* Step 4: Smart Field Mapping */}
+            {/* Step 4: Smart Field Mapping (Future Roadmap) */}
             {extractedColumns.length > 0 && activeStep >= 3 && (
-                <Card sx={{ mb: 3 }}>
+                <Card sx={{ mb: 3, bgcolor: 'grey.50', border: '2px dashed', borderColor: 'warning.main' }}>
                     <CardContent>
                         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
                             <Typography variant="h6" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                <Psychology /> 4. Smart Field Mapping
+                                <Psychology sx={{ color: 'grey.500' }} /> 4. Smart Field Mapping (Future Feature)
                             </Typography>
                             <Chip
-                                label={`${masterQueryContext.smartMappings.length} smart mappings`}
-                                color={masterQueryContext.smartMappings.length > 0 ? 'success' : 'default'}
+                                label="Roadmap Feature"
+                                color="warning"
                                 variant="outlined"
                             />
                         </Box>
 
-                        <Alert severity="info" sx={{ mb: 2 }}>
-                            Banking intelligence analyzes column metadata to generate intelligent field mappings with compliance awareness.
-                            Review and adjust mappings before proceeding to manual configuration.
+                        <Alert severity="warning" sx={{ mb: 2 }}>
+                            <strong>🚧 Future Roadmap Feature</strong>
+                            <br />
+                            Smart Field Mapping with Banking Intelligence is currently under development and will be available in a future release.
+                            This feature will include:
+                            <ul style={{ margin: '8px 0', paddingLeft: '20px' }}>
+                                <li>Intelligent field pattern recognition</li>
+                                <li>Banking compliance awareness</li>
+                                <li>Automated mapping suggestions</li>
+                                <li>PII and sensitive data detection</li>
+                            </ul>
+                            For now, please proceed to manual field mapping configuration.
                         </Alert>
 
-                        <SmartFieldMapper
-                            columns={extractedColumns}
-                            onMappingsChange={(mappings) => {
-                                console.log('Smart mappings updated:', mappings);
-                            }}
-                            onApplyMappings={handleSmartMappingsComplete}
-                            showConfidenceScores={true}
-                            autoGenerateOnChange={true}
-                        />
+                        {/* Placeholder for Future Smart Mapping Component */}
+                        <Box sx={{ 
+                            p: 4, 
+                            textAlign: 'center', 
+                            bgcolor: 'grey.100', 
+                            borderRadius: 2,
+                            border: '1px dashed',
+                            borderColor: 'grey.400'
+                        }}>
+                            <Psychology sx={{ fontSize: 48, color: 'grey.400', mb: 2 }} />
+                            <Typography variant="h6" color="text.secondary" gutterBottom>
+                                Smart Field Mapping Coming Soon
+                            </Typography>
+                            <Typography variant="body2" color="text.secondary">
+                                This area will contain intelligent field mapping tools with banking domain expertise.
+                                <br />
+                                Currently you can proceed to manual configuration below.
+                            </Typography>
+                        </Box>
 
-                        <Box sx={{ display: 'flex', gap: 2, mt: 2, justifyContent: 'space-between' }}>
+                        <Box sx={{ display: 'flex', gap: 2, mt: 3, justifyContent: 'space-between' }}>
                             <Button
                                 variant="outlined"
                                 onClick={() => handleStepNavigation(activeStep - 1)}
                             >
                                 Previous
                             </Button>
-                            <Button
-                                variant="contained"
-                                onClick={() => handleStepNavigation(activeStep + 1)}
-                                disabled={!canAdvanceFromStep(activeStep)}
-                            >
-                                Next: Configure Mappings
-                            </Button>
+                            <Box sx={{ display: 'flex', gap: 2 }}>
+                                <Button
+                                    variant="outlined"
+                                    onClick={() => handleStepNavigation(activeStep + 1)}
+                                    color="warning"
+                                >
+                                    Skip Smart Mapping
+                                </Button>
+                                <Button
+                                    variant="contained"
+                                    onClick={() => handleStepNavigation(activeStep + 1)}
+                                >
+                                    Continue to Manual Configuration
+                                </Button>
+                            </Box>
                         </Box>
                     </CardContent>
                 </Card>
@@ -1439,16 +1476,53 @@ Fields prepared: ${enhancedFields.length}
                             <Typography variant="h6" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                                 <DataUsage /> 5. Configure Field Mappings
                             </Typography>
-                            <Chip
-                                label={`${templateFields.length} fields`}
-                                color="primary"
-                                variant="outlined"
-                            />
+                            <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+                                <Chip
+                                    label={`${templateFields.length} fields`}
+                                    color="primary"
+                                    variant="outlined"
+                                />
+                                <Chip
+                                    label="Manual Configuration"
+                                    color="info"
+                                    variant="filled"
+                                    size="small"
+                                />
+                                {templateFields.some(f => f.sourceField || f.value || f.transformationType !== 'source') && (
+                                    <Chip
+                                        label="Has Mappings"
+                                        color="success"
+                                        variant="outlined"
+                                        size="small"
+                                    />
+                                )}
+                            </Box>
                         </Box>
 
                         <Alert severity="info" sx={{ mb: 2 }}>
-                            Target structure is pre-configured from template. Only specify source fields and transformation logic.
+                            <strong>Manual Field Mapping Configuration</strong>
+                            <br />
+                            Target structure is pre-configured from template. Specify source fields and transformation logic for each target field.
+                            This is the current working method for field mapping configuration.
                         </Alert>
+                        
+                        {/* Save Configuration Button for Manual Mappings */}
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                            <Typography variant="body2" color="text.secondary">
+                                Configure your field mappings below, then save the configuration when ready.
+                            </Typography>
+                            <Button
+                                variant="contained"
+                                color="primary"
+                                size="medium"
+                                startIcon={loading ? <CircularProgress size={16} /> : <Save />}
+                                onClick={generateConfiguration}
+                                disabled={loading || !localSelectedSourceSystem || !templateJobName || templateFields.length === 0}
+                                sx={{ minWidth: '180px' }}
+                            >
+                                {loading ? 'Saving...' : 'Save Configuration'}
+                            </Button>
+                        </Box>
                         
                         {uploadedFileName && (
                             <Alert severity="success" sx={{ mb: 2 }}>
@@ -1811,6 +1885,44 @@ Fields prepared: ${enhancedFields.length}
                                 </Table>
                             </Box>
                         )}
+
+                        {/* Bottom Save Configuration Button */}
+                        {templateFields.length > 0 && (
+                            <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3, pt: 2, borderTop: 1, borderColor: 'divider' }}>
+                                <Button
+                                    variant="contained"
+                                    color="success"
+                                    size="large"
+                                    startIcon={loading ? <CircularProgress size={20} /> : <Save />}
+                                    onClick={generateConfiguration}
+                                    disabled={loading || !localSelectedSourceSystem || !templateJobName}
+                                    sx={{ 
+                                        minWidth: '200px',
+                                        py: 1.5,
+                                        fontSize: '1rem',
+                                        fontWeight: 'bold'
+                                    }}
+                                >
+                                    {loading ? 'Saving Configuration...' : 'Save Field Mappings'}
+                                </Button>
+                            </Box>
+                        )}
+
+                        <Box sx={{ display: 'flex', gap: 2, mt: 3, justifyContent: 'space-between' }}>
+                            <Button
+                                variant="outlined"
+                                onClick={() => handleStepNavigation(activeStep - 1)}
+                            >
+                                Previous
+                            </Button>
+                            <Button
+                                variant="contained"
+                                onClick={() => handleStepNavigation(activeStep + 1)}
+                                disabled={!canAdvanceFromStep(activeStep)}
+                            >
+                                Next: Generate & Save
+                            </Button>
+                        </Box>
                     </CardContent>
                 </Card>
             )}

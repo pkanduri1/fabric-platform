@@ -33,22 +33,22 @@ public class LocalQuerySecurityConfig {
         
         HikariConfig config = new HikariConfig();
         
-        // H2 Database configuration
-        config.setJdbcUrl("jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE;MODE=Oracle");
-        config.setDriverClassName("org.h2.Driver");
-        config.setUsername("sa");
-        config.setPassword("password");
+        // Oracle Database configuration for local development
+        config.setJdbcUrl("jdbc:oracle:thin:@localhost:1521/ORCLPDB1");
+        config.setDriverClassName("oracle.jdbc.OracleDriver");
+        config.setUsername("cm3int");
+        config.setPassword("MySecurePass123");
         
         // Basic pool configuration for local testing
         config.setMaximumPoolSize(5);
         config.setMinimumIdle(1);
         config.setPoolName("LocalReadOnlyQueryPool");
         
-        // H2-specific validation
-        config.setConnectionTestQuery("SELECT 1");
+        // Oracle-specific validation
+        config.setConnectionTestQuery("SELECT 1 FROM DUAL");
         config.setValidationTimeout(3000);
         
-        logger.info("Local H2 read-only datasource configured with pool size: {} connections", 
+        logger.info("Local Oracle read-only datasource configured with pool size: {} connections", 
                    config.getMaximumPoolSize());
         
         return new HikariDataSource(config);
@@ -59,7 +59,7 @@ public class LocalQuerySecurityConfig {
      */
     @Bean("readOnlyJdbcTemplate")
     public JdbcTemplate readOnlyJdbcTemplate(@Qualifier("readOnlyDataSource") DataSource readOnlyDataSource) {
-        logger.info("Configuring H2 read-only JdbcTemplate for local testing");
+        logger.info("Configuring Oracle read-only JdbcTemplate for local testing");
         
         JdbcTemplate jdbcTemplate = new JdbcTemplate(readOnlyDataSource);
         
@@ -68,7 +68,7 @@ public class LocalQuerySecurityConfig {
         jdbcTemplate.setFetchSize(100);
         jdbcTemplate.setMaxRows(100);
         
-        logger.info("H2 read-only JdbcTemplate configured for local testing");
+        logger.info("Oracle read-only JdbcTemplate configured for local testing");
         
         return jdbcTemplate;
     }

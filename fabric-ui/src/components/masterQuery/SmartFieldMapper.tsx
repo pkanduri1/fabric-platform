@@ -2,6 +2,10 @@
 /**
  * Smart Field Mapper Component - Banking Domain Intelligence
  * Features: Intelligent field pattern recognition, Banking compliance, Smart suggestions
+ * 
+ * TODO: FUTURE ROADMAP FEATURE - This component is currently deferred to future releases
+ * Status: Under development, not yet integrated into main workflow
+ * Alternative: Manual field mapping configuration is the current working solution
  */
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';

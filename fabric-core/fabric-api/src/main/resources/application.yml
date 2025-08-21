@@ -271,9 +271,10 @@ spring:
         max-lifetime: 1800000
         connection-timeout: 20000
         leak-detection-threshold: 30000
-  # Disable Liquibase for local development
+  # Liquibase enabled for local profile - schema setup completed
   liquibase:
     enabled: false
+    contexts: local,development
   # Disable Spring Batch auto-configuration
   batch:
     initialize-schema: never

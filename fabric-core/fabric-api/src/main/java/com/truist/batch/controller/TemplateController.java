@@ -29,6 +29,7 @@ import com.truist.batch.model.TemplateMetadata;
 import com.truist.batch.model.TemplateToConfigurationResult;
 import com.truist.batch.model.ValidationResult;
 import com.truist.batch.service.TemplateService;
+import com.truist.batch.service.ConfigurationService;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.transaction.annotation.Transactional;
@@ -43,6 +44,9 @@ public class TemplateController {
 
     @Autowired
     private TemplateService templateService;
+    
+    @Autowired
+    private ConfigurationService configurationService;
 
     /**
      * Get all available file types
@@ -112,6 +116,7 @@ public class TemplateController {
      * Frontend expects: POST /api/admin/templates/{fileType}/{transactionType}/create-config
      */
     @PostMapping("/{fileType}/{transactionType}/create-config")
+    @Transactional
     public ResponseEntity<FieldMappingConfig> createConfigurationFromTemplate(
             @PathVariable String fileType,
             @PathVariable String transactionType,
@@ -119,11 +124,48 @@ public class TemplateController {
             @RequestParam String jobName,
             @RequestParam(defaultValue = "system") String createdBy) {
         try {
+            log.info("Creating configuration from template: {}/{} for {}/{}", 
+                    fileType, transactionType, sourceSystem, jobName);
+            
+            // 1. Create configuration from template
             FieldMappingConfig config = templateService.createConfigurationFromTemplate(
                 fileType, transactionType, sourceSystem, jobName, createdBy);
+            
+            // 2. Save the configuration to batch_configurations table
+            String saveResult = configurationService.saveConfiguration(config);
+            log.info("Configuration saved to batch_configurations table: {}", saveResult);
+            
             return ResponseEntity.ok(config);
         } catch (Exception e) {
-            log.error("Error creating configuration from template: {}/{}", fileType, transactionType, e);
+            log.error("Error creating and saving configuration from template: {}/{}", fileType, transactionType, e);
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    /**
+     * Debug endpoint: Create configuration from template WITHOUT saving
+     */
+    @PostMapping("/{fileType}/{transactionType}/create-config-debug")
+    public ResponseEntity<FieldMappingConfig> createConfigurationFromTemplateDebug(
+            @PathVariable String fileType,
+            @PathVariable String transactionType,
+            @RequestParam String sourceSystem,
+            @RequestParam String jobName,
+            @RequestParam(defaultValue = "system") String createdBy) {
+        try {
+            log.info("DEBUG: Creating configuration from template: {}/{} for {}/{}", 
+                    fileType, transactionType, sourceSystem, jobName);
+            
+            // 1. Create configuration from template (WITHOUT SAVING)
+            FieldMappingConfig config = templateService.createConfigurationFromTemplate(
+                fileType, transactionType, sourceSystem, jobName, createdBy);
+            
+            log.info("DEBUG: Configuration created with {} field mappings", 
+                    config.getFieldMappings() != null ? config.getFieldMappings().size() : 0);
+            
+            return ResponseEntity.ok(config);
+        } catch (Exception e) {
+            log.error("DEBUG: Error creating configuration from template: {}/{}", fileType, transactionType, e);
             return ResponseEntity.internalServerError().build();
         }
     }
@@ -477,6 +519,7 @@ public class TemplateController {
      * Frontend expects: POST /api/admin/templates/{fileType}/{transactionType}/create-config-with-metadata
      */
     @PostMapping("/{fileType}/{transactionType}/create-config-with-metadata")
+    @Transactional
     public ResponseEntity<TemplateToConfigurationResult> createConfigurationFromTemplateWithMetadata(
             @PathVariable String fileType,
             @PathVariable String transactionType,
@@ -484,11 +527,18 @@ public class TemplateController {
             @RequestParam String jobName,
             @RequestParam(defaultValue = "system") String createdBy) {
         try {
-            // Create the basic configuration
+            log.info("Creating configuration with metadata from template: {}/{} for {}/{}", 
+                    fileType, transactionType, sourceSystem, jobName);
+            
+            // 1. Create the basic configuration
             FieldMappingConfig config = templateService.createConfigurationFromTemplate(
                 fileType, transactionType, sourceSystem, jobName, createdBy);
             
-            // Add template metadata
+            // 2. Save the configuration to batch_configurations table
+            String saveResult = configurationService.saveConfiguration(config);
+            log.info("Configuration saved to batch_configurations table: {}", saveResult);
+            
+            // 3. Add template metadata
             TemplateMetadata metadata = new TemplateMetadata();
             metadata.setFileType(fileType);
             metadata.setTransactionType(transactionType);
@@ -498,7 +548,7 @@ public class TemplateController {
             metadata.setGeneratedAt(java.time.LocalDateTime.now().toString());
             metadata.setGeneratedBy(createdBy);
             
-            // Create the result with metadata using the factory method
+            // 4. Create the result with metadata using the factory method
             TemplateToConfigurationResult result = TemplateToConfigurationResult.fromFieldMappingConfig(config, metadata);
             
             log.info("Created configuration with metadata for template: {}/{}", fileType, transactionType);

@@ -2,6 +2,7 @@ package com.truist.batch.service;
 
 import com.truist.batch.dto.MasterQueryRequest;
 import com.truist.batch.dto.MasterQueryResponse;
+import com.truist.batch.dto.MasterQueryConfigDTO;
 import com.truist.batch.repository.MasterQueryRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -255,6 +256,166 @@ public class MasterQueryService {
         } finally {
             MDC.remove("correlationId");
         }
+    }
+
+    /**
+     * Get all available master query configurations from the database.
+     * 
+     * @param userRole User role for authorization
+     * @return List of master query configurations with business metadata
+     */
+    public List<MasterQueryConfigDTO> getAllMasterQueries(String userRole) {
+        String correlationId = generateCorrelationId();
+        MDC.put("correlationId", correlationId);
+        
+        try {
+            log.info("Processing request to get all master queries - User: {}, Correlation: {}", userRole, correlationId);
+            
+            // 1. Validate user authorization
+            validateUserForQueryList(userRole, correlationId);
+            
+            // 2. Retrieve master queries from repository
+            List<MasterQueryConfigDTO> masterQueries = masterQueryRepository.getAllMasterQueries(userRole, correlationId);
+            
+            // 3. Apply business rules and enrich data
+            List<MasterQueryConfigDTO> enrichedQueries = enrichMasterQueryData(masterQueries, userRole, correlationId);
+            
+            // 4. Sort and filter based on business requirements
+            List<MasterQueryConfigDTO> finalQueries = applyBusinessSortingAndFiltering(enrichedQueries, userRole);
+            
+            // 5. Audit successful retrieval
+            auditLogger.info("Master query list service completed - Count: {}, User: {}, Correlation: {}", 
+                           finalQueries.size(), userRole, correlationId);
+            
+            log.info("Successfully retrieved {} master query configurations - User: {}, Correlation: {}", 
+                    finalQueries.size(), userRole, correlationId);
+            
+            return finalQueries;
+            
+        } catch (Exception e) {
+            auditLogger.error("Master query list service failed - User: {}, Correlation: {}, Error: {}", 
+                            userRole, correlationId, e.getMessage());
+            
+            // Re-throw repository exceptions as-is for proper error handling
+            if (e instanceof MasterQueryRepository.QuerySecurityException || 
+                e instanceof MasterQueryRepository.QueryExecutionException) {
+                throw e;
+            }
+            
+            // Wrap unexpected exceptions
+            throw new MasterQueryRepository.QueryExecutionException(
+                "Unexpected error in master query list service", 
+                correlationId, "SERVICE_ERROR", e
+            );
+        } finally {
+            MDC.remove("correlationId");
+        }
+    }
+
+    /**
+     * Validate user authorization for master query list operations.
+     */
+    private void validateUserForQueryList(String userRole, String correlationId) {
+        if (userRole == null || userRole.trim().isEmpty()) {
+            throw new IllegalArgumentException("User role is required for master query list authorization");
+        }
+        
+        // Additional business rule validation for query list access
+        if (userRole.toLowerCase().contains("guest") || userRole.toLowerCase().contains("anonymous")) {
+            throw new MasterQueryRepository.QuerySecurityException(
+                "Guest and anonymous users cannot access master query library", 
+                correlationId
+            );
+        }
+        
+        log.debug("User authorization validated for query list access - Role: {}, Correlation: {}", 
+                 userRole, correlationId);
+    }
+
+    /**
+     * Enrich master query data with business metadata and computed properties.
+     */
+    private List<MasterQueryConfigDTO> enrichMasterQueryData(List<MasterQueryConfigDTO> queries, 
+                                                           String userRole, String correlationId) {
+        
+        return queries.stream()
+                     .filter(query -> query.isValid()) // Only include valid configurations
+                     .map(query -> enrichSingleQuery(query, userRole, correlationId))
+                     .collect(java.util.stream.Collectors.toList());
+    }
+
+    /**
+     * Enrich a single master query with business metadata.
+     */
+    private MasterQueryConfigDTO enrichSingleQuery(MasterQueryConfigDTO query, String userRole, String correlationId) {
+        // The DTO already has computed properties, but we can add service-level enrichment here
+        
+        // Log queries with potential issues for monitoring
+        if (!query.hasValidQueryType()) {
+            log.warn("Master query has invalid type - ID: {}, Type: {}, Correlation: {}", 
+                    query.getId(), query.getQueryType(), correlationId);
+        }
+        
+        if (!query.hasValidSourceSystem()) {
+            log.warn("Master query has unrecognized source system - ID: {}, System: {}, Correlation: {}", 
+                    query.getId(), query.getSourceSystem(), correlationId);
+        }
+        
+        // Add business context logging for audit purposes
+        log.debug("Enriched master query - ID: {}, Name: {}, Classification: {}, Complexity: {}, Correlation: {}", 
+                 query.getId(), query.getQueryName(), query.getDataClassification(), 
+                 query.getComplexityLevel(), correlationId);
+        
+        return query;
+    }
+
+    /**
+     * Apply business sorting and filtering rules to master query list.
+     */
+    private List<MasterQueryConfigDTO> applyBusinessSortingAndFiltering(List<MasterQueryConfigDTO> queries, String userRole) {
+        
+        // Define business sorting priority:
+        // 1. Active queries first
+        // 2. By source system (ENCORE first for current integration)
+        // 3. By query name alphabetically
+        // 4. By version descending (latest first)
+        
+        return queries.stream()
+                     .sorted((q1, q2) -> {
+                         // 1. Active status (active first)
+                         int activeCompare = Boolean.compare(q2.isCurrentlyActive(), q1.isCurrentlyActive());
+                         if (activeCompare != 0) return activeCompare;
+                         
+                         // 2. Source system priority (ENCORE first)
+                         int systemCompare = compareSourceSystemPriority(q1.getSourceSystem(), q2.getSourceSystem());
+                         if (systemCompare != 0) return systemCompare;
+                         
+                         // 3. Query name alphabetically
+                         int nameCompare = q1.getQueryName().compareToIgnoreCase(q2.getQueryName());
+                         if (nameCompare != 0) return nameCompare;
+                         
+                         // 4. Version descending (latest first)
+                         return Integer.compare(q2.getVersion(), q1.getVersion());
+                     })
+                     .collect(java.util.stream.Collectors.toList());
+    }
+
+    /**
+     * Compare source systems by business priority.
+     */
+    private int compareSourceSystemPriority(String system1, String system2) {
+        // Define business priority for source systems
+        Map<String, Integer> priorityMap = Map.of(
+            "ENCORE", 1,      // Highest priority - current integration focus
+            "ATLAS", 2,       // Second priority - future integration
+            "CORE_BANKING", 3, // Third priority - core systems
+            "RISK_ENGINE", 4   // Lower priority - specialized systems
+        );
+        
+        int priority1 = priorityMap.getOrDefault(system1.toUpperCase(), 99);
+        int priority2 = priorityMap.getOrDefault(system2.toUpperCase(), 99);
+        
+        return Integer.compare(priority1, priority2);
     }
 
     /**

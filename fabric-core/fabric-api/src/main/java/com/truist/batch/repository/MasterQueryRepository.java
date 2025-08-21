@@ -1,6 +1,7 @@
 package com.truist.batch.repository;
 
 import com.truist.batch.dto.MasterQueryResponse;
+import com.truist.batch.dto.MasterQueryConfigDTO;
 
 import java.util.List;
 import java.util.Map;
@@ -116,6 +117,17 @@ public interface MasterQueryRepository {
      * @return Available schemas and tables
      */
     Map<String, Object> getAvailableSchemas(String userRole, String correlationId);
+
+    /**
+     * Get all available master query configurations from MASTER_QUERY_CONFIG table.
+     * 
+     * @param userRole User role for authorization
+     * @param correlationId Correlation ID for audit trail
+     * @return List of master query configurations
+     * @throws QuerySecurityException if user lacks permissions
+     * @throws QueryExecutionException if database query fails
+     */
+    List<MasterQueryConfigDTO> getAllMasterQueries(String userRole, String correlationId);
 
     /**
      * Custom exceptions for master query operations.

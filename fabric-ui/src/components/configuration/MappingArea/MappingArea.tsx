@@ -20,14 +20,18 @@ import {
   Grid,
   FormControl,
   InputLabel,
-  Select
+  Select,
+  Alert,
+  CircularProgress
 } from '@mui/material';
 import {
   Add,
   Edit,
   Delete,
   MoreVert,
-  DragIndicator
+  DragIndicator,
+  Save,
+  CheckCircle
 } from '@mui/icons-material';
 import { Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
 import { FieldMapping } from '../../../types/configuration';
@@ -43,13 +47,20 @@ export const MappingArea: React.FC<MappingAreaProps> = ({ onMappingSelect }) => 
     updateFieldMapping, 
     deleteFieldMapping, 
     reorderFieldMappings,
-    addFieldMapping 
+    addFieldMapping,
+    saveConfiguration,
+    isDirty,
+    isLoading,
+    hasUnsavedChanges
   } = useConfigurationContext();
 
   const { sourceFields } = useSourceSystemsState();
   
   const [selectedMapping, setSelectedMapping] = useState<FieldMapping | null>(null);
   const [showAddDialog, setShowAddDialog] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [saveSuccess, setSaveSuccess] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
   const [newMappingData, setNewMappingData] = useState({
     fieldName: '',
     targetField: '',
@@ -122,6 +133,29 @@ export const MappingArea: React.FC<MappingAreaProps> = ({ onMappingSelect }) => 
     handleAddDialogClose();
   };
 
+  const handleSaveConfiguration = async () => {
+    setSaving(true);
+    setSaveError(null);
+    setSaveSuccess(false);
+
+    try {
+      const success = await saveConfiguration();
+      if (success) {
+        setSaveSuccess(true);
+        // Auto-hide success message after 3 seconds
+        setTimeout(() => setSaveSuccess(false), 3000);
+      } else {
+        setSaveError('Failed to save configuration. Please try again.');
+      }
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred';
+      setSaveError(errorMessage);
+      console.error('Save configuration failed:', error);
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const getTransformationIcon = (type: string) => {
     switch (type) {
       case 'source': return '📥';
@@ -146,20 +180,67 @@ export const MappingArea: React.FC<MappingAreaProps> = ({ onMappingSelect }) => 
     <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
       {/* Header */}
       <Box sx={{ p: 2, borderBottom: 1, borderColor: 'divider' }}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Typography variant="h6">
-            Field Mappings ({fieldMappings.length})
-          </Typography>
-          <Tooltip title="Add new mapping">
-            <IconButton onClick={handleCreateMapping} color="primary">
-              <Add />
-            </IconButton>
-          </Tooltip>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Typography variant="h6">
+              Field Mappings ({fieldMappings.length})
+            </Typography>
+            {(isDirty || hasUnsavedChanges?.()) && (
+              <Chip 
+                label="Unsaved Changes" 
+                size="small" 
+                color="warning" 
+                variant="outlined"
+              />
+            )}
+            {saveSuccess && (
+              <Chip 
+                label="Saved!" 
+                size="small" 
+                color="success" 
+                icon={<CheckCircle />}
+              />
+            )}
+          </Box>
+          <Box sx={{ display: 'flex', gap: 1 }}>
+            <Tooltip title="Save all field mappings to database">
+              <span>
+                <Button
+                  variant="contained"
+                  color="primary"
+                  size="small"
+                  startIcon={saving ? <CircularProgress size={16} /> : <Save />}
+                  onClick={handleSaveConfiguration}
+                  disabled={saving || isLoading || fieldMappings.length === 0}
+                >
+                  {saving ? 'Saving...' : 'Save Configuration'}
+                </Button>
+              </span>
+            </Tooltip>
+            <Tooltip title="Add new mapping">
+              <IconButton onClick={handleCreateMapping} color="primary">
+                <Add />
+              </IconButton>
+            </Tooltip>
+          </Box>
         </Box>
+        
+        {/* Error Display */}
+        {saveError && (
+          <Alert severity="error" sx={{ mb: 1 }}>
+            {saveError}
+          </Alert>
+        )}
         
         {fieldMappings.length > 0 && (
           <Typography variant="body2" color="text.secondary">
             Total record length: {fieldMappings.reduce((sum, m) => sum + m.length, 0)} characters
+          </Typography>
+        )}
+        
+        {fieldMappings.length > 0 && (isDirty || hasUnsavedChanges?.()) && (
+          <Typography variant="caption" color="warning.main" sx={{ display: 'block', mt: 0.5 }}>
+            ⚠️ You have unsaved changes. Click "Save Configuration" to persist your field mappings.
           </Typography>
         )}
       </Box>
@@ -326,6 +407,13 @@ export const MappingArea: React.FC<MappingAreaProps> = ({ onMappingSelect }) => 
             Add Mapping
           </Button>
         </DialogActions>
+        <Box sx={{ px: 3, pb: 2 }}>
+          <Alert severity="info">
+            <Typography variant="caption">
+              <strong>Note:</strong> After adding mappings, click "Save Configuration" to persist them to the database.
+            </Typography>
+          </Alert>
+        </Box>
       </Dialog>
     </Box>
   );

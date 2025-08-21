@@ -15,3 +15,7 @@ axios.interceptors.request.use(config => {
 
 // Export monitoring API
 export { monitoringApi, MonitoringApiService } from './monitoringApi';
+
+// Export master query API
+export { default as masterQueryApi } from './masterQueryApi';
+export * from './masterQueryApi';

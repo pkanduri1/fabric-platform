@@ -1,9 +1,13 @@
 package com.truist.batch.service.impl;
 
 import com.truist.batch.entity.SourceSystemEntity;
+import com.truist.batch.entity.TemplateMasterQueryMappingEntity;
+import com.truist.batch.entity.TemplateSourceMappingEntity;
 import com.truist.batch.repository.SourceSystemRepository;
+import com.truist.batch.repository.TemplateSourceMappingRepository;
 import com.truist.batch.dao.BatchConfigurationDao;
 import com.truist.batch.dao.ConfigurationAuditDao;
+import com.truist.batch.dao.TemplateMasterQueryMappingDao;
 import com.truist.batch.model.BatchConfiguration;
 import com.truist.batch.model.ConfigurationAudit;
 import com.truist.batch.service.ConfigurationService;
@@ -40,6 +44,8 @@ public class ConfigurationServiceImpl implements ConfigurationService {
 
     private final BatchConfigurationDao configDao;
     private final ConfigurationAuditDao auditDao;
+    private final TemplateMasterQueryMappingDao templateMasterQueryMappingDao;
+    private final TemplateSourceMappingRepository templateSourceMappingRepository;
     private final SourceSystemRepository sourceSystemRepository;
     private final YamlGenerationService yamlGenerationService;
     private final ObjectMapper objectMapper;
@@ -198,11 +204,17 @@ public class ConfigurationServiceImpl implements ConfigurationService {
             // 2. Save to database with audit trail
             BatchConfiguration entity = saveToDatabase(config, "system");
 
-            // 3. Generate and save YAML file
+            // 3. Save master query association to TEMPLATE_MASTER_QUERY_MAPPING
+            saveMasterQueryAssociation(config, entity.getId(), "system");
+
+            // 4. Save field mappings to TEMPLATE_SOURCE_MAPPINGS
+            saveFieldMappingsToTemplateTable(config, "system");
+
+            // 5. Generate and save YAML file
             String yamlContent = yamlGenerationService.generateYamlFromConfiguration(config);
             String yamlFilePath = saveYamlToFile(config, yamlContent);
 
-            // 4. Create audit entry (temporarily disabled for testing)
+            // 6. Create audit entry (temporarily disabled for testing)
             try {
                 createAuditEntry(entity.getId(), "SAVE", null, 
                     objectMapper.writeValueAsString(config), "system");
@@ -537,5 +549,129 @@ public class ConfigurationServiceImpl implements ConfigurationService {
             log.error("❌ Failed to convert entity to config for ID {}: {}", entity.getId(), e.getMessage());
             throw new RuntimeException("Failed to convert entity to configuration", e);
         }
+    }
+
+    // ==================== MASTER QUERY AND FIELD MAPPING SAVE METHODS ====================
+
+    /**
+     * Save master query association to TEMPLATE_MASTER_QUERY_MAPPING table.
+     */
+    private void saveMasterQueryAssociation(FieldMappingConfig config, String configId, String userId) {
+        if (config.getMasterQueryId() == null) {
+            log.debug("⏭️ No master query ID provided, skipping master query association save");
+            return;
+        }
+        
+        log.info("💾 Saving master query association for config {} with master query {}", configId, config.getMasterQueryId());
+        
+        try {
+            // Create the master query mapping entity
+            TemplateMasterQueryMappingEntity mapping = new TemplateMasterQueryMappingEntity(
+                configId,
+                config.getMasterQueryId().toString(),
+                config.getJobName() + "_query", // Default query name
+                "", // Query SQL will be populated from MASTER_QUERY_CONFIG
+                userId
+            );
+            
+            // Set additional properties
+            mapping.setQueryDescription("Auto-generated mapping for " + config.getSourceSystem() + "/" + config.getJobName());
+            mapping.setSecurityClassification("INTERNAL");
+            mapping.setCorrelationId(generateCorrelationId(config));
+            
+            // Save to database
+            templateMasterQueryMappingDao.save(mapping);
+            
+            log.info("✅ Master query association saved successfully: mapping ID = {}", mapping.getMappingId());
+            
+        } catch (Exception e) {
+            log.error("❌ Failed to save master query association for config {}: {}", configId, e.getMessage(), e);
+            // Don't fail the main operation for master query association errors
+            log.warn("⚠️ Continuing with configuration save despite master query association failure");
+        }
+    }
+
+    /**
+     * Save field mappings to TEMPLATE_SOURCE_MAPPINGS table.
+     */
+    private void saveFieldMappingsToTemplateTable(FieldMappingConfig config, String userId) {
+        if (config.getFieldMappings() == null || config.getFieldMappings().isEmpty()) {
+            log.debug("⏭️ No field mappings provided, skipping template source mappings save");
+            return;
+        }
+        
+        log.info("💾 Saving {} field mappings to TEMPLATE_SOURCE_MAPPINGS for {}/{}", 
+                config.getFieldMappings().size(), config.getSourceSystem(), config.getJobName());
+        
+        try {
+            // Delete existing mappings for this configuration
+            templateSourceMappingRepository.deleteByFileTypeAndTransactionTypeAndSourceSystemIdAndJobName(
+                config.getJobName(), // fileType maps to jobName
+                config.getTransactionType() != null ? config.getTransactionType() : "200",
+                config.getSourceSystem(),
+                config.getJobName()
+            );
+            
+            // Create new mappings for each field
+            List<TemplateSourceMappingEntity> mappingEntities = new ArrayList<>();
+            
+            for (FieldMapping fieldMapping : config.getFieldMappings()) {
+                TemplateSourceMappingEntity entity = new TemplateSourceMappingEntity(
+                    config.getJobName(), // fileType
+                    config.getTransactionType() != null ? config.getTransactionType() : "200", // transactionType
+                    config.getSourceSystem(), // sourceSystemId
+                    config.getJobName(), // jobName
+                    fieldMapping.getTargetField(), // targetFieldName
+                    fieldMapping.getSourceField(), // sourceFieldName
+                    userId // createdBy
+                );
+                
+                // Set additional field properties
+                entity.setTransformationType(fieldMapping.getTransformationType());
+                entity.setTargetPosition(fieldMapping.getTargetPosition());
+                entity.setLength(fieldMapping.getLength());
+                entity.setDataType(fieldMapping.getDataType());
+                
+                // Set transformation configuration if available
+                if (fieldMapping.getValue() != null || fieldMapping.getDefaultValue() != null) {
+                    Map<String, Object> transformConfig = new HashMap<>();
+                    if (fieldMapping.getValue() != null) {
+                        transformConfig.put("value", fieldMapping.getValue());
+                    }
+                    if (fieldMapping.getDefaultValue() != null) {
+                        transformConfig.put("defaultValue", fieldMapping.getDefaultValue());
+                    }
+                    try {
+                        entity.setTransformationConfig(objectMapper.writeValueAsString(transformConfig));
+                    } catch (Exception jsonError) {
+                        log.warn("⚠️ Failed to serialize transformation config for field {}: {}", 
+                               fieldMapping.getTargetField(), jsonError.getMessage());
+                    }
+                }
+                
+                mappingEntities.add(entity);
+            }
+            
+            // Save all mappings
+            templateSourceMappingRepository.saveAll(mappingEntities);
+            
+            log.info("✅ Successfully saved {} field mappings to TEMPLATE_SOURCE_MAPPINGS", mappingEntities.size());
+            
+        } catch (Exception e) {
+            log.error("❌ Failed to save field mappings to TEMPLATE_SOURCE_MAPPINGS for {}/{}: {}", 
+                     config.getSourceSystem(), config.getJobName(), e.getMessage(), e);
+            // Don't fail the main operation for field mapping errors
+            log.warn("⚠️ Continuing with configuration save despite field mapping save failure");
+        }
+    }
+
+    /**
+     * Generate correlation ID for audit trail tracking.
+     */
+    private String generateCorrelationId(FieldMappingConfig config) {
+        return String.format("cfg_%s_%s_%d", 
+                           config.getSourceSystem().toLowerCase(),
+                           config.getJobName().toLowerCase(),
+                           System.currentTimeMillis() % 100000);
     }
 }

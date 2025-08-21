@@ -149,16 +149,16 @@ public class TemplateServiceImpl implements TemplateService {
 			mapping.setDataType(template.getDataType().toLowerCase());
 			mapping.setFormat(template.getFormat());
 			mapping.setPad("right"); // Default padding
-			mapping.setTransformationType("constant"); // Default transformation
-			// Note: sourceField to be filled by BA
+			mapping.setTransformationType("source"); // Use source transformation
+			mapping.setSourceField(template.getFieldName().toLowerCase().replace("-", "_")); // Map to potential database column
 			mappings.add(mapping);
 		}
 
 		FieldMappingConfig config = new FieldMappingConfig();
 		config.setSourceSystem(sourceSystem);
 		config.setJobName(jobName);
-		config.setTransactionType("Generated from " + fileType + "/" + transactionType + " template");
-		config.setDescription(createdBy);
+		config.setTransactionType(transactionType);
+		config.setDescription("Generated from " + fileType + "/" + transactionType + " template by " + createdBy);
 		config.setFieldMappings(mappings);
 		config.setLastModified(LocalDateTime.now());
 		config.setModifiedBy(createdBy);
@@ -229,6 +229,8 @@ public class TemplateServiceImpl implements TemplateService {
 			template.setEnabled(entity.getEnabled());
 			template.setCreatedBy(entity.getCreatedBy());
 			template.setCreatedDate(entity.getCreatedDate()); // Both LocalDateTime
+			template.setDefaultValue(entity.getDefaultValue());
+			template.setValidationRule(entity.getValidationRule());
 			
 			// Handle modifiedBy and modifiedDate mappings
 			template.setModifiedBy(entity.getModifiedBy());

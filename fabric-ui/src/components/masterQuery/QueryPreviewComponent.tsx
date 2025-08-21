@@ -149,6 +149,7 @@ export const QueryPreviewComponent: React.FC<QueryPreviewComponentProps> = ({
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showLineNumbers, setShowLineNumbers] = useState(true);
   const [autoValidate, setAutoValidate] = useState(true);
+  const [enableSyntaxHighlighting, setEnableSyntaxHighlighting] = useState(true);
   const [syntaxErrors, setSyntaxErrors] = useState<string[]>([]);
   const [highlightedSql, setHighlightedSql] = useState('');
   
@@ -193,8 +194,12 @@ export const QueryPreviewComponent: React.FC<QueryPreviewComponentProps> = ({
   
   // Update highlighted SQL when content changes
   useEffect(() => {
-    setHighlightedSql(highlightSql(sqlContent));
-  }, [sqlContent, highlightSql]);
+    if (enableSyntaxHighlighting) {
+      setHighlightedSql(highlightSql(sqlContent));
+    } else {
+      setHighlightedSql('');
+    }
+  }, [sqlContent, highlightSql, enableSyntaxHighlighting]);
   
   // Basic SQL syntax validation
   const validateSqlSyntax = useCallback((sql: string): string[] => {
@@ -393,6 +398,18 @@ export const QueryPreviewComponent: React.FC<QueryPreviewComponentProps> = ({
               sx={{ mr: 1 }}
             />
             
+            <FormControlLabel
+              control={
+                <Switch
+                  size="small"
+                  checked={enableSyntaxHighlighting}
+                  onChange={(e) => setEnableSyntaxHighlighting(e.target.checked)}
+                />
+              }
+              label="Syntax Highlighting"
+              sx={{ mr: 1 }}
+            />
+            
             <Tooltip title="Format SQL">
               <IconButton onClick={formatSql} size="small">
                 <FormatAlignLeft />
@@ -456,7 +473,9 @@ export const QueryPreviewComponent: React.FC<QueryPreviewComponentProps> = ({
                     overflow: 'auto !important',
                     padding: '8px 12px',
                     lineHeight: 1.5,
-                    resize: 'none'
+                    resize: 'none',
+                    color: highlightedSql ? 'transparent' : 'inherit',
+                    caretColor: theme.palette.text.primary
                   }
                 }
               }}
@@ -476,9 +495,9 @@ export const QueryPreviewComponent: React.FC<QueryPreviewComponentProps> = ({
                   fontSize: '0.875rem',
                   lineHeight: 1.5,
                   pointerEvents: 'none',
-                  color: 'transparent',
                   whiteSpace: 'pre-wrap',
-                  overflow: 'hidden'
+                  overflow: 'hidden',
+                  zIndex: 1
                 }}
                 dangerouslySetInnerHTML={{ __html: highlightedSql }}
               />

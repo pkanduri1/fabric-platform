@@ -57,6 +57,12 @@ public class FieldMappingConfig {
     private String templateId;
     
     /**
+     * The master query identifier associated with this configuration.
+     * Links to MASTER_QUERY_CONFIG.ID for dynamic query execution.
+     */
+    private Long masterQueryId;
+    
+    /**
      * Whether this configuration is active.
      */
     private boolean active = true;
