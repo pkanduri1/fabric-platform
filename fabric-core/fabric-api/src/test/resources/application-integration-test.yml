@@ -1,0 +1,138 @@
+# Integration Test Profile Configuration for Fabric Platform
+spring:
+  profiles:
+    active: integration-test
+    
+  # Testcontainers Oracle Database for Integration Tests
+  datasource:
+    url: jdbc:tc:oracle:21-xe:///TEST
+    driverClassName: org.testcontainers.jdbc.ContainerDatabaseDriver
+    username: cm3int
+    password: test-password
+    hikari:
+      maximum-pool-size: 5
+      minimum-idle: 1
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+      
+  # Liquibase enabled for integration tests
+  liquibase:
+    enabled: true
+    change-log: classpath:db/test-changelog/test-master.xml
+    
+  # Redis Configuration (Testcontainers)
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      database: 2
+      timeout: 2000ms
+      
+  # WebSocket Configuration
+  websocket:
+    allowed-origins: "http://localhost:3000,http://localhost:8080"
+    stomp-endpoint: "/ws-test"
+    message-broker: "/topic-test"
+    app-destination-prefix: "/app-test"
+    
+  # Batch Configuration
+  batch:
+    job:
+      enabled: true
+    jdbc:
+      initialize-schema: always
+      
+# Security Configuration for Integration Tests
+security:
+  jwt:
+    secret: integration-test-secret-key-for-fabric-platform-testing-purposes
+    expiration: 1800000  # 30 minutes for integration tests
+    refresh-expiration: 3600000  # 1 hour for integration tests
+    
+  rate-limit:
+    enabled: true
+    requests-per-minute: 1000  # Higher limit for tests
+    
+# LDAP Configuration for Integration Tests (Testcontainers)
+ldap:
+  enabled: true
+  url: ldap://localhost:389
+  base: dc=integration,dc=test,dc=com
+  username: cn=admin,dc=integration,dc=test,dc=com
+  password: integration-test-password
+  
+# Actuator Configuration
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,metrics,info,prometheus,beans,env
+  endpoint:
+    health:
+      show-details: always
+      
+# Logging Configuration for Integration Tests
+logging:
+  level:
+    com.truist.batch: DEBUG
+    org.springframework.security: INFO
+    org.springframework.web: INFO
+    org.hibernate.SQL: WARN
+    org.springframework.batch: DEBUG
+    org.testcontainers: INFO
+    
+  pattern:
+    console: "%d{HH:mm:ss.SSS} [%thread] %-5level [%X{correlationId}] %logger{36} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level [%X{correlationId}] %logger{50} - %msg%n"
+    
+  file:
+    name: target/logs/integration-tests.log
+    
+# Integration Test Specific Configuration
+integration-test:
+  database:
+    cleanup: true
+    seed-data: true
+    timeout: 60000  # 1 minute
+    
+  security:
+    mock-users: false  # Use real authentication
+    test-jwt-tokens: true
+    
+  performance:
+    response-time-threshold: 2000  # 2 seconds for integration tests
+    memory-threshold: 256  # MB
+    
+  batch:
+    async-timeout: 120000  # 2 minutes
+    parallel-execution: false
+    
+  wiremock:
+    enabled: true
+    port: 8090
+    
+  testcontainers:
+    oracle:
+      image: gvenzl/oracle-xe:21-slim
+      port: 1521
+      database: TESTPDB
+      username: cm3int
+      password: test-password
+      
+    redis:
+      image: redis:7-alpine
+      port: 6379
+      
+    ldap:
+      image: osixia/openldap:1.5.0
+      port: 389
+      
+# Feature Toggles for Integration Testing
+features:
+  template-management: true
+  master-query-integration: true
+  batch-execution: true
+  real-time-monitoring: true
+  audit-trail: true
+  performance-monitoring: true

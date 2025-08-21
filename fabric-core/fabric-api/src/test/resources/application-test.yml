@@ -1,0 +1,125 @@
+# Test Profile Configuration for Fabric Platform
+spring:
+  profiles:
+    active: test
+    
+  # H2 In-Memory Database for Unit Tests
+  datasource:
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    driverClassName: org.h2.Driver
+    username: sa
+    password: 
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 2
+      connection-timeout: 20000
+      
+  # H2 Console for debugging (test only)
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+      
+  # JPA/Hibernate Configuration for Tests
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: false
+        
+  # Liquibase disabled for unit tests
+  liquibase:
+    enabled: false
+    
+  # Redis Configuration (Embedded for tests)
+  data:
+    redis:
+      host: localhost
+      port: 6370  # Different port to avoid conflicts
+      database: 1
+      
+  # WebSocket Configuration
+  websocket:
+    allowed-origins: "*"
+    stomp-endpoint: "/ws"
+    message-broker: "/topic"
+    app-destination-prefix: "/app"
+    
+  # Batch Configuration
+  batch:
+    job:
+      enabled: false
+    jdbc:
+      initialize-schema: embedded
+      
+# Security Configuration for Tests
+security:
+  jwt:
+    secret: test-secret-key-for-fabric-platform-testing-purposes-only
+    expiration: 3600000  # 1 hour for tests
+    refresh-expiration: 7200000  # 2 hours for tests
+    
+  rate-limit:
+    enabled: false  # Disable for tests
+    
+# LDAP Configuration for Tests (Mock)
+ldap:
+  enabled: false
+  url: ldap://test-ldap:389
+  base: dc=test,dc=com
+  username: cn=admin,dc=test,dc=com
+  password: test-password
+  
+# Actuator Configuration for Tests
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,metrics,info,prometheus
+  endpoint:
+    health:
+      show-details: always
+      
+# Logging Configuration for Tests
+logging:
+  level:
+    com.truist.batch: DEBUG
+    org.springframework.security: DEBUG
+    org.springframework.web: INFO
+    org.hibernate.SQL: WARN
+    org.springframework.batch: INFO
+    
+  pattern:
+    console: "%d{HH:mm:ss.SSS} [%thread] %-5level [%X{correlationId}] %logger{36} - %msg%n"
+    
+# Test-Specific Configuration
+test:
+  database:
+    cleanup: true
+    seed-data: true
+    
+  security:
+    mock-users: true
+    bypass-auth: false
+    
+  performance:
+    response-time-threshold: 500  # ms
+    memory-threshold: 100  # MB
+    
+  batch:
+    async-timeout: 30000  # 30 seconds
+    
+  wiremock:
+    enabled: true
+    port: 8089
+    
+# Feature Toggles for Testing
+features:
+  template-management: true
+  master-query-integration: true
+  batch-execution: true
+  real-time-monitoring: true
+  audit-trail: true

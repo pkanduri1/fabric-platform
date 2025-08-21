@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
+<suite name="Fabric Platform Integration Test Suite" verbose="1" parallel="classes" thread-count="2">
+    <test name="API Integration Tests">
+        <groups>
+            <run>
+                <include name="integration"/>
+                <include name="api"/>
+            </run>
+        </groups>
+        <packages>
+            <package name="com.truist.batch.integration.api"/>
+        </packages>
+    </test>
+    
+    <test name="Database Integration Tests">
+        <groups>
+            <run>
+                <include name="integration"/>
+                <include name="database"/>
+            </run>
+        </groups>
+        <packages>
+            <package name="com.truist.batch.integration.database"/>
+        </packages>
+    </test>
+    
+    <test name="WebSocket Integration Tests">
+        <groups>
+            <run>
+                <include name="integration"/>
+                <include name="websocket"/>
+            </run>
+        </groups>
+        <packages>
+            <package name="com.truist.batch.integration.websocket"/>
+        </packages>
+    </test>
+    
+    <test name="Batch Processing Integration Tests">
+        <groups>
+            <run>
+                <include name="integration"/>
+                <include name="batch"/>
+            </run>
+        </groups>
+        <packages>
+            <package name="com.truist.batch.integration.batch"/>
+        </packages>
+    </test>
+    
+    <test name="Security Integration Tests">
+        <groups>
+            <run>
+                <include name="integration"/>
+                <include name="security"/>
+            </run>
+        </groups>
+        <packages>
+            <package name="com.truist.batch.security"/>
+        </packages>
+    </test>
+</suite>

@@ -1,0 +1,46 @@
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v3.4.6)
+
+2025-08-18 19:47:13 [main] INFO  [] c.t.batch.InterfaceBatchApplication - Starting InterfaceBatchApplication v0.0.1-SNAPSHOT using Java 17.0.14 with PID 85074 (/Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/target/fabric-api-0.0.1-SNAPSHOT.jar started by pavankanduri in /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api)
+2025-08-18 19:47:13 [main] DEBUG [] c.t.batch.InterfaceBatchApplication - Running with Spring Boot v3.4.6, Spring v6.2.7
+2025-08-18 19:47:13 [main] INFO  [] c.t.batch.InterfaceBatchApplication - The following 1 profile is active: "local"
+2025-08-18 19:47:14 [main] INFO  [] o.s.b.f.s.DefaultListableBeanFactory - Overriding bean definition for bean 'transactionManager' with a different definition: replacing [Root bean: class=null; scope=; abstract=false; lazyInit=null; autowireMode=3; dependencyCheck=0; autowireCandidate=true; primary=true; fallback=false; factoryBeanName=localDataSourceConfig; factoryMethodName=transactionManager; initMethodNames=null; destroyMethodNames=[(inferred)]; defined in class path resource [com/truist/batch/config/LocalDataSourceConfig.class]] with [Root bean: class=null; scope=; abstract=false; lazyInit=null; autowireMode=3; dependencyCheck=0; autowireCandidate=true; primary=false; fallback=false; factoryBeanName=localTransactionConfig; factoryMethodName=transactionManager; initMethodNames=null; destroyMethodNames=[(inferred)]; defined in class path resource [com/truist/batch/config/LocalTransactionConfig.class]]
+2025-08-18 19:47:15 [main] INFO  [] o.s.b.w.e.tomcat.TomcatWebServer - Tomcat initialized with port 8080 (http)
+2025-08-18 19:47:15 [main] INFO  [] o.a.catalina.core.StandardService - Starting service [Tomcat]
+2025-08-18 19:47:15 [main] INFO  [] o.a.catalina.core.StandardEngine - Starting Servlet engine: [Apache Tomcat/10.1.41]
+2025-08-18 19:47:15 [main] INFO  [] o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring embedded WebApplicationContext
+2025-08-18 19:47:15 [main] INFO  [] o.s.b.w.s.c.ServletWebServerApplicationContext - Root WebApplicationContext: initialization completed in 2042 ms
+2025-08-18 19:47:15 [main] DEBUG [] c.t.b.s.jwt.JwtAuthenticationFilter - Filter 'jwtAuthenticationFilter' configured for use
+2025-08-18 19:47:15 [main] DEBUG [] o.s.jdbc.datasource.DataSourceUtils - Fetching JDBC Connection from DataSource
+2025-08-18 19:47:15 [main] INFO  [] com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Starting...
+2025-08-18 19:47:15 [main] DEBUG [] o.s.jdbc.datasource.DataSourceUtils - Fetching JDBC Connection from DataSource
+2025-08-18 19:47:15 [main] INFO  [] com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Starting...
+No batch-source files found: class path resource [batch-sources/] cannot be resolved to URL because it does not exist
+2025-08-18 19:47:16 [main] WARN  [] c.t.b.audit.NoOpAuditTrailManager - Using NoOpAuditTrailManager - audit entries will be logged but not persisted
+2025-08-18 19:47:16 [main] WARN  [] o.s.b.w.s.c.AnnotationConfigServletWebServerApplicationContext - Exception encountered during context initialization - cancelling refresh attempt: org.springframework.beans.factory.UnsatisfiedDependencyException: Error creating bean with name 'templateServiceImpl' defined in URL [jar:nested:/Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/target/fabric-api-0.0.1-SNAPSHOT.jar/!BOOT-INF/classes/!/com/truist/batch/service/impl/TemplateServiceImpl.class]: Unsatisfied dependency expressed through constructor parameter 2: No qualifying bean of type 'com.truist.batch.service.AuditService' available: expected at least 1 bean which qualifies as autowire candidate. Dependency annotations: {}
+2025-08-18 19:47:16 [main] INFO  [] o.a.catalina.core.StandardService - Stopping service [Tomcat]
+2025-08-18 19:47:16 [main] INFO  [] o.s.b.a.l.ConditionEvaluationReportLogger - 
+
+Error starting ApplicationContext. To display the condition evaluation report re-run your application with 'debug' enabled.
+2025-08-18 19:47:16 [main] ERROR [] o.s.b.d.LoggingFailureAnalysisReporter - 
+
+***************************
+APPLICATION FAILED TO START
+***************************
+
+Description:
+
+Parameter 2 of constructor in com.truist.batch.service.impl.TemplateServiceImpl required a bean of type 'com.truist.batch.service.AuditService' that could not be found.
+
+
+Action:
+
+Consider defining a bean of type 'com.truist.batch.service.AuditService' in your configuration.
+

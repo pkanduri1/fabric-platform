@@ -115,8 +115,8 @@
 [INFO] ------------------------------------------------------------------------
 [INFO] BUILD FAILURE
 [INFO] ------------------------------------------------------------------------
-[INFO] Total time:  7.080 s
-[INFO] Finished at: 2025-08-19T16:26:45-04:00
+[INFO] Total time:  6.870 s
+[INFO] Finished at: 2025-08-19T16:25:04-04:00
 [INFO] ------------------------------------------------------------------------
 [ERROR] Failed to execute goal org.apache.maven.plugins:maven-compiler-plugin:3.13.0:testCompile (default-testCompile) on project fabric-api: Compilation failure: Compilation failure: 
 [ERROR] /Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/test/java/com/truist/batch/websocket/handler/EnterpriseWebSocketHandlerTest.java:[7,32] cannot find symbol

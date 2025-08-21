@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
+<suite name="Fabric Platform Unit Test Suite" verbose="1" parallel="methods" thread-count="4">
+    <test name="Service Layer Tests">
+        <groups>
+            <run>
+                <include name="unit"/>
+                <include name="service"/>
+            </run>
+        </groups>
+        <packages>
+            <package name="com.truist.batch.unit.service"/>
+        </packages>
+    </test>
+    
+    <test name="DAO Layer Tests">
+        <groups>
+            <run>
+                <include name="unit"/>
+                <include name="dao"/>
+            </run>
+        </groups>
+        <packages>
+            <package name="com.truist.batch.unit.dao"/>
+        </packages>
+    </test>
+    
+    <test name="Controller Layer Tests">
+        <groups>
+            <run>
+                <include name="unit"/>
+                <include name="controller"/>
+            </run>
+        </groups>
+        <packages>
+            <package name="com.truist.batch.unit.controller"/>
+        </packages>
+    </test>
+    
+    <test name="Security Unit Tests">
+        <groups>
+            <run>
+                <include name="unit"/>
+                <include name="security"/>
+            </run>
+        </groups>
+        <packages>
+            <package name="com.truist.batch.unit.security"/>
+        </packages>
+    </test>
+    
+    <test name="Utility Tests">
+        <groups>
+            <run>
+                <include name="unit"/>
+                <include name="utils"/>
+            </run>
+        </groups>
+        <packages>
+            <package name="com.truist.batch.unit.utils"/>
+        </packages>
+    </test>
+</suite>

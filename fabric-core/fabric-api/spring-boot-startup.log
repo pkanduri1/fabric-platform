@@ -1,0 +1,48 @@
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] -----------------------< com.truist:fabric-api >------------------------
+[INFO] Building fabric-api 0.0.1-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] >>> spring-boot:3.4.6:run (default-cli) > test-compile @ fabric-api >>>
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ fabric-api ---
+[INFO] Copying 2 resources from src/main/resources to target/classes
+[INFO] Copying 52 resources from src/main/resources to target/classes
+[INFO] 
+[INFO] --- liquibase:4.20.0:update (default) @ fabric-api ---
+[WARNING]  Parameter 'promptOnNonLocalDatabase' (user property 'liquibase.promptOnNonLocalDatabase') is deprecated: No longer prompts
+[INFO] ------------------------------------------------------------------------
+[INFO] Parsing Liquibase Properties File
+[INFO]   File: src/main/resources/liquibase.properties
+[INFO]   'liquibaseSchemaName' in properties file is not being used by this task.
+[INFO]   'classpath' in properties file is not being used by this task.
+[INFO]   'author' in properties file is not being used by this task.
+[INFO]   'rollbackScript' in properties file is not being used by this task.
+[INFO]   'outputFile' in properties file is not being used by this task.
+[INFO]   'logLevel' in properties file is not being used by this task.
+[INFO]   'rollbackCount' in properties file is not being used by this task.
+[INFO]   'outputChangeLogFile' in properties file is not being used by this task.
+[INFO]   'company' in properties file is not being used by this task.
+[INFO]   'tag' in properties file is not being used by this task.
+[INFO]   'includeSystemClasspath' in properties file is not being used by this task.
+[INFO] ------------------------------------------------------------------------
+[INFO] ####################################################
+##   _     _             _ _                      ##
+##  | |   (_)           (_) |                     ##
+##  | |    _  __ _ _   _ _| |__   __ _ ___  ___   ##
+##  | |   | |/ _` | | | | | '_ \ / _` / __|/ _ \  ##
+##  | |___| | (_| | |_| | | |_) | (_| \__ \  __/  ##
+##  \_____/_|\__, |\__,_|_|_.__/ \__,_|___/\___|  ##
+##              | |                               ##
+##              |_|                               ##
+##                                                ## 
+##  Get documentation at docs.liquibase.com       ##
+##  Get certified courses at learn.liquibase.com  ## 
+##  Free schema change activity reports at        ##
+##      https://hub.liquibase.com                 ##
+##                                                ##
+####################################################
+Starting Liquibase at 14:53:07 (version 4.29.2 #3683 built at 2024-08-29 16:45+0000)
+[INFO] Parsing Liquibase Properties File src/main/resources/liquibase.properties for changeLog parameters
