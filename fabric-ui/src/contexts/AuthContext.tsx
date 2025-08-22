@@ -176,9 +176,10 @@ const SESSION_STORAGE_KEY = 'fabric_session';
 // Provider component
 interface AuthProviderProps {
   children: ReactNode;
+  value?: Partial<AuthContextType>; // For testing purposes
 }
 
-export function AuthProvider({ children }: AuthProviderProps) {
+export function AuthProvider({ children, value: testValue }: AuthProviderProps) {
   const [state, dispatch] = useReducer(authReducer, initialState);
 
   // Initialize auth state from storage
@@ -374,7 +375,18 @@ export function AuthProvider({ children }: AuthProviderProps) {
     dispatch({ type: 'CLEAR_ERROR' });
   };
 
-  const contextValue: AuthContextType = {
+  const contextValue: AuthContextType = testValue ? {
+    ...state,
+    login,
+    logout,
+    refreshAccessToken,
+    hasRole,
+    hasPermission,
+    hasAnyRole,
+    hasAnyPermission,
+    clearError,
+    ...testValue
+  } : {
     ...state,
     login,
     logout,

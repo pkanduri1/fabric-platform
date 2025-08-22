@@ -130,7 +130,7 @@ describe('useWebSocket', () => {
     });
 
     it('should not auto-connect when no token available', () => {
-      mockAuthContext.accessToken = null;
+      (mockAuthContext.accessToken as string | null) = null;
 
       renderHook(() => useWebSocket(defaultUrl, { autoConnect: true }));
 
@@ -138,7 +138,7 @@ describe('useWebSocket', () => {
     });
 
     it('should set error when token is missing', async () => {
-      mockAuthContext.accessToken = null;
+      (mockAuthContext.accessToken as string | null) = null;
 
       const { result } = renderHook(() => useWebSocket(defaultUrl));
 
@@ -278,11 +278,11 @@ describe('useWebSocket', () => {
         useWebSocket(defaultUrl, { messageBufferSize: 3 })
       );
 
-      const messages = [
-        { type: 'UPDATE_1', payload: {}, timestamp: '2025-08-08T10:00:00Z', correlationId: '1' },
-        { type: 'UPDATE_2', payload: {}, timestamp: '2025-08-08T10:00:01Z', correlationId: '2' },
-        { type: 'UPDATE_3', payload: {}, timestamp: '2025-08-08T10:00:02Z', correlationId: '3' }
-      ] as WebSocketMessage[];
+      const messages: WebSocketMessage[] = [
+        { type: 'DASHBOARD_UPDATE' as const, payload: {}, timestamp: '2025-08-08T10:00:00Z', correlationId: '1' },
+        { type: 'JOB_UPDATE' as const, payload: {}, timestamp: '2025-08-08T10:00:01Z', correlationId: '2' },
+        { type: 'ALERT' as const, payload: {}, timestamp: '2025-08-08T10:00:02Z', correlationId: '3' }
+      ];
 
       const messageHandler = mockServiceInstance.on.mock.calls.find(
         call => call[0] === 'message'

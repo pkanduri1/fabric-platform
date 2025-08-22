@@ -417,7 +417,7 @@ describe('PerformanceMetricsChart', () => {
 
       render(
         <TestWrapper>
-          <PerformanceMetricsChart {...defaultProps} metrics={manyMetrics} maxDataPoints={50} />
+          <PerformanceMetricsChart {...defaultProps} metrics={manyMetrics} />
         </TestWrapper>
       );
 

@@ -57,6 +57,7 @@ public class ManualJobConfigService {
      * @param jobType the job type (ETL, BATCH, etc.)
      * @param sourceSystem the source system identifier
      * @param targetSystem the target system identifier
+     * @param masterQueryId optional master query identifier
      * @param jobParameters the JSON-formatted job parameters
      * @param createdBy the user creating the configuration
      * @return the created configuration entity
@@ -68,6 +69,7 @@ public class ManualJobConfigService {
             String jobType,
             String sourceSystem,
             String targetSystem,
+            String masterQueryId,
             String jobParameters,
             String createdBy) {
         
@@ -92,6 +94,7 @@ public class ManualJobConfigService {
                 .jobType(jobType)
                 .sourceSystem(sourceSystem)
                 .targetSystem(targetSystem)
+                .masterQueryId(masterQueryId)
                 .jobParameters(jobParameters)
                 .status("ACTIVE")
                 .createdBy(createdBy)
@@ -259,6 +262,7 @@ public class ManualJobConfigService {
             request.getJobType(),
             request.getSourceSystem(),
             request.getTargetSystem(),
+            request.getMasterQueryId(),
             convertParametersToJson(request.getJobParameters()),
             updatedBy
         );

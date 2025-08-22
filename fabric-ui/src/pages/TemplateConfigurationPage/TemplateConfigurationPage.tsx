@@ -65,12 +65,11 @@ import QueryPreviewComponent from '../../components/masterQuery/QueryPreviewComp
 import QueryTesterComponent from '../../components/masterQuery/QueryTesterComponent';
 import SmartFieldMapper from '../../components/masterQuery/SmartFieldMapper';
 import QueryColumnAnalyzer from '../../components/masterQuery/QueryColumnAnalyzer';
+import { MasterQueryEditor } from '../../components/MasterQueryEditor';
 
 const steps = [
     'Select Template', 
     'Master Query Selection', 
-    'Query Analysis & Testing', 
-    'Smart Field Mapping (Future)', 
     'Configure Mappings', 
     'Generate & Save'
 ];
@@ -138,6 +137,8 @@ const TemplateConfigurationPageContent: React.FC = () => {
     // Load transaction types when file type changes
     useEffect(() => {
         if (selectedFileType) {
+            // Clear template fields when file type changes
+            setTemplateFields([]);
             fetchTransactionTypes(selectedFileType);
         }
     }, [selectedFileType]);
@@ -147,7 +148,7 @@ const TemplateConfigurationPageContent: React.FC = () => {
         if (selectedFileType && selectedTransactionType) {
             fetchTemplateFields(selectedFileType, selectedTransactionType);
             fetchAvailableSourceFields();
-            setActiveStep(1);
+            // Don't auto-advance to step 1, let user click Next
         }
     }, [selectedFileType, selectedTransactionType]);
 
@@ -192,6 +193,9 @@ const TemplateConfigurationPageContent: React.FC = () => {
             setTransactionTypes(data);
             if (data.length === 1) {
                 setSelectedTransactionType(data[0]);
+            } else {
+                // Clear transaction type selection when multiple options exist
+                setSelectedTransactionType('');
             }
         } catch (error) {
             console.error('Error fetching transaction types:', error);
@@ -248,7 +252,7 @@ const TemplateConfigurationPageContent: React.FC = () => {
         try {
             setSelectedMasterQuery(query);
             
-            // Create query request for testing and analysis
+            // Create query request for potential future use
             const request: MasterQueryRequest = {
                 masterQueryId: query.masterQueryId,
                 queryName: query.queryName,
@@ -262,7 +266,7 @@ const TemplateConfigurationPageContent: React.FC = () => {
             
             setQueryRequest(request);
             
-            // Advance to analysis step
+            // Skip directly to Configure Mappings step (step 2 now)
             setActiveStep(2);
             
         } catch (error) {
@@ -322,15 +326,13 @@ const TemplateConfigurationPageContent: React.FC = () => {
     const canAdvanceFromStep = (step: number): boolean => {
         switch (step) {
             case 0: // Select Template
-                return selectedFileType !== '' && selectedTransactionType !== '';
+                return selectedFileType !== '' && selectedTransactionType !== '' && localSelectedSourceSystem !== null;
             case 1: // Master Query Selection  
                 return selectedMasterQuery !== null;
-            case 2: // Query Analysis & Testing
-                return extractedColumns.length > 0;
-            case 3: // Smart Field Mapping (Future) - Always allow advance
-                return true; // TODO: Smart Field Mapping feature deferred to future roadmap
-            case 4: // Configure Mappings
+            case 2: // Configure Mappings
                 return templateFields.length > 0;
+            case 3: // Generate & Save
+                return true;
             default:
                 return true;
         }
@@ -632,7 +634,7 @@ const TemplateConfigurationPageContent: React.FC = () => {
         const result = await response.text();
         console.log('✅ Configuration saved successfully! ID:', result);
         
-        setActiveStep(steps.length - 1); // Move to final step after successful generation
+        setActiveStep(3); // Move to final step after successful generation
         const { templateMetadata } = configWithMetadata;
         const successMessage = `✅ Configuration saved successfully!
 
@@ -654,7 +656,7 @@ Configuration ID: ${result}
                 console.warn('⚠️ Save operation failed:', saveError);
                 
                 // Show template generation success with next steps
-                setActiveStep(steps.length - 1);
+                setActiveStep(3);
                 const { templateMetadata } = configWithMetadata;
                 const successMessage = `✅ Template configuration generated successfully!
 
@@ -679,7 +681,7 @@ Fields prepared: ${enhancedFields.length}
             
             const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
             setError(`Failed to generate configuration: ${errorMessage}`);
-            setActiveStep(4); // Return to configure mappings step on error
+            setActiveStep(2); // Return to configure mappings step on error
             
         } finally {
             setLoading(false);
@@ -1100,11 +1102,12 @@ Fields prepared: ${enhancedFields.length}
             )}
 
             {/* Step 1: Template Selection */}
-            <Card sx={{ mb: 3 }}>
-                <CardContent>
-                    <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <Settings /> 1. Select Template
-                    </Typography>
+            {activeStep === 0 && (
+                <Card sx={{ mb: 3 }}>
+                    <CardContent>
+                        <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <Settings /> 1. Select Template
+                        </Typography>
 
                     <Grid container spacing={2}>
                         <Grid item xs={12} md={3}>
@@ -1127,13 +1130,21 @@ Fields prepared: ${enhancedFields.length}
 
                         <Grid item xs={12} md={3}>
                             <FormControl fullWidth>
-                                <InputLabel>Transaction Type</InputLabel>
+                                <InputLabel shrink={selectedTransactionType !== '' || transactionTypes.length > 1}>
+                                    Transaction Type
+                                </InputLabel>
                                 <Select
                                     value={selectedTransactionType}
                                     onChange={(e) => setSelectedTransactionType(e.target.value)}
                                     label="Transaction Type"
                                     disabled={!selectedFileType || loading}
+                                    displayEmpty
                                 >
+                                    {transactionTypes.length > 1 && (
+                                        <MenuItem value="" disabled>
+                                            <em>Select...</em>
+                                        </MenuItem>
+                                    )}
                                     {transactionTypes.map((tt) => (
                                         <MenuItem key={tt} value={tt}>
                                             {tt}
@@ -1198,283 +1209,180 @@ Fields prepared: ${enhancedFields.length}
                             </Typography>
                         </Box>
                     )}
+                    
+                    {/* Navigation buttons for Step 1 */}
+                    <Box sx={{ display: 'flex', gap: 2, mt: 2, justifyContent: 'flex-end' }}>
+                        <Button
+                            variant="contained"
+                            onClick={() => handleStepNavigation(1)}
+                            disabled={!canAdvanceFromStep(0)}
+                        >
+                            Next: Select Master Query
+                        </Button>
+                    </Box>
                 </CardContent>
             </Card>
-
-            {/* Step 2: Master Query Selection */}
-            {selectedFileType && selectedTransactionType && activeStep >= 1 && (
-                <Card sx={{ mb: 3 }}>
-                    <CardContent>
-                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                            <Typography variant="h6" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                <Storage /> 2. Select Master Query
-                            </Typography>
-                            <Box sx={{ display: 'flex', gap: 1 }}>
-                                <FormControlLabel
-                                    control={
-                                        <Switch
-                                            checked={smartMappingsEnabled}
-                                            onChange={(e) => setSmartMappingsEnabled(e.target.checked)}
-                                            size="small"
-                                            disabled={true} // TODO: Future roadmap feature
-                                        />
-                                    }
-                                    label="Smart Mappings (Future)"
-                                />
-                                <FormControlLabel
-                                    control={
-                                        <Switch
-                                            checked={bankingIntelligenceEnabled}
-                                            onChange={(e) => setBankingIntelligenceEnabled(e.target.checked)}
-                                            size="small"
-                                            disabled={true} // TODO: Future roadmap feature
-                                        />
-                                    }
-                                    label="Banking Intelligence (Future)"
-                                />
-                            </Box>
-                        </Box>
-
-                        <Alert severity="info" sx={{ mb: 2 }}>
-                            Select a master query to extract column metadata for manual field mapping configuration. 
-                            Smart mapping and banking intelligence features are planned for future releases.
-                        </Alert>
-
-                        <MasterQuerySelector
-                            onQuerySelect={handleMasterQuerySelect}
-                            selectedQuery={selectedMasterQuery}
-                            showBankingIntelligence={bankingIntelligenceEnabled}
-                            maxHeight={400}
-                        />
-
-                        {selectedMasterQuery && (
-                            <Box sx={{ mt: 2, p: 2, bgcolor: 'success.main', color: 'success.contrastText', borderRadius: 1 }}>
-                                <Typography variant="body2">
-                                    ✓ Selected Query: {selectedMasterQuery.queryName} - {selectedMasterQuery.queryDescription}
-                                </Typography>
-                            </Box>
-                        )}
-
-                        <Box sx={{ display: 'flex', gap: 2, mt: 2, justifyContent: 'flex-end' }}>
-                            <Button
-                                variant="outlined"
-                                onClick={() => handleStepNavigation(activeStep - 1)}
-                                disabled={activeStep === 0}
-                            >
-                                Previous
-                            </Button>
-                            <Button
-                                variant="contained"
-                                onClick={() => handleStepNavigation(activeStep + 1)}
-                                disabled={!canAdvanceFromStep(activeStep)}
-                            >
-                                Next: Analyze Query
-                            </Button>
-                        </Box>
-                    </CardContent>
-                </Card>
             )}
 
-            {/* Step 3: Query Analysis & Testing */}
-            {selectedMasterQuery && activeStep >= 2 && (
+            {/* Step 2: Master Query Selection */}
+            {selectedFileType && selectedTransactionType && activeStep === 1 && (
                 <Card sx={{ mb: 3 }}>
                     <CardContent>
-                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                            <Typography variant="h6" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                <Assessment /> 3. Query Analysis & Testing
-                            </Typography>
-                            <Chip
-                                label={extractedColumns.length > 0 ? `${extractedColumns.length} columns detected` : 'Not analyzed'}
-                                color={extractedColumns.length > 0 ? 'success' : 'default'}
-                                variant="outlined"
-                            />
-                        </Box>
+                        <Typography variant="h6" sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+                            <Storage /> 2. Select Master Query
+                        </Typography>
 
-                        <Tabs
-                            value={currentAnalysisTab}
-                            onChange={(_, newValue) => setCurrentAnalysisTab(newValue)}
-                            sx={{ borderBottom: 1, borderColor: 'divider', mb: 2 }}
-                        >
-                            <Tab
-                                label={
-                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                        <Code />
-                                        SQL Preview
-                                    </Box>
-                                }
-                            />
-                            <Tab
-                                label={
-                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                        <PlayArrow />
-                                        Query Tester
-                                    </Box>
-                                }
-                            />
-                            <Tab
-                                label={
-                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                        <TableChart />
-                                        Column Analyzer
-                                    </Box>
-                                }
-                            />
+                        <Alert severity="info" sx={{ mb: 2 }}>
+                            Select a master query to define the data source for your configuration.
+                        </Alert>
+
+                        {/* Master Query Management Tabs */}
+                        <Tabs value={currentAnalysisTab} onChange={(e, newValue) => setCurrentAnalysisTab(newValue)} sx={{ mb: 2 }}>
+                            <Tab label="Select Query" />
+                            <Tab label="Create New Query" />
+                            <Tab label="Query Preview" />
+                            <Tab label="Test Query" />
                         </Tabs>
 
-                        {currentAnalysisTab === 0 && queryRequest && (
-                            <QueryPreviewComponent
-                                query={queryRequest}
-                                onQueryChange={setQueryRequest}
-                                onExecute={handleQueryExecution}
-                                showAnalysis={true}
-                                maxHeight={500}
-                            />
+                        {/* Tab 0: Select Query */}
+                        {currentAnalysisTab === 0 && (
+                            <Box>
+                                <MasterQuerySelector
+                                    onQuerySelect={handleMasterQuerySelect}
+                                    selectedQuery={selectedMasterQuery}
+                                    showBankingIntelligence={bankingIntelligenceEnabled}
+                                    maxHeight={400}
+                                />
+
+                                {selectedMasterQuery && (
+                                    <Box sx={{ mt: 2, p: 2, bgcolor: 'success.main', color: 'success.contrastText', borderRadius: 1 }}>
+                                        <Typography variant="body2">
+                                            ✓ Selected Query: {selectedMasterQuery.queryName} - {selectedMasterQuery.queryDescription}
+                                        </Typography>
+                                    </Box>
+                                )}
+                            </Box>
                         )}
 
-                        {currentAnalysisTab === 1 && queryRequest && (
-                            <QueryTesterComponent
-                                query={queryRequest}
-                                onExecutionComplete={(response) => {
-                                    console.log('Query execution completed:', response);
-                                    if (response.executionStatus === 'SUCCESS') {
-                                        setActiveStep(3); // Advance to smart mapping
-                                    }
-                                }}
-                                showHistory={true}
-                                maxRows={100}
-                            />
+                        {/* Tab 1: Create New Query */}
+                        {currentAnalysisTab === 1 && (
+                            <Box sx={{ mt: 2 }}>
+                                <Alert severity="info" sx={{ mb: 2 }}>
+                                    <Typography variant="body2">
+                                        Create a new master query for this template configuration. This query will define the data source structure and will be saved for reuse across templates.
+                                    </Typography>
+                                </Alert>
+                                
+                                {/* Use the full MasterQueryEditor component */}
+                                <MasterQueryEditor
+                                    open={true}
+                                    mode="create"
+                                    onSuccess={(queryData: any) => {
+                                        console.log('New query saved:', queryData);
+                                        setSelectedMasterQuery(queryData);
+                                        setCurrentAnalysisTab(0); // Switch back to Select Query tab
+                                    }}
+                                    onClose={() => setCurrentAnalysisTab(0)}
+                                    initialData={{
+                                        queryName: `${selectedFileType}_${selectedTransactionType}_query`,
+                                        queryDescription: `Master query for ${selectedFileType} ${selectedTransactionType} template`,
+                                        securityClassification: 'INTERNAL',
+                                        dataClassification: 'SENSITIVE'
+                                    }}
+                                />
+                            </Box>
                         )}
 
+                        {/* Tab 2: Query Preview */}
                         {currentAnalysisTab === 2 && (
-                            <QueryColumnAnalyzer
-                                query={queryRequest || undefined}
-                                columns={extractedColumns}
-                                showDataProfiling={true}
-                                showSecurityAnalysis={true}
-                                autoAnalyze={true}
-                            />
+                            <Box sx={{ mt: 2 }}>
+                                {selectedMasterQuery ? (
+                                    <QueryPreviewComponent 
+                                        query={{
+                                            masterQueryId: selectedMasterQuery.masterQueryId,
+                                            queryName: selectedMasterQuery.queryName,
+                                            querySql: selectedMasterQuery.querySql,
+                                            securityClassification: selectedMasterQuery.securityClassification,
+                                            dataClassification: selectedMasterQuery.dataClassification,
+                                            queryDescription: selectedMasterQuery.queryDescription,
+                                            queryParameters: {}
+                                        }} 
+                                    />
+                                ) : (
+                                    <Alert severity="warning">
+                                        Please select a master query first to preview it.
+                                    </Alert>
+                                )}
+                            </Box>
+                        )}
+
+                        {/* Tab 3: Test Query */}
+                        {currentAnalysisTab === 3 && (
+                            <Box sx={{ mt: 2 }}>
+                                {selectedMasterQuery ? (
+                                    <QueryTesterComponent 
+                                        query={{
+                                            masterQueryId: selectedMasterQuery.masterQueryId,
+                                            queryName: selectedMasterQuery.queryName,
+                                            querySql: selectedMasterQuery.querySql,
+                                            securityClassification: selectedMasterQuery.securityClassification,
+                                            dataClassification: selectedMasterQuery.dataClassification,
+                                            queryDescription: selectedMasterQuery.queryDescription,
+                                            queryParameters: {}
+                                        }}
+                                        onExecutionComplete={(response) => {
+                                            console.log('Query execution completed:', response);
+                                            // Extract column metadata from results if available
+                                            if (response.results && response.results.length > 0) {
+                                                const sampleRow = response.results[0];
+                                                const columns = Object.keys(sampleRow).map((key, index) => ({
+                                                    name: key,
+                                                    type: typeof sampleRow[key] === 'number' ? 'NUMBER' : 'STRING',
+                                                    order: index + 1,
+                                                    dataClassification: 'INTERNAL' as const
+                                                }));
+                                                setExtractedColumns(columns);
+                                            }
+                                        }}
+                                        showHistory={true}
+                                        maxRows={100}
+                                    />
+                                ) : (
+                                    <Alert severity="warning">
+                                        Please select a master query first to test it.
+                                    </Alert>
+                                )}
+                            </Box>
                         )}
 
                         <Box sx={{ display: 'flex', gap: 2, mt: 2, justifyContent: 'space-between' }}>
                             <Button
                                 variant="outlined"
                                 onClick={() => handleStepNavigation(activeStep - 1)}
+                                disabled={activeStep <= 0}
                             >
                                 Previous
                             </Button>
-                            <Box sx={{ display: 'flex', gap: 2 }}>
-                                <Button
-                                    variant="outlined"
-                                    startIcon={<PlayArrow />}
-                                    onClick={handleQueryExecution}
-                                    disabled={!queryRequest}
-                                >
-                                    Execute & Extract Metadata
-                                </Button>
-                                <Button
-                                    variant="outlined"
-                                    onClick={() => handleStepNavigation(4)} // Skip to Configure Mappings
-                                    disabled={!canAdvanceFromStep(activeStep)}
-                                    color="success"
-                                >
-                                    Skip to Manual Configuration
-                                </Button>
-                                <Button
-                                    variant="contained"
-                                    onClick={() => handleStepNavigation(activeStep + 1)}
-                                    disabled={!canAdvanceFromStep(activeStep)}
-                                >
-                                    Next: Smart Mapping (Future)
-                                </Button>
-                            </Box>
-                        </Box>
-                    </CardContent>
-                </Card>
-            )}
-
-            {/* Step 4: Smart Field Mapping (Future Roadmap) */}
-            {extractedColumns.length > 0 && activeStep >= 3 && (
-                <Card sx={{ mb: 3, bgcolor: 'grey.50', border: '2px dashed', borderColor: 'warning.main' }}>
-                    <CardContent>
-                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                            <Typography variant="h6" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                <Psychology sx={{ color: 'grey.500' }} /> 4. Smart Field Mapping (Future Feature)
-                            </Typography>
-                            <Chip
-                                label="Roadmap Feature"
-                                color="warning"
-                                variant="outlined"
-                            />
-                        </Box>
-
-                        <Alert severity="warning" sx={{ mb: 2 }}>
-                            <strong>🚧 Future Roadmap Feature</strong>
-                            <br />
-                            Smart Field Mapping with Banking Intelligence is currently under development and will be available in a future release.
-                            This feature will include:
-                            <ul style={{ margin: '8px 0', paddingLeft: '20px' }}>
-                                <li>Intelligent field pattern recognition</li>
-                                <li>Banking compliance awareness</li>
-                                <li>Automated mapping suggestions</li>
-                                <li>PII and sensitive data detection</li>
-                            </ul>
-                            For now, please proceed to manual field mapping configuration.
-                        </Alert>
-
-                        {/* Placeholder for Future Smart Mapping Component */}
-                        <Box sx={{ 
-                            p: 4, 
-                            textAlign: 'center', 
-                            bgcolor: 'grey.100', 
-                            borderRadius: 2,
-                            border: '1px dashed',
-                            borderColor: 'grey.400'
-                        }}>
-                            <Psychology sx={{ fontSize: 48, color: 'grey.400', mb: 2 }} />
-                            <Typography variant="h6" color="text.secondary" gutterBottom>
-                                Smart Field Mapping Coming Soon
-                            </Typography>
-                            <Typography variant="body2" color="text.secondary">
-                                This area will contain intelligent field mapping tools with banking domain expertise.
-                                <br />
-                                Currently you can proceed to manual configuration below.
-                            </Typography>
-                        </Box>
-
-                        <Box sx={{ display: 'flex', gap: 2, mt: 3, justifyContent: 'space-between' }}>
                             <Button
-                                variant="outlined"
-                                onClick={() => handleStepNavigation(activeStep - 1)}
+                                variant="contained"
+                                onClick={() => handleStepNavigation(2)}
+                                disabled={!selectedMasterQuery}
                             >
-                                Previous
+                                Next: Configure Field Mappings
                             </Button>
-                            <Box sx={{ display: 'flex', gap: 2 }}>
-                                <Button
-                                    variant="outlined"
-                                    onClick={() => handleStepNavigation(activeStep + 1)}
-                                    color="warning"
-                                >
-                                    Skip Smart Mapping
-                                </Button>
-                                <Button
-                                    variant="contained"
-                                    onClick={() => handleStepNavigation(activeStep + 1)}
-                                >
-                                    Continue to Manual Configuration
-                                </Button>
-                            </Box>
                         </Box>
                     </CardContent>
                 </Card>
             )}
 
-            {/* Step 5: Configure Field Mappings */}
-            {selectedFileType && selectedTransactionType && activeStep >= 4 && (
+
+            {/* Step 3: Configure Field Mappings */}
+            {selectedFileType && selectedTransactionType && activeStep === 2 && (
                 <Card sx={{ mb: 3 }}>
                     <CardContent>
                         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
                             <Typography variant="h6" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                <DataUsage /> 5. Configure Field Mappings
+                                <DataUsage /> 3. Configure Field Mappings
                             </Typography>
                             <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
                                 <Chip
@@ -1927,12 +1835,12 @@ Fields prepared: ${enhancedFields.length}
                 </Card>
             )}
 
-            {/* Step 6: Generate & Save */}
-            {templateFields.length > 0 && activeStep >= 5 && (
+            {/* Step 4: Generate & Save */}
+            {templateFields.length > 0 && activeStep >= 3 && (
                 <Card>
                     <CardContent>
                         <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                            <Save /> 6. Generate & Save Configuration
+                            <Save /> 4. Generate & Save Configuration
                         </Typography>
 
                         <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', mb: 2 }}>
@@ -2014,7 +1922,7 @@ Fields prepared: ${enhancedFields.length}
             )}
 
             {/* Generated Configuration Display */}
-            {generatedConfig && activeStep === (steps.length - 1) && (
+            {generatedConfig && activeStep === 3 && (
                 <Card sx={{ mt: 3 }}>
                     <CardContent>
                         <Typography variant="h6" gutterBottom>

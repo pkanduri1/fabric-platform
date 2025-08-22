@@ -13,7 +13,6 @@ import React from 'react';
 import { render, RenderOptions } from '@testing-library/react';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import { BrowserRouter } from 'react-router-dom';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 import { AuthProvider } from '../../contexts/AuthContext';
 import { 
@@ -227,7 +226,6 @@ interface CustomRenderOptions extends Omit<RenderOptions, 'wrapper'> {
   initialEntries?: string[];
   authContext?: any;
   theme?: any;
-  queryClient?: QueryClient;
 }
 
 export const renderWithProviders = (
@@ -236,31 +234,20 @@ export const renderWithProviders = (
     initialEntries = ['/'],
     authContext = createMockAuthContext(),
     theme = createTheme(),
-    queryClient = new QueryClient({
-      defaultOptions: {
-        queries: { retry: false },
-        mutations: { retry: false }
-      }
-    }),
     ...renderOptions
   }: CustomRenderOptions = {}
 ) => {
   const Wrapper = ({ children }: { children: React.ReactNode }) => (
     <BrowserRouter>
-      <QueryClientProvider client={queryClient}>
-        <ThemeProvider theme={theme}>
-          <AuthProvider value={authContext}>
-            {children}
-          </AuthProvider>
-        </ThemeProvider>
-      </QueryClientProvider>
+      <ThemeProvider theme={theme}>
+        <AuthProvider value={authContext}>
+          {children}
+        </AuthProvider>
+      </ThemeProvider>
     </BrowserRouter>
   );
 
-  return {
-    ...render(ui, { wrapper: Wrapper, ...renderOptions }),
-    queryClient
-  };
+  return render(ui, { wrapper: Wrapper, ...renderOptions });
 };
 
 // Test utilities for WebSocket mocking
@@ -379,6 +366,62 @@ export const createMockApiError = (message = 'API Error', code = 'API_ERROR') =>
     details: {}
   }
 });
+
+// Global mocks setup function
+export const setupGlobalMocks = (): void => {
+  // Mock window.matchMedia
+  Object.defineProperty(window, 'matchMedia', {
+    writable: true,
+    value: jest.fn().mockImplementation(query => ({
+      matches: false,
+      media: query,
+      onchange: null,
+      addListener: jest.fn(),
+      removeListener: jest.fn(),
+      addEventListener: jest.fn(),
+      removeEventListener: jest.fn(),
+      dispatchEvent: jest.fn(),
+    })),
+  });
+
+  // Mock ResizeObserver
+  global.ResizeObserver = jest.fn().mockImplementation(() => ({
+    observe: jest.fn(),
+    unobserve: jest.fn(),
+    disconnect: jest.fn(),
+  }));
+
+  // Mock WebSocket
+  global.WebSocket = MockWebSocket as any;
+
+  // Mock localStorage
+  const localStorageMock = (() => {
+    let store: { [key: string]: string } = {};
+    return {
+      getItem: jest.fn((key: string) => store[key] || null),
+      setItem: jest.fn((key: string, value: string) => {
+        store[key] = value.toString();
+      }),
+      removeItem: jest.fn((key: string) => {
+        delete store[key];
+      }),
+      clear: jest.fn(() => {
+        store = {};
+      })
+    };
+  })();
+  Object.defineProperty(window, 'localStorage', { value: localStorageMock });
+
+  // Mock sessionStorage
+  Object.defineProperty(window, 'sessionStorage', { value: localStorageMock });
+
+  // Mock fetch
+  global.fetch = jest.fn();
+
+  // Suppress console warnings in tests
+  jest.spyOn(console, 'warn').mockImplementation(() => {});
+  jest.spyOn(console, 'error').mockImplementation(() => {});
+};
 
 // Export all utilities
 export * from '@testing-library/react';

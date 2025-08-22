@@ -608,6 +608,17 @@ export class WebSocketService {
   }
   
   /**
+   * Testing helper method to emit events (only for testing purposes)
+   */
+  public emitForTesting(eventType: WebSocketEventType, data?: any): void {
+    if (process.env.NODE_ENV !== 'test') {
+      console.warn('emitForTesting should only be used in test environment');
+      return;
+    }
+    this.emit(eventType, data);
+  }
+
+  /**
    * Emit event to all listeners
    */
   private emit(eventType: WebSocketEventType, data?: any): void {
@@ -650,7 +661,7 @@ export class WebSocketService {
   /**
    * Get connection metrics
    */
-  public getMetrics(): typeof this.metrics {
+  public getMetrics() {
     return { ...this.metrics };
   }
   

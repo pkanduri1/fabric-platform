@@ -34,6 +34,7 @@ export interface JobConfigurationRequest {
   jobType: 'ETL_BATCH' | 'DATA_MIGRATION' | 'REPORT_GENERATION' | 'FILE_PROCESSING' | 'API_SYNC';
   sourceSystem: string;
   targetSystem: string;
+  masterQueryId?: string;
   jobParameters: Record<string, any>;
   description?: string;
   priority?: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
@@ -55,6 +56,7 @@ export interface JobConfigurationResponse {
   jobType: string;
   sourceSystem: string;
   targetSystem: string;
+  masterQueryId?: string;
   jobParameters: Record<string, any>;
   status: 'ACTIVE' | 'INACTIVE' | 'DEPRECATED' | 'PENDING_APPROVAL';
   createdBy: string;

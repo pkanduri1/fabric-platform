@@ -278,7 +278,7 @@ export const QueryColumnAnalyzer: React.FC<QueryColumnAnalyzerProps> = ({
       return 'Status';
     }
     
-    return DATA_TYPE_CATEGORIES[column.type] || 'Generic';
+    return DATA_TYPE_CATEGORIES[column.type as keyof typeof DATA_TYPE_CATEGORIES] || 'Generic';
   }, []);
   
   // Assess nullability risk
@@ -424,7 +424,7 @@ export const QueryColumnAnalyzer: React.FC<QueryColumnAnalyzerProps> = ({
     // Apply filters
     if (filterType !== 'ALL') {
       filtered = filtered.filter(analysis => 
-        DATA_TYPE_CATEGORIES[analysis.column.type] === filterType
+        DATA_TYPE_CATEGORIES[analysis.column.type as keyof typeof DATA_TYPE_CATEGORIES] === filterType
       );
     }
     

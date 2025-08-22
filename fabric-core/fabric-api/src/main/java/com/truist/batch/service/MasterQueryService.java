@@ -1,8 +1,6 @@
 package com.truist.batch.service;
 
-import com.truist.batch.dto.MasterQueryRequest;
-import com.truist.batch.dto.MasterQueryResponse;
-import com.truist.batch.dto.MasterQueryConfigDTO;
+import com.truist.batch.dto.*;
 import com.truist.batch.repository.MasterQueryRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -10,6 +8,7 @@ import org.slf4j.MDC;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -50,6 +49,7 @@ import java.util.UUID;
 public class MasterQueryService {
 
     private final MasterQueryRepository masterQueryRepository;
+    private final MasterQueryValidationService validationService;
     
     private static final String AUDIT_LOGGER_NAME = "AUDIT.MasterQueryService";
     private final org.slf4j.Logger auditLogger = org.slf4j.LoggerFactory.getLogger(AUDIT_LOGGER_NAME);
@@ -585,5 +585,450 @@ public class MasterQueryService {
         
         // Simple hash implementation - in production would use proper hashing
         return "sha256:" + Integer.toHexString(results.hashCode());
+    }
+
+    // =========================================================================
+    // MASTER QUERY CRUD OPERATIONS
+    // =========================================================================
+
+    /**
+     * Create a new master query configuration.
+     * 
+     * @param request Master query creation request
+     * @param userRole User role for authorization
+     * @return Created master query configuration DTO
+     */
+    public MasterQueryConfigDTO createMasterQuery(MasterQueryCreateRequest request, String userRole) {
+        String correlationId = generateCorrelationId();
+        MDC.put("correlationId", correlationId);
+        
+        try {
+            log.info("Processing master query creation request - Name: {}, User: {}, Correlation: {}", 
+                    request.getQueryName(), userRole, correlationId);
+            
+            // 1. Validate request
+            validateCreateRequest(request, userRole, correlationId);
+            
+            // 2. Validate SQL with comprehensive checks
+            MasterQueryValidationService.ValidationResult validationResult = 
+                validationService.validateSqlQuery(request.getQuerySql(), userRole, correlationId);
+            
+            if (!validationResult.isValid()) {
+                throw new IllegalArgumentException("SQL validation failed: " + 
+                    validationResult.getErrors().stream()
+                        .map(error -> error.getType() + ": " + error.getMessage())
+                        .collect(java.util.stream.Collectors.joining("; ")));
+            }
+            
+            // 3. Check for name uniqueness within source system
+            validateQueryNameUniqueness(request.getSourceSystem(), request.getQueryName(), correlationId);
+            
+            // 4. Create master query through repository
+            MasterQueryConfigDTO created = masterQueryRepository.createMasterQuery(
+                request.getSourceSystem(),
+                request.getQueryName(),
+                request.getDescription(),
+                request.getQueryType(),
+                request.getQuerySql(),
+                request.getEffectiveDataClassification(),
+                request.getEffectiveSecurityClassification(),
+                extractUsernameFromRole(userRole),
+                correlationId
+            );
+            
+            // 5. Audit successful creation
+            auditLogger.info("Master query created successfully - ID: {}, Name: {}, System: {}, User: {}, Correlation: {}, Justification: {}", 
+                           created.getId(), created.getQueryName(), created.getSourceSystem(), 
+                           userRole, correlationId, request.getBusinessJustification());
+            
+            log.info("Master query created successfully - ID: {}, Name: {}, Correlation: {}", 
+                    created.getId(), created.getQueryName(), correlationId);
+            
+            return created;
+            
+        } catch (Exception e) {
+            auditLogger.error("Master query creation failed - Name: {}, User: {}, Correlation: {}, Error: {}", 
+                            request.getQueryName(), userRole, correlationId, e.getMessage());
+            
+            // Re-throw with correlation ID for tracking
+            if (e instanceof IllegalArgumentException) {
+                throw new IllegalArgumentException("Creation failed [" + correlationId + "]: " + e.getMessage(), e);
+            }
+            
+            throw new RuntimeException("Unexpected error during master query creation [" + correlationId + "]", e);
+            
+        } finally {
+            MDC.remove("correlationId");
+        }
+    }
+
+    /**
+     * Update an existing master query configuration.
+     * 
+     * @param request Master query update request
+     * @param userRole User role for authorization
+     * @return Updated master query configuration DTO
+     */
+    public MasterQueryConfigDTO updateMasterQuery(MasterQueryUpdateRequest request, String userRole) {
+        String correlationId = generateCorrelationId();
+        MDC.put("correlationId", correlationId);
+        
+        try {
+            log.info("Processing master query update request - ID: {}, User: {}, Correlation: {}", 
+                    request.getId(), userRole, correlationId);
+            
+            // 1. Validate request
+            validateUpdateRequest(request, userRole, correlationId);
+            
+            // 2. Validate SQL if being updated
+            if (request.getQuerySql() != null) {
+                MasterQueryValidationService.ValidationResult validationResult = 
+                    validationService.validateSqlQuery(request.getQuerySql(), userRole, correlationId);
+                
+                if (!validationResult.isValid()) {
+                    throw new IllegalArgumentException("SQL validation failed: " + 
+                        validationResult.getErrors().stream()
+                            .map(error -> error.getType() + ": " + error.getMessage())
+                            .collect(java.util.stream.Collectors.joining("; ")));
+                }
+            }
+            
+            // 3. Get current version for optimistic locking
+            MasterQueryConfigDTO current = masterQueryRepository.getMasterQueryById(request.getId(), correlationId);
+            if (current == null) {
+                throw new IllegalArgumentException("Master query not found with ID: " + request.getId());
+            }
+            
+            if (!current.getVersion().equals(request.getCurrentVersion())) {
+                throw new IllegalArgumentException("Optimistic locking failed - query was modified by another user. " +
+                    "Expected version: " + request.getCurrentVersion() + ", actual version: " + current.getVersion());
+            }
+            
+            // 4. Check name uniqueness if name is being changed
+            if (request.getQueryName() != null && !request.getQueryName().equals(current.getQueryName())) {
+                String targetSystem = request.getSourceSystem() != null ? request.getSourceSystem() : current.getSourceSystem();
+                validateQueryNameUniqueness(targetSystem, request.getQueryName(), correlationId);
+            }
+            
+            // 5. Update master query through repository
+            MasterQueryConfigDTO updated = masterQueryRepository.updateMasterQuery(
+                request.getId(),
+                request.getCurrentVersion(),
+                request.getSourceSystem(),
+                request.getQueryName(),
+                request.getDescription(),
+                request.getQueryType(),
+                request.getQuerySql(),
+                request.getIsActive(),
+                request.getDataClassification(),
+                request.getSecurityClassification(),
+                extractUsernameFromRole(userRole),
+                request.isMajorChange(),
+                correlationId
+            );
+            
+            // 6. Audit successful update
+            auditLogger.info("Master query updated successfully - ID: {}, Version: {} -> {}, Fields: {}, User: {}, Correlation: {}, Justification: {}", 
+                           updated.getId(), request.getCurrentVersion(), updated.getVersion(), 
+                           request.getUpdatedFields(), userRole, correlationId, request.getChangeJustification());
+            
+            log.info("Master query updated successfully - ID: {}, New Version: {}, Correlation: {}", 
+                    updated.getId(), updated.getVersion(), correlationId);
+            
+            return updated;
+            
+        } catch (Exception e) {
+            auditLogger.error("Master query update failed - ID: {}, User: {}, Correlation: {}, Error: {}", 
+                            request.getId(), userRole, correlationId, e.getMessage());
+            
+            // Re-throw with correlation ID for tracking
+            if (e instanceof IllegalArgumentException) {
+                throw new IllegalArgumentException("Update failed [" + correlationId + "]: " + e.getMessage(), e);
+            }
+            
+            throw new RuntimeException("Unexpected error during master query update [" + correlationId + "]", e);
+            
+        } finally {
+            MDC.remove("correlationId");
+        }
+    }
+
+    /**
+     * Soft delete a master query configuration.
+     * 
+     * @param id Master query ID to delete
+     * @param userRole User role for authorization
+     * @param deleteJustification Business justification for deletion
+     * @return Deletion result with audit information
+     */
+    public Map<String, Object> deleteMasterQuery(Long id, String userRole, String deleteJustification) {
+        String correlationId = generateCorrelationId();
+        MDC.put("correlationId", correlationId);
+        
+        try {
+            log.info("Processing master query deletion request - ID: {}, User: {}, Correlation: {}", 
+                    id, userRole, correlationId);
+            
+            // 1. Validate deletion request
+            validateDeleteRequest(id, userRole, deleteJustification, correlationId);
+            
+            // 2. Get current query for audit trail
+            MasterQueryConfigDTO current = masterQueryRepository.getMasterQueryById(id, correlationId);
+            if (current == null) {
+                throw new IllegalArgumentException("Master query not found with ID: " + id);
+            }
+            
+            // 3. Check if query is currently in use
+            boolean inUse = masterQueryRepository.isMasterQueryInUse(id, correlationId);
+            if (inUse) {
+                throw new IllegalArgumentException("Cannot delete master query - it is currently referenced by active job configurations");
+            }
+            
+            // 4. Perform soft delete through repository
+            boolean deleted = masterQueryRepository.softDeleteMasterQuery(
+                id, 
+                extractUsernameFromRole(userRole), 
+                deleteJustification,
+                correlationId
+            );
+            
+            if (!deleted) {
+                throw new RuntimeException("Failed to delete master query - repository operation failed");
+            }
+            
+            // 5. Audit successful deletion
+            auditLogger.info("Master query soft deleted - ID: {}, Name: {}, System: {}, User: {}, Correlation: {}, Justification: {}", 
+                           id, current.getQueryName(), current.getSourceSystem(), 
+                           userRole, correlationId, deleteJustification);
+            
+            Map<String, Object> result = Map.of(
+                "deleted", true,
+                "id", id,
+                "queryName", current.getQueryName(),
+                "sourceSystem", current.getSourceSystem(),
+                "deletedBy", extractUsernameFromRole(userRole),
+                "deletedAt", LocalDateTime.now(),
+                "correlationId", correlationId,
+                "auditTrail", "audit_" + correlationId.substring(5)
+            );
+            
+            log.info("Master query deleted successfully - ID: {}, Correlation: {}", id, correlationId);
+            
+            return result;
+            
+        } catch (Exception e) {
+            auditLogger.error("Master query deletion failed - ID: {}, User: {}, Correlation: {}, Error: {}", 
+                            id, userRole, correlationId, e.getMessage());
+            
+            // Re-throw with correlation ID for tracking
+            if (e instanceof IllegalArgumentException) {
+                throw new IllegalArgumentException("Deletion failed [" + correlationId + "]: " + e.getMessage(), e);
+            }
+            
+            throw new RuntimeException("Unexpected error during master query deletion [" + correlationId + "]", e);
+            
+        } finally {
+            MDC.remove("correlationId");
+        }
+    }
+
+    /**
+     * Get available query templates organized by category.
+     * 
+     * @param userRole User role for authorization
+     * @return Template categories and templates
+     */
+    public Map<String, Object> getQueryTemplates(String userRole) {
+        String correlationId = generateCorrelationId();
+        MDC.put("correlationId", correlationId);
+        
+        try {
+            log.info("Retrieving query templates - User: {}, Correlation: {}", userRole, correlationId);
+            
+            // This would typically load from configuration or database
+            // For now, return hardcoded templates matching application-masterquery.yml
+            Map<String, Object> templates = createTemplateLibrary();
+            
+            log.info("Query templates retrieved successfully - Categories: {}, Correlation: {}", 
+                    ((List<?>) templates.get("categories")).size(), correlationId);
+            
+            return templates;
+            
+        } finally {
+            MDC.remove("correlationId");
+        }
+    }
+
+    // =========================================================================
+    // VALIDATION METHODS
+    // =========================================================================
+
+    /**
+     * Validate master query creation request.
+     */
+    private void validateCreateRequest(MasterQueryCreateRequest request, String userRole, String correlationId) {
+        if (request == null) {
+            throw new IllegalArgumentException("Create request is required");
+        }
+        
+        if (!request.isValidForCreation()) {
+            throw new IllegalArgumentException("Create request validation failed - check required fields and constraints");
+        }
+        
+        if (userRole == null || userRole.trim().isEmpty()) {
+            throw new IllegalArgumentException("User role is required for authorization");
+        }
+        
+        // Check user permissions for creation
+        if (!hasCreatePermission(userRole)) {
+            throw new IllegalArgumentException("User role '" + userRole + "' does not have permission to create master queries");
+        }
+        
+        log.debug("Create request validation passed - Name: {}, System: {}, Correlation: {}", 
+                 request.getQueryName(), request.getSourceSystem(), correlationId);
+    }
+
+    /**
+     * Validate master query update request.
+     */
+    private void validateUpdateRequest(MasterQueryUpdateRequest request, String userRole, String correlationId) {
+        if (request == null) {
+            throw new IllegalArgumentException("Update request is required");
+        }
+        
+        if (!request.isValidForUpdate()) {
+            throw new IllegalArgumentException("Update request validation failed - check required fields and constraints");
+        }
+        
+        if (userRole == null || userRole.trim().isEmpty()) {
+            throw new IllegalArgumentException("User role is required for authorization");
+        }
+        
+        // Check user permissions for modification
+        if (!hasModifyPermission(userRole)) {
+            throw new IllegalArgumentException("User role '" + userRole + "' does not have permission to modify master queries");
+        }
+        
+        log.debug("Update request validation passed - ID: {}, Fields: {}, Correlation: {}", 
+                 request.getId(), request.getUpdatedFields(), correlationId);
+    }
+
+    /**
+     * Validate master query deletion request.
+     */
+    private void validateDeleteRequest(Long id, String userRole, String deleteJustification, String correlationId) {
+        if (id == null || id <= 0) {
+            throw new IllegalArgumentException("Valid master query ID is required for deletion");
+        }
+        
+        if (userRole == null || userRole.trim().isEmpty()) {
+            throw new IllegalArgumentException("User role is required for authorization");
+        }
+        
+        if (deleteJustification == null || deleteJustification.trim().length() < 20) {
+            throw new IllegalArgumentException("Delete justification is required and must be at least 20 characters for audit compliance");
+        }
+        
+        // Check user permissions for deletion
+        if (!hasDeletePermission(userRole)) {
+            throw new IllegalArgumentException("User role '" + userRole + "' does not have permission to delete master queries");
+        }
+        
+        log.debug("Delete request validation passed - ID: {}, User: {}, Correlation: {}", 
+                 id, userRole, correlationId);
+    }
+
+    /**
+     * Validate query name uniqueness within source system.
+     */
+    private void validateQueryNameUniqueness(String sourceSystem, String queryName, String correlationId) {
+        boolean exists = masterQueryRepository.queryNameExists(sourceSystem, queryName, correlationId);
+        if (exists) {
+            throw new IllegalArgumentException("Query name '" + queryName + "' already exists in source system '" + sourceSystem + "'");
+        }
+    }
+
+    /**
+     * Check if user has permission to create master queries.
+     */
+    private boolean hasCreatePermission(String userRole) {
+        return userRole.contains("JOB_CREATOR") || 
+               userRole.contains("ADMIN");
+    }
+
+    /**
+     * Check if user has permission to modify master queries.
+     */
+    private boolean hasModifyPermission(String userRole) {
+        return userRole.contains("JOB_MODIFIER") || 
+               userRole.contains("JOB_CREATOR") ||
+               userRole.contains("ADMIN");
+    }
+
+    /**
+     * Check if user has permission to delete master queries.
+     */
+    private boolean hasDeletePermission(String userRole) {
+        return userRole.contains("ADMIN"); // Only admin can delete
+    }
+
+    /**
+     * Get validation service for external access.
+     */
+    public MasterQueryValidationService getValidationService() {
+        return validationService;
+    }
+
+    /**
+     * Create template library with predefined templates.
+     */
+    private Map<String, Object> createTemplateLibrary() {
+        List<Map<String, Object>> categories = List.of(
+            Map.of(
+                "name", "Account Management",
+                "description", "Templates for account-related queries",
+                "templates", List.of(
+                    Map.of(
+                        "name", "Account Summary",
+                        "sql", "SELECT account_id, account_type, balance, status FROM accounts WHERE batch_date = :batchDate",
+                        "parameters", List.of("batchDate"),
+                        "description", "Basic account information summary"
+                    ),
+                    Map.of(
+                        "name", "Account Transaction History",
+                        "sql", "SELECT account_id, transaction_date, amount, transaction_type FROM transactions WHERE account_id = :accountId AND transaction_date >= :startDate",
+                        "parameters", List.of("accountId", "startDate"),
+                        "description", "Transaction history for specific account"
+                    )
+                )
+            ),
+            Map.of(
+                "name", "Transaction Processing",
+                "description", "Templates for transaction analysis",
+                "templates", List.of(
+                    Map.of(
+                        "name", "Daily Transaction Summary",
+                        "sql", "SELECT transaction_date, COUNT(*) as transaction_count, SUM(amount) as total_amount FROM transactions WHERE transaction_date = :batchDate GROUP BY transaction_date",
+                        "parameters", List.of("batchDate"),
+                        "description", "Daily transaction volume and amount summary"
+                    ),
+                    Map.of(
+                        "name", "High Value Transactions",
+                        "sql", "SELECT transaction_id, account_id, amount, transaction_date FROM transactions WHERE amount > :minAmount AND transaction_date = :batchDate ORDER BY amount DESC",
+                        "parameters", List.of("minAmount", "batchDate"),
+                        "description", "Transactions above specified amount threshold"
+                    )
+                )
+            )
+        );
+        
+        return Map.of(
+            "categories", categories,
+            "totalTemplates", categories.stream()
+                .mapToInt(cat -> ((List<?>) cat.get("templates")).size())
+                .sum(),
+            "lastUpdated", LocalDateTime.now(),
+            "version", "1.0"
+        );
     }
 }

@@ -25,7 +25,7 @@ describe('configApi', () => {
   describe('getSourceSystems', () => {
     it('should fetch source systems successfully', async () => {
       const mockSystems: SourceSystem[] = [
-        { id: 'hr', name: 'HR System', description: 'Human Resources', jobs: ['p327'] }
+        { id: 'hr', name: 'HR System', description: 'Human Resources', systemType: 'banking', jobs: [{ name: 'p327', sourceSystem: 'hr', jobName: 'p327', files: [] }] }
       ];
       mockedAxios.get.mockResolvedValue({ data: mockSystems });
 
@@ -67,7 +67,8 @@ describe('configApi', () => {
         transactionType: 'default',
         sourceSystem: 'hr',
         jobName: 'p327',
-        fields: {}
+        fields: {},
+        fieldMappings: []
       }];
       mockedAxios.get.mockResolvedValue({ data: mockMappings });
 
@@ -91,7 +92,8 @@ describe('configApi', () => {
         transactionType: '200',
         sourceSystem: 'hr',
         jobName: 'p327',
-        fields: {}
+        fields: {},
+        fieldMappings: []
       };
       mockedAxios.get.mockResolvedValue({ data: mockMapping });
 
@@ -109,7 +111,8 @@ describe('configApi', () => {
         transactionType: 'default',
         sourceSystem: 'hr',
         jobName: 'p327',
-        fields: {}
+        fields: {},
+        fieldMappings: []
       };
       const mockResponse = { success: true, data: mockConfig };
       mockedAxios.post.mockResolvedValue({ data: mockResponse });
@@ -126,7 +129,8 @@ describe('configApi', () => {
         transactionType: 'default',
         sourceSystem: 'hr',
         jobName: 'p327',
-        fields: {}
+        fields: {},
+        fieldMappings: []
       };
       mockedAxios.post.mockRejectedValue(new Error('Save failed'));
 
@@ -137,6 +141,7 @@ describe('configApi', () => {
   describe('validateMapping', () => {
     it('should validate mapping successfully', async () => {
       const mockValidation: ValidationResult = {
+        isValid: true,
         valid: true,
         warnings: [],
         errors: []
@@ -148,7 +153,8 @@ describe('configApi', () => {
         transactionType: 'default',
         sourceSystem: 'hr',
         jobName: 'p327',
-        fields: {}
+        fields: {},
+        fieldMappings: []
       };
 
       const result = await configApi.validateMapping(mockConfig);
@@ -165,7 +171,8 @@ describe('configApi', () => {
         transactionType: 'default',
         sourceSystem: 'hr',
         jobName: 'p327',
-        fields: {}
+        fields: {},
+        fieldMappings: []
       };
 
       await expect(configApi.validateMapping(mockConfig)).rejects.toThrow('Failed to validate mapping configuration');
@@ -182,7 +189,8 @@ describe('configApi', () => {
         transactionType: 'default',
         sourceSystem: 'hr',
         jobName: 'p327',
-        fields: {}
+        fields: {},
+        fieldMappings: []
       };
 
       const result = await configApi.generateYaml(mockConfig);
@@ -216,7 +224,8 @@ describe('configApi', () => {
         transactionType: 'default',
         sourceSystem: 'hr',
         jobName: 'p327',
-        fields: {}
+        fields: {},
+        fieldMappings: []
       };
 
       const result = await configApi.previewOutput(mockConfig);

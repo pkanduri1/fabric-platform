@@ -277,33 +277,46 @@ public class TemplateSourceMappingRepositoryImpl implements TemplateSourceMappin
             entity.setTransformationType("source");
         }
 
-        KeyHolder keyHolder = new GeneratedKeyHolder();
-        
-        jdbcTemplate.update(connection -> {
-            PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
-            ps.setString(1, entity.getFileType());
-            ps.setString(2, entity.getTransactionType());
-            ps.setString(3, entity.getSourceSystemId());
-            ps.setString(4, entity.getJobName());
-            ps.setString(5, entity.getTargetFieldName());
-            ps.setString(6, entity.getSourceFieldName());
-            ps.setString(7, entity.getTransformationType());
-            ps.setString(8, entity.getTransformationConfig());
-            ps.setObject(9, entity.getTargetPosition());
-            ps.setObject(10, entity.getLength());
-            ps.setString(11, entity.getDataType());
-            ps.setString(12, entity.getCreatedBy());
-            ps.setObject(13, entity.getCreatedDate());
-            ps.setInt(14, entity.getVersion());
-            ps.setString(15, entity.getEnabled());
-            return ps;
-        }, keyHolder);
+        // Insert without using generated keys to avoid Oracle ROWID casting issues
+        int rowsAffected = jdbcTemplate.update(sql,
+            entity.getFileType(),
+            entity.getTransactionType(),
+            entity.getSourceSystemId(),
+            entity.getJobName(),
+            entity.getTargetFieldName(),
+            entity.getSourceFieldName(),
+            entity.getTransformationType(),
+            entity.getTransformationConfig(),
+            entity.getTargetPosition(),
+            entity.getLength(),
+            entity.getDataType(),
+            entity.getCreatedBy(),
+            entity.getCreatedDate(),
+            entity.getVersion(),
+            entity.getEnabled()
+        );
 
-        if (keyHolder.getKey() != null) {
-            entity.setId(keyHolder.getKey().longValue());
+        // Query back the inserted record to get the generated ID
+        if (rowsAffected > 0) {
+            String selectIdSql = """
+                SELECT ID FROM CM3INT.TEMPLATE_SOURCE_MAPPINGS 
+                WHERE FILE_TYPE = ? AND TRANSACTION_TYPE = ? AND SOURCE_SYSTEM_ID = ? 
+                AND JOB_NAME = ? AND TARGET_FIELD_NAME = ? AND CREATED_DATE = ?
+                ORDER BY ID DESC FETCH FIRST 1 ROWS ONLY
+            """;
+            try {
+                Long id = jdbcTemplate.queryForObject(selectIdSql, Long.class,
+                    entity.getFileType(), entity.getTransactionType(), entity.getSourceSystemId(),
+                    entity.getJobName(), entity.getTargetFieldName(), entity.getCreatedDate());
+                entity.setId(id);
+                logger.info("Inserted template source mapping with ID: {} (rows affected: {})", entity.getId(), rowsAffected);
+            } catch (Exception ex) {
+                logger.error("Failed to retrieve generated ID after insert: {}", ex.getMessage());
+                // Set a placeholder ID to avoid null issues
+                entity.setId(-1L);
+            }
         }
 
-        logger.info("Inserted template source mapping: {}", entity.getId());
         return entity;
     }
 

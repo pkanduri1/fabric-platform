@@ -129,6 +129,100 @@ public interface MasterQueryRepository {
      */
     List<MasterQueryConfigDTO> getAllMasterQueries(String userRole, String correlationId);
 
+    // =========================================================================
+    // MASTER QUERY CRUD OPERATIONS
+    // =========================================================================
+
+    /**
+     * Create a new master query configuration.
+     * 
+     * @param sourceSystem Source system identifier
+     * @param queryName Descriptive name for the query
+     * @param description Human-readable description
+     * @param queryType Type of query (SELECT, WITH)
+     * @param querySql SQL query content
+     * @param dataClassification Data classification level
+     * @param securityClassification Security classification level
+     * @param createdBy User creating the query
+     * @param correlationId Correlation ID for audit trail
+     * @return Created master query configuration
+     * @throws QuerySecurityException if user lacks permissions
+     * @throws QueryExecutionException if creation fails
+     */
+    MasterQueryConfigDTO createMasterQuery(String sourceSystem, String queryName, String description,
+                                         String queryType, String querySql, String dataClassification,
+                                         String securityClassification, String createdBy, String correlationId);
+
+    /**
+     * Update an existing master query configuration.
+     * 
+     * @param id Master query ID to update
+     * @param currentVersion Expected current version for optimistic locking
+     * @param sourceSystem Updated source system (null if not changing)
+     * @param queryName Updated query name (null if not changing)
+     * @param description Updated description (null if not changing)
+     * @param queryType Updated query type (null if not changing)
+     * @param querySql Updated SQL (null if not changing)
+     * @param isActive Updated active status (null if not changing)
+     * @param dataClassification Updated data classification (null if not changing)
+     * @param securityClassification Updated security classification (null if not changing)
+     * @param modifiedBy User modifying the query
+     * @param isMajorChange Whether this is a major change requiring version increment
+     * @param correlationId Correlation ID for audit trail
+     * @return Updated master query configuration
+     * @throws QuerySecurityException if user lacks permissions
+     * @throws QueryExecutionException if update fails
+     */
+    MasterQueryConfigDTO updateMasterQuery(Long id, Integer currentVersion, String sourceSystem,
+                                         String queryName, String description, String queryType,
+                                         String querySql, String isActive, String dataClassification,
+                                         String securityClassification, String modifiedBy,
+                                         boolean isMajorChange, String correlationId);
+
+    /**
+     * Soft delete a master query configuration.
+     * 
+     * @param id Master query ID to delete
+     * @param deletedBy User deleting the query
+     * @param deleteJustification Business justification for deletion
+     * @param correlationId Correlation ID for audit trail
+     * @return True if deletion successful
+     * @throws QuerySecurityException if user lacks permissions
+     * @throws QueryExecutionException if deletion fails
+     */
+    boolean softDeleteMasterQuery(Long id, String deletedBy, String deleteJustification, String correlationId);
+
+    /**
+     * Get a specific master query by ID.
+     * 
+     * @param id Master query ID
+     * @param correlationId Correlation ID for audit trail
+     * @return Master query configuration or null if not found
+     * @throws QueryExecutionException if retrieval fails
+     */
+    MasterQueryConfigDTO getMasterQueryById(Long id, String correlationId);
+
+    /**
+     * Check if a query name already exists in the source system.
+     * 
+     * @param sourceSystem Source system to check
+     * @param queryName Query name to check
+     * @param correlationId Correlation ID for audit trail
+     * @return True if name exists
+     * @throws QueryExecutionException if check fails
+     */
+    boolean queryNameExists(String sourceSystem, String queryName, String correlationId);
+
+    /**
+     * Check if a master query is currently in use by active job configurations.
+     * 
+     * @param id Master query ID to check
+     * @param correlationId Correlation ID for audit trail
+     * @return True if query is in use
+     * @throws QueryExecutionException if check fails
+     */
+    boolean isMasterQueryInUse(Long id, String correlationId);
+
     /**
      * Custom exceptions for master query operations.
      */

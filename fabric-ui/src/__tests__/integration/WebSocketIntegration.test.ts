@@ -243,7 +243,7 @@ class IntegrationMockWebSocket {
     this.simulateClose(code || 1000, reason || 'Normal closure');
   }
 
-  private simulateClose(code: number, reason: string) {
+  public simulateClose(code: number, reason: string) {
     this.readyState = IntegrationMockWebSocket.CLOSED;
     const closeEvent = new CloseEvent('close', {
       code,
@@ -566,10 +566,10 @@ describe('WebSocket Integration Tests', () => {
     });
 
     it('should queue messages during disconnection', async () => {
-      const testMessages = [
-        { type: 'CLIENT_MESSAGE', payload: { id: 1 }, timestamp: new Date().toISOString(), correlationId: 'msg-1' },
-        { type: 'CLIENT_MESSAGE', payload: { id: 2 }, timestamp: new Date().toISOString(), correlationId: 'msg-2' },
-        { type: 'CLIENT_MESSAGE', payload: { id: 3 }, timestamp: new Date().toISOString(), correlationId: 'msg-3' }
+      const testMessages: WebSocketMessage[] = [
+        { type: 'CLIENT_MESSAGE' as const, payload: { id: 1 }, timestamp: new Date().toISOString(), correlationId: 'msg-1' },
+        { type: 'CLIENT_MESSAGE' as const, payload: { id: 2 }, timestamp: new Date().toISOString(), correlationId: 'msg-2' },
+        { type: 'CLIENT_MESSAGE' as const, payload: { id: 3 }, timestamp: new Date().toISOString(), correlationId: 'msg-3' }
       ];
 
       // Disconnect

@@ -131,6 +131,7 @@ public class ManualJobConfigController {
                 request.getJobType(),
                 request.getSourceSystem(),
                 request.getTargetSystem(),
+                request.getMasterQueryId(),
                 convertParametersToJson(request.getJobParameters()),
                 username
             );
@@ -558,6 +559,7 @@ public class ManualJobConfigController {
                 .jobType(entity.getJobType())
                 .sourceSystem(entity.getSourceSystem())
                 .targetSystem(entity.getTargetSystem())
+                .masterQueryId(entity.getMasterQueryId())
                 .jobParameters(parseJsonToMap(entity.getJobParameters()))
                 .status(entity.getStatus())
                 .createdBy(entity.getCreatedBy())

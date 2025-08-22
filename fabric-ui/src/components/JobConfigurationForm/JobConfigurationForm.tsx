@@ -75,6 +75,9 @@ import {
   JobConfigurationResponse,
   ManualJobConfigApiService 
 } from '../../services/api/manualJobConfigApi';
+import { getMasterQueries } from '../../services/api/masterQueryApi';
+import { MasterQuery } from '../../types/masterQuery';
+import { MasterQueryEditor } from '../MasterQueryEditor';
 
 // Form validation schema
 interface FormData extends JobConfigurationRequest {
@@ -154,6 +157,11 @@ export const JobConfigurationForm: React.FC<JobConfigurationFormProps> = React.m
   const { user, hasRole } = useAuth();
   const [loading, setLoading] = useState(false);
   const [sensitiveDataWarning, setSensitiveDataWarning] = useState(false);
+  const [masterQueries, setMasterQueries] = useState<MasterQuery[]>([]);
+  const [loadingMasterQueries, setLoadingMasterQueries] = useState(false);
+  const [masterQueryEditorOpen, setMasterQueryEditorOpen] = useState(false);
+  const [masterQueryMode, setMasterQueryMode] = useState<'create' | 'edit' | 'view'>('create');
+  const [selectedMasterQuery, setSelectedMasterQuery] = useState<any>(null);
   
   // Form setup with react-hook-form
   const {
@@ -182,6 +190,7 @@ export const JobConfigurationForm: React.FC<JobConfigurationFormProps> = React.m
       const formData: Partial<FormData> = {
         ...initialData,
         jobType: initialData.jobType as FormData['jobType'],
+        masterQueryId: initialData.masterQueryId || '',
         priority: (initialData.priority as FormData['priority']) || 'MEDIUM',
         securityClassification: (initialData.securityClassification as FormData['securityClassification']) || 'INTERNAL',
         dataClassification: (initialData.dataClassification as FormData['dataClassification']) || 'INTERNAL',
@@ -210,10 +219,69 @@ export const JobConfigurationForm: React.FC<JobConfigurationFormProps> = React.m
     setSensitiveDataWarning(hasSensitiveData);
   }, [parameterEntries]);
 
+  // Load master queries when form opens
+  useEffect(() => {
+    if (open) {
+      loadMasterQueries();
+    }
+  }, [open]);
+
+  const loadMasterQueries = async () => {
+    setLoadingMasterQueries(true);
+    try {
+      const queries = await getMasterQueries({
+        status: ['ACTIVE'],
+        sortBy: 'name',
+        sortOrder: 'asc'
+      });
+      setMasterQueries(queries);
+    } catch (error) {
+      console.error('Failed to load master queries:', error);
+      // Silently fail - master query selection is optional
+      setMasterQueries([]);
+    } finally {
+      setLoadingMasterQueries(false);
+    }
+  };
+
   // Helper function to detect sensitive parameter keys
   const isLikelySensitiveKey = (key: string): boolean => {
     const sensitiveKeywords = ['password', 'secret', 'key', 'token', 'credential', 'auth'];
     return sensitiveKeywords.some(keyword => key.toLowerCase().includes(keyword));
+  };
+
+  // Master query management functions
+  const handleCreateMasterQuery = () => {
+    setMasterQueryMode('create');
+    setSelectedMasterQuery(null);
+    setMasterQueryEditorOpen(true);
+  };
+
+  const handleEditMasterQuery = (query: MasterQuery) => {
+    setMasterQueryMode('edit');
+    setSelectedMasterQuery(query);
+    setMasterQueryEditorOpen(true);
+  };
+
+  const handleViewMasterQuery = (query: MasterQuery) => {
+    setMasterQueryMode('view');
+    setSelectedMasterQuery(query);
+    setMasterQueryEditorOpen(true);
+  };
+
+  const handleMasterQuerySuccess = (query: any) => {
+    // Refresh the master queries list
+    loadMasterQueries();
+    
+    // If we created a new query, select it in the form
+    if (masterQueryMode === 'create' && query.id) {
+      setValue('masterQueryId', query.id.toString());
+    }
+  };
+
+  const handleMasterQueryClose = () => {
+    setMasterQueryEditorOpen(false);
+    setSelectedMasterQuery(null);
   };
 
   // Form submission handler
@@ -458,6 +526,134 @@ export const JobConfigurationForm: React.FC<JobConfigurationFormProps> = React.m
                       />
                     )}
                   />
+                </Grid>
+
+                <Grid item xs={12}>
+                  <Box>
+                    <Typography variant="subtitle1" gutterBottom>
+                      Master Query Configuration
+                    </Typography>
+                    
+                    <Grid container spacing={2} alignItems="center">
+                      <Grid item xs={12} md={8}>
+                        <Controller
+                          name="masterQueryId"
+                          control={control}
+                          render={({ field }) => (
+                            <FormControl fullWidth>
+                              <InputLabel>Master Query (Optional)</InputLabel>
+                              <Select
+                                {...field}
+                                label="Master Query (Optional)"
+                                disabled={isReadOnly || loadingMasterQueries}
+                                value={field.value || ''}
+                              >
+                                <MenuItem value="">
+                                  <em>None - No master query</em>
+                                </MenuItem>
+                                {masterQueries.map((query) => (
+                                  <MenuItem key={query.masterQueryId} value={query.masterQueryId}>
+                                    <Box>
+                                      <Typography variant="body2">
+                                        {query.queryName}
+                                      </Typography>
+                                      <Typography variant="caption" color="text.secondary">
+                                        {query.sourceSystem} - v{query.version} - {query.queryDescription || 'No description'}
+                                      </Typography>
+                                    </Box>
+                                  </MenuItem>
+                                ))}
+                              </Select>
+                              <FormHelperText>
+                                {loadingMasterQueries 
+                                  ? 'Loading master queries...' 
+                                  : 'Select a predefined SQL query for this job configuration'
+                                }
+                              </FormHelperText>
+                            </FormControl>
+                          )}
+                        />
+                      </Grid>
+                      
+                      <Grid item xs={12} md={4}>
+                        <Stack direction="row" spacing={1} flexWrap="wrap">
+                          {hasRole('JOB_CREATOR') && (
+                            <Tooltip title="Create a new master query">
+                              <IconButton
+                                onClick={handleCreateMasterQuery}
+                                disabled={isReadOnly}
+                                color="primary"
+                                size="small"
+                              >
+                                <AddIcon />
+                              </IconButton>
+                            </Tooltip>
+                          )}
+                          
+                          {watch('masterQueryId') && (
+                            <>
+                              <Tooltip title="View selected master query">
+                                <IconButton
+                                  onClick={() => {
+                                    const selectedQuery = masterQueries.find(q => q.masterQueryId === watch('masterQueryId'));
+                                    if (selectedQuery) handleViewMasterQuery(selectedQuery);
+                                  }}
+                                  color="info"
+                                  size="small"
+                                >
+                                  <VisibilityIcon />
+                                </IconButton>
+                              </Tooltip>
+                              
+                              {hasRole('JOB_MODIFIER') && (
+                                <Tooltip title="Edit selected master query">
+                                  <IconButton
+                                    onClick={() => {
+                                      const selectedQuery = masterQueries.find(q => q.masterQueryId === watch('masterQueryId'));
+                                      if (selectedQuery) handleEditMasterQuery(selectedQuery);
+                                    }}
+                                    disabled={isReadOnly}
+                                    color="warning"
+                                    size="small"
+                                  >
+                                    <EditIcon />
+                                  </IconButton>
+                                </Tooltip>
+                              )}
+                            </>
+                          )}
+                        </Stack>
+                      </Grid>
+                    </Grid>
+                    
+                    {watch('masterQueryId') && (
+                      <Box mt={2}>
+                        {(() => {
+                          const selectedQuery = masterQueries.find(q => q.masterQueryId === watch('masterQueryId'));
+                          if (selectedQuery) {
+                            return (
+                              <Alert severity="info" sx={{ mt: 1 }}>
+                                <Typography variant="body2">
+                                  <strong>Selected Query:</strong> {selectedQuery.queryName} (v{selectedQuery.version})
+                                </Typography>
+                                <Typography variant="body2" color="text.secondary">
+                                  <strong>Source:</strong> {selectedQuery.sourceSystem} | 
+                                  <strong> Type:</strong> {selectedQuery.queryType} | 
+                                  <strong> Classification:</strong> {selectedQuery.dataClassification}
+                                </Typography>
+                                {selectedQuery.queryDescription && (
+                                  <Typography variant="body2" sx={{ mt: 0.5 }}>
+                                    {selectedQuery.queryDescription}
+                                  </Typography>
+                                )}
+                              </Alert>
+                            );
+                          }
+                          return null;
+                        })()}
+                      </Box>
+                    )}
+                  </Box>
                 </Grid>
 
                 <Grid item xs={12}>
@@ -839,6 +1035,15 @@ export const JobConfigurationForm: React.FC<JobConfigurationFormProps> = React.m
           </Stack>
         </DialogActions>
       </form>
+
+      {/* Master Query Editor Dialog */}
+      <MasterQueryEditor
+        open={masterQueryEditorOpen}
+        onClose={handleMasterQueryClose}
+        onSuccess={handleMasterQuerySuccess}
+        mode={masterQueryMode}
+        initialData={selectedMasterQuery}
+      />
     </Dialog>
   );
 });
