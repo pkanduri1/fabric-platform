@@ -1,6 +1,7 @@
 package com.truist.batch.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.truist.batch.validation.ValidSourceSystem;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.*;
 import lombok.Builder;
@@ -37,15 +38,13 @@ public class MasterQueryCreateRequest {
 
     /**
      * Source system identifier for data integration.
-     * Must be from approved list: ENCORE, ATLAS, CORE_BANKING, RISK_ENGINE
+     * Validated dynamically against SOURCE_SYSTEMS database table.
      */
     @NotBlank(message = "Source system is required")
-    @Pattern(regexp = "^(ENCORE|ATLAS|CORE_BANKING|RISK_ENGINE)$", 
-            message = "Source system must be one of: ENCORE, ATLAS, CORE_BANKING, RISK_ENGINE")
+    @ValidSourceSystem(message = "Source system must exist in the database and be enabled")
     @JsonProperty("sourceSystem")
-    @Schema(description = "Source system identifier", 
-            example = "ENCORE",
-            allowableValues = {"ENCORE", "ATLAS", "CORE_BANKING", "RISK_ENGINE"})
+    @Schema(description = "Source system identifier - validated against SOURCE_SYSTEMS database table", 
+            example = "ENCORE")
     private String sourceSystem;
 
     /**
@@ -73,15 +72,15 @@ public class MasterQueryCreateRequest {
     /**
      * Type of query operation (SELECT, WITH).
      * Banking regulation: Only read-only operations allowed
+     * Defaults to "SELECT" if not specified.
      */
-    @NotBlank(message = "Query type is required")
     @Pattern(regexp = "^(SELECT|WITH)$", 
             message = "Query type must be SELECT or WITH")
     @JsonProperty("queryType")
     @Schema(description = "Type of query operation", 
             example = "SELECT",
             allowableValues = {"SELECT", "WITH"})
-    private String queryType;
+    private String queryType = "SELECT";
 
     /**
      * SQL query content with parameter placeholders.
@@ -224,15 +223,13 @@ public class MasterQueryCreateRequest {
 
     /**
      * Check if source system is recognized.
+     * NOTE: This method is deprecated - validation is now handled by @ValidSourceSystem annotation
      */
+    @Deprecated
     public boolean isValidSourceSystem() {
-        String[] validSystems = {"ENCORE", "ATLAS", "CORE_BANKING", "RISK_ENGINE"};
-        for (String system : validSystems) {
-            if (system.equalsIgnoreCase(this.sourceSystem)) {
-                return true;
-            }
-        }
-        return false;
+        // Validation is now handled by @ValidSourceSystem annotation
+        // which checks against the actual SOURCE_SYSTEMS database table
+        return sourceSystem != null && !sourceSystem.trim().isEmpty();
     }
 
     /**

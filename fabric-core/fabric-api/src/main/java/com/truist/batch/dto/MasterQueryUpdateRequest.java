@@ -1,6 +1,7 @@
 package com.truist.batch.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.truist.batch.validation.ValidSourceSystem;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.*;
 import lombok.Builder;
@@ -60,13 +61,12 @@ public class MasterQueryUpdateRequest {
     /**
      * Source system identifier for data integration.
      * Can be updated if data source changes.
+     * Validated dynamically against SOURCE_SYSTEMS database table.
      */
-    @Pattern(regexp = "^(ENCORE|ATLAS|CORE_BANKING|RISK_ENGINE)$", 
-            message = "Source system must be one of: ENCORE, ATLAS, CORE_BANKING, RISK_ENGINE")
+    @ValidSourceSystem(allowEmpty = true, message = "Source system must exist in the database and be enabled")
     @JsonProperty("sourceSystem")
-    @Schema(description = "Source system identifier", 
-            example = "ENCORE",
-            allowableValues = {"ENCORE", "ATLAS", "CORE_BANKING", "RISK_ENGINE"})
+    @Schema(description = "Source system identifier - validated against SOURCE_SYSTEMS database table", 
+            example = "ENCORE")
     private String sourceSystem;
 
     /**
@@ -244,17 +244,13 @@ public class MasterQueryUpdateRequest {
 
     /**
      * Check if source system is recognized.
+     * NOTE: This method is deprecated - validation is now handled by @ValidSourceSystem annotation
      */
+    @Deprecated
     public boolean isValidSourceSystem() {
-        if (sourceSystem == null) return true; // Not being updated
-        
-        String[] validSystems = {"ENCORE", "ATLAS", "CORE_BANKING", "RISK_ENGINE"};
-        for (String system : validSystems) {
-            if (system.equalsIgnoreCase(this.sourceSystem)) {
-                return true;
-            }
-        }
-        return false;
+        // Validation is now handled by @ValidSourceSystem annotation
+        // which checks against the actual SOURCE_SYSTEMS database table
+        return true; // Annotation handles the validation
     }
 
     /**

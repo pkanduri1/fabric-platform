@@ -73,28 +73,15 @@ import {
 } from '@mui/material';
 import {
   ExpandMore as ExpandMoreIcon,
-  Help as HelpIcon,
-  Warning as WarningIcon,
-  Security as SecurityIcon,
   Save as SaveIcon,
-  Cancel as CancelIcon,
   Code as CodeIcon,
-  PlayArrow as PlayArrowIcon,
-  CheckCircle as CheckCircleIcon,
-  Error as ErrorIcon,
-  Psychology as TemplateIcon,
-  Visibility as PreviewIcon,
-  Settings as SettingsIcon,
-  Assignment as DocumentIcon
 } from '@mui/icons-material';
 import { useAuth } from '../../contexts/AuthContext';
+import { useSourceSystems } from '../../hooks/useSourceSystems';
 import { 
   masterQueryCrudApi,
   MasterQueryCreateRequest,
   MasterQueryUpdateRequest,
-  ValidationResult as ApiValidationResult,
-  TemplateCategory as ApiTemplateCategory,
-  QueryTemplate as ApiQueryTemplate
 } from '../../services/api/masterQueryCrudApi';
 
 // Form data interface for master query creation/editing
@@ -112,16 +99,11 @@ interface MasterQueryFormData {
   changeJustification?: string;
   changeSummary?: string;
   complianceTags: string[];
-  templateCategory?: string;
-  templateName?: string;
   createNewVersion?: boolean;
   preserveOldVersion?: boolean;
 }
 
 // Use API types for consistency
-type ValidationResult = ApiValidationResult;
-type QueryTemplate = ApiQueryTemplate;
-type TemplateCategory = ApiTemplateCategory;
 
 // Component props
 interface MasterQueryEditorProps {
@@ -132,13 +114,7 @@ interface MasterQueryEditorProps {
   initialData?: any;
 }
 
-// Constants
-const SOURCE_SYSTEMS = [
-  { value: 'ENCORE', label: 'ENCORE Transaction System' },
-  { value: 'ATLAS', label: 'ATLAS Customer System' },
-  { value: 'CORE_BANKING', label: 'Core Banking System' },
-  { value: 'RISK_ENGINE', label: 'Risk Engine System' }
-];
+// Note: SOURCE_SYSTEMS now loaded dynamically from useSourceSystems hook
 
 const DATA_CLASSIFICATIONS = [
   { value: 'PUBLIC', label: 'Public Data' },
@@ -146,6 +122,7 @@ const DATA_CLASSIFICATIONS = [
   { value: 'SENSITIVE', label: 'Sensitive Data' },
   { value: 'CONFIDENTIAL', label: 'Confidential Data' }
 ];
+
 
 const SECURITY_CLASSIFICATIONS = [
   { value: 'PUBLIC', label: 'Public' },
@@ -177,13 +154,10 @@ export const MasterQueryEditor: React.FC<MasterQueryEditorProps> = ({
   initialData
 }) => {
   const { user, hasRole } = useAuth();
+  const { sourceSystems, isLoading: sourceSystemsLoading } = useSourceSystems();
   const [loading, setLoading] = useState(false);
   const [validating, setValidating] = useState(false);
-  const [validationResult, setValidationResult] = useState<ValidationResult | null>(null);
-  const [templates, setTemplates] = useState<TemplateCategory[]>([]);
-  const [selectedTemplate, setSelectedTemplate] = useState<QueryTemplate | null>(null);
   const [activeTab, setActiveTab] = useState(0);
-  const [showTemplates, setShowTemplates] = useState(false);
   const [extractedParameters, setExtractedParameters] = useState<string[]>([]);
 
   // Form setup
@@ -221,25 +195,7 @@ export const MasterQueryEditor: React.FC<MasterQueryEditorProps> = ({
     }
   }, [initialData, open, mode, reset]);
 
-  // Load templates when form opens
-  useEffect(() => {
-    if (open) {
-      loadTemplates();
-    }
-  }, [open]);
 
-  // Real-time SQL validation
-  useEffect(() => {
-    if (querySql && querySql.trim().length > 10) {
-      const timeoutId = setTimeout(() => {
-        validateSql(querySql);
-      }, 500); // Debounce validation
-
-      return () => clearTimeout(timeoutId);
-    } else {
-      setValidationResult(null);
-    }
-  }, [querySql]);
 
   // Extract parameters from SQL
   useEffect(() => {
@@ -251,43 +207,7 @@ export const MasterQueryEditor: React.FC<MasterQueryEditorProps> = ({
     }
   }, [querySql]);
 
-  // Load query templates
-  const loadTemplates = async () => {
-    try {
-      const response = await masterQueryCrudApi.getQueryTemplates();
-      setTemplates(response.categories || []);
-    } catch (error) {
-      console.error('Failed to load templates:', error);
-      setTemplates([]);
-    }
-  };
 
-  // Validate SQL query
-  const validateSql = async (sql: string) => {
-    setValidating(true);
-    try {
-      const result = await masterQueryCrudApi.validateSqlQuery({
-        querySql: sql,
-        queryType: 'SELECT',
-        sourceSystem
-      });
-      setValidationResult(result);
-    } catch (error) {
-      console.error('SQL validation failed:', error);
-      setValidationResult({
-        valid: false,
-        securityRisk: 'HIGH',
-        errors: [{ type: 'VALIDATION_ERROR', message: 'Failed to validate SQL query' }],
-        warnings: [],
-        checks: [],
-        correlationId: '',
-        validatedAt: new Date().toISOString(),
-        validatedBy: user?.username || 'unknown'
-      });
-    } finally {
-      setValidating(false);
-    }
-  };
 
   // Extract parameters from SQL
   const extractParametersFromSql = (sql: string): string[] => {
@@ -296,17 +216,6 @@ export const MasterQueryEditor: React.FC<MasterQueryEditorProps> = ({
     return matches ? Array.from(new Set(matches.map(match => match.substring(1)))) : [];
   };
 
-  // Apply template to form
-  const applyTemplate = useCallback((template: QueryTemplate) => {
-    setValue('querySql', template.sql);
-    setValue('templateName', template.name);
-    setValue('description', template.description);
-    setSelectedTemplate(template);
-    setShowTemplates(false);
-    
-    // Trigger validation
-    setTimeout(() => trigger('querySql'), 100);
-  }, [setValue, trigger]);
 
   // Form submission
   const onSubmit = async (data: MasterQueryFormData) => {
@@ -319,14 +228,12 @@ export const MasterQueryEditor: React.FC<MasterQueryEditorProps> = ({
           sourceSystem: data.sourceSystem,
           queryName: data.queryName,
           description: data.description,
-          queryType: data.queryType,
+          queryType: data.queryType || 'SELECT',  // Ensure queryType is always provided
           querySql: data.querySql,
           dataClassification: data.dataClassification,
           securityClassification: data.securityClassification,
           businessJustification: data.businessJustification,
           complianceTags: data.complianceTags,
-          templateCategory: data.templateCategory,
-          templateName: data.templateName
         };
         result = await masterQueryCrudApi.createMasterQuery(createRequest);
       } else if (mode === 'edit') {
@@ -336,7 +243,7 @@ export const MasterQueryEditor: React.FC<MasterQueryEditorProps> = ({
           sourceSystem: data.sourceSystem,
           queryName: data.queryName,
           description: data.description,
-          queryType: data.queryType,
+          queryType: data.queryType || 'SELECT',  // Ensure queryType is always provided
           querySql: data.querySql,
           dataClassification: data.dataClassification,
           securityClassification: data.securityClassification,
@@ -359,76 +266,6 @@ export const MasterQueryEditor: React.FC<MasterQueryEditorProps> = ({
     }
   };
 
-  // Render validation status
-  const renderValidationStatus = () => {
-    if (validating) {
-      return (
-        <Box display="flex" alignItems="center" gap={1}>
-          <CircularProgress size={16} />
-          <Typography variant="body2">Validating SQL...</Typography>
-        </Box>
-      );
-    }
-
-    if (!validationResult) {
-      return null;
-    }
-
-    const { valid, securityRisk, errors, warnings } = validationResult;
-    
-    return (
-      <Stack spacing={1}>
-        <Box display="flex" alignItems="center" gap={1}>
-          {valid ? (
-            <CheckCircleIcon color="success" />
-          ) : (
-            <ErrorIcon color="error" />
-          )}
-          <Typography variant="body2" color={valid ? 'success.main' : 'error.main'}>
-            {valid ? 'SQL validation passed' : 'SQL validation failed'}
-          </Typography>
-          <Chip 
-            label={`Risk: ${securityRisk}`} 
-            size="small"
-            color={securityRisk === 'MINIMAL' || securityRisk === 'LOW' ? 'success' : 
-                   securityRisk === 'MEDIUM' ? 'warning' : 'error'}
-          />
-        </Box>
-
-        {errors.length > 0 && (
-          <Alert severity="error">
-            <Typography variant="subtitle2">Validation Errors:</Typography>
-            <List dense>
-              {errors.map((error, index) => (
-                <ListItem key={index}>
-                  <ListItemText 
-                    primary={error.message}
-                    secondary={error.type}
-                  />
-                </ListItem>
-              ))}
-            </List>
-          </Alert>
-        )}
-
-        {warnings.length > 0 && (
-          <Alert severity="warning">
-            <Typography variant="subtitle2">Warnings:</Typography>
-            <List dense>
-              {warnings.map((warning, index) => (
-                <ListItem key={index}>
-                  <ListItemText 
-                    primary={warning.message}
-                    secondary={warning.type}
-                  />
-                </ListItem>
-              ))}
-            </List>
-          </Alert>
-        )}
-      </Stack>
-    );
-  };
 
   // Render parameter list
   const renderParameterList = () => {
@@ -459,85 +296,6 @@ export const MasterQueryEditor: React.FC<MasterQueryEditorProps> = ({
     );
   };
 
-  // Render template selector
-  const renderTemplateSelector = () => {
-    if (!showTemplates) {
-      return (
-        <Button
-          startIcon={<TemplateIcon />}
-          onClick={() => setShowTemplates(true)}
-          disabled={isReadOnly}
-        >
-          Browse Templates
-        </Button>
-      );
-    }
-
-    return (
-      <Card>
-        <CardContent>
-          <Box display="flex" justifyContent="between" alignItems="center" mb={2}>
-            <Typography variant="h6">Query Templates</Typography>
-            <Button onClick={() => setShowTemplates(false)}>
-              Close
-            </Button>
-          </Box>
-
-          {templates.map((category, categoryIndex) => (
-            <Accordion key={categoryIndex}>
-              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                <Typography variant="subtitle1">{category.name}</Typography>
-                <Typography variant="body2" color="text.secondary" sx={{ ml: 2 }}>
-                  {category.description}
-                </Typography>
-              </AccordionSummary>
-              <AccordionDetails>
-                <Stack spacing={1}>
-                  {category.templates.map((template, templateIndex) => (
-                    <Card key={templateIndex} variant="outlined">
-                      <CardContent sx={{ p: 2 }}>
-                        <Box display="flex" justifyContent="space-between" alignItems="start">
-                          <Box flex={1}>
-                            <Typography variant="subtitle2">{template.name}</Typography>
-                            <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-                              {template.description}
-                            </Typography>
-                            <Typography variant="body2" sx={{ fontFamily: 'monospace', fontSize: '0.8rem' }}>
-                              {template.sql.substring(0, 100)}...
-                            </Typography>
-                            {template.parameters.length > 0 && (
-                              <Box mt={1}>
-                                <Typography variant="caption">Parameters: </Typography>
-                                {template.parameters.map((param, paramIndex) => (
-                                  <Chip 
-                                    key={paramIndex}
-                                    label={param}
-                                    size="small"
-                                    sx={{ ml: 0.5, fontSize: '0.7rem', height: 20 }}
-                                  />
-                                ))}
-                              </Box>
-                            )}
-                          </Box>
-                          <Button
-                            size="small"
-                            onClick={() => applyTemplate(template)}
-                            disabled={isReadOnly}
-                          >
-                            Use Template
-                          </Button>
-                        </Box>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </Stack>
-              </AccordionDetails>
-            </Accordion>
-          ))}
-        </CardContent>
-      </Card>
-    );
-  };
 
   return (
     <Dialog
@@ -557,13 +315,6 @@ export const MasterQueryEditor: React.FC<MasterQueryEditorProps> = ({
              mode === 'edit' ? 'Edit Master Query' :
              'View Master Query'}
           </Typography>
-          {mode !== 'view' && validationResult && (
-            <Chip 
-              label={validationResult.valid ? 'Valid' : 'Invalid'}
-              color={validationResult.valid ? 'success' : 'error'}
-              size="small"
-            />
-          )}
         </Box>
       </DialogTitle>
 
@@ -572,8 +323,6 @@ export const MasterQueryEditor: React.FC<MasterQueryEditorProps> = ({
           <Tabs value={activeTab} onChange={(_, newValue) => setActiveTab(newValue)}>
             <Tab label="Query Details" />
             <Tab label="SQL Editor" />
-            <Tab label="Validation" />
-            <Tab label="Templates" disabled={mode === 'view'} />
           </Tabs>
         </Box>
 
@@ -592,16 +341,29 @@ export const MasterQueryEditor: React.FC<MasterQueryEditorProps> = ({
                       <Select
                         {...field}
                         label="Source System *"
-                        disabled={isReadOnly}
+                        disabled={isReadOnly || sourceSystemsLoading}
                       >
-                        {SOURCE_SYSTEMS.map(system => (
-                          <MenuItem key={system.value} value={system.value}>
-                            {system.label}
+                        {sourceSystemsLoading ? (
+                          <MenuItem disabled>
+                            <em>Loading source systems...</em>
                           </MenuItem>
-                        ))}
+                        ) : sourceSystems.length === 0 ? (
+                          <MenuItem disabled>
+                            <em>No source systems available - please contact administrator</em>
+                          </MenuItem>
+                        ) : (
+                          sourceSystems.map(system => (
+                            <MenuItem key={system.id} value={system.id}>
+                              {system.name} - {system.systemType}
+                            </MenuItem>
+                          ))
+                        )}
                       </Select>
                       <FormHelperText>
-                        {errors.sourceSystem?.message || 'Select the source system for data integration'}
+                        {errors.sourceSystem?.message || 
+                         sourceSystemsLoading ? 'Loading available source systems...' :
+                         sourceSystems.length === 0 ? 'No source systems available' :
+                         'Select the source system for data integration'}
                       </FormHelperText>
                     </FormControl>
                   )}
@@ -864,97 +626,11 @@ export const MasterQueryEditor: React.FC<MasterQueryEditorProps> = ({
                 )}
               />
 
-              {validating && <LinearProgress />}
-              {renderValidationStatus()}
               {renderParameterList()}
             </Stack>
           )}
 
-          {/* Validation Tab */}
-          {activeTab === 2 && (
-            <Stack spacing={3}>
-              <Typography variant="h6">SQL Validation Results</Typography>
-              {validationResult ? (
-                <Stack spacing={2}>
-                  {renderValidationStatus()}
-                  
-                  {validationResult.checks.length > 0 && (
-                    <Card>
-                      <CardContent>
-                        <Typography variant="subtitle1" gutterBottom>
-                          Validation Checks Performed
-                        </Typography>
-                        <List>
-                          {validationResult.checks.map((check, index) => (
-                            <ListItem key={index}>
-                              <ListItemIcon>
-                                <CheckCircleIcon color="success" />
-                              </ListItemIcon>
-                              <ListItemText
-                                primary={check.message}
-                                secondary={check.type}
-                              />
-                            </ListItem>
-                          ))}
-                        </List>
-                      </CardContent>
-                    </Card>
-                  )}
 
-                  <Card>
-                    <CardContent>
-                      <Typography variant="subtitle1" gutterBottom>
-                        Query Analysis
-                      </Typography>
-                      <Grid container spacing={2}>
-                        <Grid item xs={6} md={3}>
-                          <Typography variant="body2" color="text.secondary">
-                            Security Risk
-                          </Typography>
-                          <Chip 
-                            label={validationResult.securityRisk}
-                            color={validationResult.securityRisk === 'MINIMAL' || validationResult.securityRisk === 'LOW' ? 'success' : 
-                                   validationResult.securityRisk === 'MEDIUM' ? 'warning' : 'error'}
-                          />
-                        </Grid>
-                        <Grid item xs={6} md={3}>
-                          <Typography variant="body2" color="text.secondary">
-                            Parameters
-                          </Typography>
-                          <Typography variant="body1">
-                            {validationResult.parameterCount || 0}
-                          </Typography>
-                        </Grid>
-                        <Grid item xs={6} md={3}>
-                          <Typography variant="body2" color="text.secondary">
-                            Complexity
-                          </Typography>
-                          <Typography variant="body1">
-                            {validationResult.complexityLevel || 'Unknown'}
-                          </Typography>
-                        </Grid>
-                        <Grid item xs={6} md={3}>
-                          <Typography variant="body2" color="text.secondary">
-                            Status
-                          </Typography>
-                          <Typography variant="body1" color={validationResult.valid ? 'success.main' : 'error.main'}>
-                            {validationResult.valid ? 'Valid' : 'Invalid'}
-                          </Typography>
-                        </Grid>
-                      </Grid>
-                    </CardContent>
-                  </Card>
-                </Stack>
-              ) : (
-                <Alert severity="info">
-                  Enter a SQL query in the SQL Editor tab to see validation results.
-                </Alert>
-              )}
-            </Stack>
-          )}
-
-          {/* Templates Tab */}
-          {activeTab === 3 && renderTemplateSelector()}
         </Box>
       </DialogContent>
 
@@ -967,7 +643,7 @@ export const MasterQueryEditor: React.FC<MasterQueryEditorProps> = ({
           <Button
             onClick={handleSubmit(onSubmit)}
             variant="contained"
-            disabled={loading || !isValid || (validationResult ? !validationResult.valid : false)}
+            disabled={loading || !isValid}
             startIcon={loading ? <CircularProgress size={16} /> : <SaveIcon />}
           >
             {loading 

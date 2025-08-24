@@ -3,8 +3,11 @@ package com.truist.batch.controller;
 import com.truist.batch.dto.MasterQueryRequest;
 import com.truist.batch.dto.MasterQueryResponse;
 import com.truist.batch.dto.MasterQueryConfigDTO;
+import com.truist.batch.dto.MasterQueryCreateRequest;
+import com.truist.batch.dto.MasterQueryUpdateRequest;
 import com.truist.batch.repository.MasterQueryRepository;
 import com.truist.batch.service.MasterQueryService;
+import com.truist.batch.service.MasterQueryValidationService;
 import com.truist.batch.service.SmartFieldMappingService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -28,6 +31,7 @@ import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 /**
  * =========================================================================
