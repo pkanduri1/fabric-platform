@@ -41,6 +41,9 @@ import com.truist.batch.repository.FieldTemplateRepository;
 import com.truist.batch.repository.FileTypeTemplateRepository;
 import com.truist.batch.service.AuditService;
 import com.truist.batch.service.TemplateService;
+import com.truist.batch.service.TemplateSourceMappingService;
+import com.truist.batch.dto.TemplateSourceMappingResponse;
+import com.truist.batch.dto.FieldMappingDto;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -62,6 +65,9 @@ public class TemplateServiceImpl implements TemplateService {
 	
 	@Autowired
 	private JdbcTemplate jdbcTemplate;
+	
+	@Autowired
+	private TemplateSourceMappingService templateSourceMappingService;
 	
 	// Constructor to verify injection
 	public TemplateServiceImpl(FieldTemplateRepository fieldTemplateRepository, 
@@ -134,13 +140,174 @@ public class TemplateServiceImpl implements TemplateService {
 	@Override
 	public FieldMappingConfig createConfigurationFromTemplate(String fileType, String transactionType,
 			String sourceSystem, String jobName, String createdBy) {
-		log.info("Creating configuration from template: {}/{} for {}.{}", fileType, transactionType, sourceSystem,
-				jobName);
+		return createConfigurationFromTemplate(fileType, transactionType, sourceSystem, jobName, createdBy, null);
+	}
 
+	/**
+	 * Create configuration from template with optional user-provided constant values.
+	 * This method first tries to use saved template-source mappings, falling back to hardcoded logic if none exist.
+	 * 
+	 * @param fileType the file type
+	 * @param transactionType the transaction type
+	 * @param sourceSystem the source system
+	 * @param jobName the job name
+	 * @param createdBy the creator
+	 * @param userProvidedConstants map of field names to user-provided constant values (optional)
+	 * @return the generated field mapping configuration
+	 */
+	public FieldMappingConfig createConfigurationFromTemplate(String fileType, String transactionType,
+			String sourceSystem, String jobName, String createdBy, Map<String, String> userProvidedConstants) {
+		log.info("🔍 TRACE: Creating configuration from template: {}/{} for {}.{} with user constants: {}", 
+				fileType, transactionType, sourceSystem, jobName, userProvidedConstants != null ? userProvidedConstants.size() : 0);
+
+		// Try to get saved template-source mappings first
+		TemplateSourceMappingResponse savedMappings = null;
+		try {
+			log.info("🔍 TRACE: Looking for saved template-source mappings for {}/{} -> {}", fileType, transactionType, sourceSystem);
+			log.info("🔍 TRACE: templateSourceMappingService is null? {}", templateSourceMappingService == null);
+			log.info("🔍 TRACE: About to call templateSourceMappingService.getTemplateSourceMapping({}, {}, {})", fileType, transactionType, sourceSystem);
+			savedMappings = templateSourceMappingService.getTemplateSourceMapping(fileType, transactionType, sourceSystem);
+			log.info("🔍 TRACE: templateSourceMappingService.getTemplateSourceMapping returned: {}", savedMappings != null ? "not null" : "null");
+			
+			if (savedMappings != null && savedMappings.getFieldMappings() != null && !savedMappings.getFieldMappings().isEmpty()) {
+				log.info("🔍 TRACE: Found {} saved template-source mappings for {}/{} -> {}", 
+					savedMappings.getFieldMappings().size(), fileType, transactionType, sourceSystem);
+				
+				// Log details of the saved mappings
+				savedMappings.getFieldMappings().forEach(mapping -> {
+					log.info("🔍 TRACE: Saved mapping - field={}, transformationType={}, sourceField={}, value={}, defaultValue={}", 
+						mapping.getTargetFieldName(), mapping.getTransformationType(), mapping.getSourceFieldName(), mapping.getValue(), mapping.getDefaultValue());
+				});
+				
+				FieldMappingConfig configFromSaved = createConfigurationFromSavedMappings(savedMappings, sourceSystem, jobName, createdBy);
+				log.info("🔍 TRACE: Created configuration from saved mappings with {} field mappings", 
+					configFromSaved.getFieldMappings() != null ? configFromSaved.getFieldMappings().size() : 0);
+				
+				// Log details of the created configuration to verify constant values are preserved
+				if (configFromSaved.getFieldMappings() != null) {
+					configFromSaved.getFieldMappings().forEach(fieldMapping -> {
+						log.info("🔍 TRACE: Final field mapping - field={}, transformationType={}, value={}, sourceField={}, defaultValue={}", 
+							fieldMapping.getFieldName(), fieldMapping.getTransformationType(), fieldMapping.getValue(), 
+							fieldMapping.getSourceField(), fieldMapping.getDefaultValue());
+					});
+				}
+				
+				return configFromSaved;
+			} else {
+				log.info("🔍 TRACE: No saved template-source mappings found (response is null or empty)");
+				log.info("🔍 TRACE: savedMappings = {}", savedMappings);
+				if (savedMappings != null) {
+					log.info("🔍 TRACE: savedMappings.getFieldMappings() = {}", savedMappings.getFieldMappings());
+				}
+			}
+		} catch (Exception e) {
+			log.error("🚨 TRACE: Could not retrieve saved template-source mappings for {}/{} -> {}: {}", 
+				fileType, transactionType, sourceSystem, e.getMessage(), e);
+		}
+
+		// Fallback to original hardcoded logic if no saved mappings exist
+		log.info("🔍 TRACE: No saved mappings found, using fallback logic for {}/{} -> {}", fileType, transactionType, sourceSystem);
+		FieldMappingConfig fallbackConfig = createConfigurationFromTemplateFallback(fileType, transactionType, sourceSystem, jobName, createdBy, userProvidedConstants);
+		log.info("🔍 TRACE: Fallback configuration created with {} field mappings", 
+			fallbackConfig.getFieldMappings() != null ? fallbackConfig.getFieldMappings().size() : 0);
+		return fallbackConfig;
+	}
+
+	/**
+	 * Create configuration from saved template-source mappings.
+	 * This preserves the exact transformation types and constant values that the user configured.
+	 */
+	private FieldMappingConfig createConfigurationFromSavedMappings(TemplateSourceMappingResponse savedMappings, 
+			String sourceSystem, String jobName, String createdBy) {
+		
+		log.info("Creating configuration from saved template-source mappings: {} field mappings", 
+			savedMappings.getFieldMappings().size());
+		
+		List<FieldMapping> mappings = new ArrayList<>();
+
+		for (FieldMappingDto savedMapping : savedMappings.getFieldMappings()) {
+			FieldMapping mapping = new FieldMapping();
+			mapping.setFieldName(savedMapping.getTargetFieldName());
+			mapping.setTargetField(savedMapping.getTargetFieldName());
+			mapping.setTargetPosition(savedMapping.getTargetPosition());
+			mapping.setLength(savedMapping.getLength());
+			mapping.setDataType(savedMapping.getDataType() != null ? savedMapping.getDataType().toLowerCase() : "string");
+			mapping.setFormat(null); // FieldMappingDto doesn't have format field
+			mapping.setPad("right"); // Default padding
+			
+			// Use the EXACT transformation type that the user configured
+			String transformationType = savedMapping.getTransformationType();
+			if (transformationType == null || transformationType.trim().isEmpty()) {
+				transformationType = "source"; // Default fallback
+			}
+			mapping.setTransformationType(transformationType);
+			
+			log.debug("Field {}: transformation_type={}, value={}, default_value={}", 
+				savedMapping.getTargetFieldName(), transformationType, savedMapping.getValue(), savedMapping.getDefaultValue());
+			
+			// Handle different transformation types using saved values
+			if ("constant".equals(transformationType)) {
+				// Use the saved constant value
+				String constantValue = savedMapping.getValue();
+				if (constantValue == null || constantValue.trim().isEmpty()) {
+					constantValue = savedMapping.getDefaultValue();
+				}
+				mapping.setValue(constantValue);
+				mapping.setSourceField(null); // Constants don't have source fields
+				log.debug("Using saved constant value for {}: {}", savedMapping.getTargetFieldName(), constantValue);
+			} else {
+				// For source and other types, use the saved source field mapping
+				String sourceField = savedMapping.getSourceFieldName();
+				if (sourceField == null || sourceField.trim().isEmpty()) {
+					// Fallback to field name conversion
+					sourceField = savedMapping.getTargetFieldName().toLowerCase().replace("-", "_");
+				}
+				mapping.setSourceField(sourceField);
+			}
+			
+			// Set default value from saved mappings
+			mapping.setDefaultValue(savedMapping.getDefaultValue());
+			
+			mappings.add(mapping);
+		}
+
+		FieldMappingConfig config = new FieldMappingConfig();
+		config.setSourceSystem(sourceSystem);
+		config.setJobName(jobName);
+		config.setTransactionType(savedMappings.getTransactionType());
+		config.setDescription("Generated from " + savedMappings.getFileType() + "/" + savedMappings.getTransactionType() + 
+			" template with saved user mappings by " + createdBy);
+		config.setFieldMappings(mappings);
+		config.setLastModified(LocalDateTime.now());
+		config.setModifiedBy(createdBy);
+		config.setVersion(1);
+		config.setCreatedDate(LocalDateTime.now());
+		config.setId(sourceSystem + "_" + jobName + "_" + savedMappings.getTransactionType() + "_" + System.currentTimeMillis());
+		
+		log.info("Created configuration from saved mappings with {} field mappings", mappings.size());
+		return config;
+	}
+
+	/**
+	 * Fallback method that uses the original hardcoded logic when no saved mappings exist.
+	 */
+	private FieldMappingConfig createConfigurationFromTemplateFallback(String fileType, String transactionType,
+			String sourceSystem, String jobName, String createdBy, Map<String, String> userProvidedConstants) {
+		
+		log.info("🔍 TRACE: Starting fallback configuration creation for {}/{}", fileType, transactionType);
 		List<FieldTemplate> templates = getFieldTemplatesByFileTypeAndTransactionType(fileType, transactionType);
+		log.info("🔍 TRACE: Found {} templates for {}/{}", templates.size(), fileType, transactionType);
+		
+		// Log template details
+		for (FieldTemplate template : templates) {
+			log.info("🔍 TRACE: Template - field={}, transformationType={}, defaultValue={}", 
+				template.getFieldName(), template.getTransformationType(), template.getDefaultValue());
+		}
+		
 		List<FieldMapping> mappings = new ArrayList<>();
 
 		for (FieldTemplate template : templates) {
+			log.info("🔍 TRACE: Processing template field: {}", template.getFieldName());
 			FieldMapping mapping = new FieldMapping();
 			mapping.setFieldName(template.getFieldName());
 			mapping.setTargetField(template.getFieldName());
@@ -149,8 +316,35 @@ public class TemplateServiceImpl implements TemplateService {
 			mapping.setDataType(template.getDataType().toLowerCase());
 			mapping.setFormat(template.getFormat());
 			mapping.setPad("right"); // Default padding
-			mapping.setTransformationType("source"); // Use source transformation
-			mapping.setSourceField(template.getFieldName().toLowerCase().replace("-", "_")); // Map to potential database column
+			
+			// Determine transformation type intelligently based on field characteristics
+			String transformationType = determineTransformationType(template);
+			log.info("🔍 TRACE: Determined transformation type '{}' for field '{}'", transformationType, template.getFieldName());
+			mapping.setTransformationType(transformationType);
+			
+			// Handle different transformation types appropriately
+			if ("constant".equals(transformationType)) {
+				// For constants, check for user-provided values first
+				String userProvidedValue = null;
+				if (userProvidedConstants != null) {
+					userProvidedValue = userProvidedConstants.get(template.getFieldName());
+				}
+				
+				String constantValue = determineConstantValue(template, transactionType, userProvidedValue);
+				mapping.setValue(constantValue);
+				mapping.setSourceField(null); // Constants don't have source fields
+			} else {
+				// For source and other types, map to potential database column
+				mapping.setSourceField(template.getFieldName().toLowerCase().replace("-", "_"));
+			}
+			
+			// Set default value and transformation config if available
+			mapping.setDefaultValue(template.getDefaultValue());
+			if (template.getTransformationConfig() != null && !template.getTransformationConfig().trim().isEmpty()) {
+				// TODO: Parse and apply transformation config if needed
+				log.debug("Template has transformation config: {}", template.getTransformationConfig());
+			}
+			
 			mappings.add(mapping);
 		}
 
@@ -166,18 +360,32 @@ public class TemplateServiceImpl implements TemplateService {
 		config.setCreatedDate(LocalDateTime.now());
 		config.setId(sourceSystem + "_" + jobName + "_" + transactionType + "_" + System.currentTimeMillis());
 		
-		// Create template metadata (optional - can be null for now)
-		// com.truist.batch.model.TemplateMetadata metadata = new com.truist.batch.model.TemplateMetadata();
-		// metadata.setFileType(fileType);
-		// metadata.setTransactionType(transactionType);
-		// metadata.setTemplateVersion(1);
-		// metadata.setFieldsFromTemplate(mappings.size());
-		// metadata.setTotalFields(mappings.size());
-		// metadata.setGeneratedAt(LocalDateTime.now().toString());
-		// metadata.setGeneratedBy(createdBy);
-		// config.setTemplateMetadata(metadata);
-		
 		return config;
+	}
+
+	/**
+	 * Create configuration from template while preserving user-provided constant values from existing job parameters.
+	 * This method should be used when processing saved user configurations to ensure their constant values are preserved.
+	 * 
+	 * @param fileType the file type
+	 * @param transactionType the transaction type  
+	 * @param sourceSystem the source system
+	 * @param jobName the job name
+	 * @param createdBy the creator
+	 * @param existingJobParametersJson JSON string from saved ManualJobConfigEntity
+	 * @return the generated field mapping configuration with user constants preserved
+	 */
+	public FieldMappingConfig createConfigurationFromTemplateWithUserConstants(
+			String fileType, String transactionType, String sourceSystem, String jobName, 
+			String createdBy, String existingJobParametersJson) {
+		
+		log.info("Creating configuration from template with preserved user constants for: {}/{}", sourceSystem, jobName);
+		
+		// Extract user-provided constants from the saved JSON
+		Map<String, String> userConstants = extractUserProvidedConstants(existingJobParametersJson);
+		
+		// Create configuration using the enhanced method that preserves user constants  
+		return createConfigurationFromTemplate(fileType, transactionType, sourceSystem, jobName, createdBy, userConstants);
 	}
 
 	@Override
@@ -231,6 +439,8 @@ public class TemplateServiceImpl implements TemplateService {
 			template.setCreatedDate(entity.getCreatedDate()); // Both LocalDateTime
 			template.setDefaultValue(entity.getDefaultValue());
 			template.setValidationRule(entity.getValidationRule());
+			template.setTransformationType(entity.getTransformationType());
+			template.setTransformationConfig(entity.getTransformationConfig());
 			
 			// Handle modifiedBy and modifiedDate mappings
 			template.setModifiedBy(entity.getModifiedBy());
@@ -1324,6 +1534,129 @@ public class TemplateServiceImpl implements TemplateService {
 	    entity.setModifiedBy(fieldTemplate.getModifiedBy());
 	    entity.setVersion(1);
 	    return entity;
+	}
+	
+	/**
+	 * Determine the transformation type for a field template.
+	 * 
+	 * CRITICAL: This method MUST respect frontend-provided transformation types.
+	 * Frontend user selections take absolute precedence over any automated logic.
+	 * 
+	 * Priority order:
+	 * 1. Frontend-provided transformation type (HIGHEST PRIORITY - NEVER OVERRIDE)
+	 * 2. Database stored transformation type (if available)
+	 * 3. Default to "source" if nothing is specified
+	 * 
+	 * @param template the field template containing potential transformation type
+	 * @return the transformation type to use
+	 */
+	private String determineTransformationType(FieldTemplate template) {
+	    // 1. HIGHEST PRIORITY: Use frontend-provided transformation type if available
+	    // This ensures user selections from the UI are NEVER overridden
+	    if (template.getTransformationType() != null && !template.getTransformationType().trim().isEmpty()) {
+	        String frontendType = template.getTransformationType().trim();
+	        log.debug("✅ Using frontend-provided transformation type '{}' for field '{}' - USER SELECTION RESPECTED", 
+	                 frontendType, template.getFieldName());
+	        return frontendType;
+	    }
+	    
+	    // 2. DEFAULT: Use "source" as default when no transformation type is provided
+	    // This is a simple, predictable default that doesn't make assumptions
+	    log.debug("Using default transformation type 'source' for field '{}' (no transformation type provided)", 
+	             template.getFieldName());
+	    return "source";
+	}
+	
+	/**
+	 * Determine appropriate constant value for constant fields
+	 * This provides intelligent defaults when the database doesn't store default values
+	 * IMPORTANT: User-provided values always take precedence over system defaults
+	 */
+	private String determineConstantValue(FieldTemplate template, String transactionType) {
+	    return determineConstantValue(template, transactionType, null);
+	}
+	
+	/**
+	 * Extract user-provided constant values from job parameters JSON
+	 * 
+	 * @param jobParametersJson JSON string containing job parameters
+	 * @return map of field names to constant values for fields with constant transformation type
+	 */
+	public Map<String, String> extractUserProvidedConstants(String jobParametersJson) {
+		Map<String, String> constants = new HashMap<>();
+		
+		if (jobParametersJson == null || jobParametersJson.trim().isEmpty()) {
+			return constants;
+		}
+		
+		try {
+			com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+			com.fasterxml.jackson.databind.JsonNode rootNode = mapper.readTree(jobParametersJson);
+			
+			// Look for fieldMappings array
+			com.fasterxml.jackson.databind.JsonNode fieldMappingsNode = rootNode.get("fieldMappings");
+			if (fieldMappingsNode != null && fieldMappingsNode.isArray()) {
+				for (com.fasterxml.jackson.databind.JsonNode fieldNode : fieldMappingsNode) {
+					String transformationType = getJsonStringValue(fieldNode, "transformationType");
+					if ("constant".equals(transformationType)) {
+						String fieldName = getJsonStringValue(fieldNode, "fieldName");
+						String value = getJsonStringValue(fieldNode, "value");
+						if (fieldName != null && value != null) {
+							constants.put(fieldName, value);
+							log.debug("Extracted user constant: {} = {}", fieldName, value);
+						}
+					}
+				}
+			}
+			
+		} catch (Exception e) {
+			log.warn("Failed to extract user constants from job parameters JSON: {}", e.getMessage());
+		}
+		
+		log.info("Extracted {} user-provided constants from job parameters", constants.size());
+		return constants;
+	}
+	
+	/**
+	 * Helper method to safely get string value from JSON node
+	 */
+	private String getJsonStringValue(com.fasterxml.jackson.databind.JsonNode node, String fieldName) {
+		com.fasterxml.jackson.databind.JsonNode fieldNode = node.get(fieldName);
+		return fieldNode != null && !fieldNode.isNull() ? fieldNode.asText() : null;
+	}
+
+	/**
+	 * Determine appropriate constant value for constant fields with user-provided value support
+	 * CRITICAL: Respects frontend values - does not override user-provided constant values
+	 * 
+	 * @param template the field template
+	 * @param transactionType the transaction type
+	 * @param userProvidedValue the value provided by the user (takes precedence if not null/empty)
+	 * @return the constant value to use
+	 */
+	private String determineConstantValue(FieldTemplate template, String transactionType, String userProvidedValue) {
+	    String fieldName = template.getFieldName();
+	    String defaultValue = template.getDefaultValue();
+	    
+	    // 1. HIGHEST PRIORITY: Return frontend-provided constant value if available
+	    // This ensures user selections from the UI are NEVER overridden
+	    if (userProvidedValue != null && !userProvidedValue.trim().isEmpty()) {
+	        log.debug("✅ Using frontend-provided constant value '{}' for field '{}' - USER INPUT RESPECTED", 
+	                userProvidedValue.trim(), fieldName);
+	        return userProvidedValue.trim();
+	    }
+	    
+	    // 2. SECOND PRIORITY: Use template default value if available (only if no user input)
+	    if (defaultValue != null && !defaultValue.trim().isEmpty()) {
+	        log.debug("Using template default value '{}' for field '{}' (no user input provided)", 
+	                defaultValue.trim(), fieldName);
+	        return defaultValue.trim();
+	    }
+	    
+	    // 3. LOWEST PRIORITY: Return empty string if no frontend value and no template default
+	    // Simple, predictable behavior - no complex field name-based logic
+	    log.debug("No constant value provided from frontend or template default for field '{}' - returning empty string", fieldName);
+	    return "";
 	}
 
 }

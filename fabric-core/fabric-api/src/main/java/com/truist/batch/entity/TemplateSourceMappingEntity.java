@@ -17,8 +17,10 @@ public class TemplateSourceMappingEntity {
     private String jobName;
     private String targetFieldName;
     private String sourceFieldName;
-    private String transformationType = "source";
+    private String transformationType;
     private String transformationConfig;
+    private String value;
+    private String defaultValue;
     private Integer targetPosition;
     private Integer length;
     private String dataType;
@@ -128,6 +130,22 @@ public class TemplateSourceMappingEntity {
         this.transformationConfig = transformationConfig;
     }
 
+    public String getValue() {
+        return value;
+    }
+
+    public void setValue(String value) {
+        this.value = value;
+    }
+
+    public String getDefaultValue() {
+        return defaultValue;
+    }
+
+    public void setDefaultValue(String defaultValue) {
+        this.defaultValue = defaultValue;
+    }
+
     public Integer getTargetPosition() {
         return targetPosition;
     }
@@ -227,6 +245,8 @@ public class TemplateSourceMappingEntity {
                 ", targetFieldName='" + targetFieldName + '\'' +
                 ", sourceFieldName='" + sourceFieldName + '\'' +
                 ", transformationType='" + transformationType + '\'' +
+                ", value='" + value + '\'' +
+                ", defaultValue='" + defaultValue + '\'' +
                 ", enabled='" + enabled + '\'' +
                 '}';
     }

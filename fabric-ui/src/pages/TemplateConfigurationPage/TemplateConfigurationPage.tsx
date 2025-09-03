@@ -70,8 +70,7 @@ import { MasterQueryEditor } from '../../components/MasterQueryEditor';
 const steps = [
     'Select Template', 
     'Master Query Selection', 
-    'Configure Mappings', 
-    'Generate & Save'
+    'Configure Mappings'
 ];
 
 // Internal component to access MasterQueryContext
@@ -288,8 +287,8 @@ const TemplateConfigurationPageContent: React.FC = () => {
                 await masterQueryContext.generateSmartMappings(metadata);
             }
             
-            // Advance to smart mapping step
-            setActiveStep(3);
+            // Stay on current step after query execution
+            // User can proceed manually to configure mappings
             
         } catch (error) {
             console.error('Query execution failed:', error);
@@ -320,7 +319,7 @@ const TemplateConfigurationPageContent: React.FC = () => {
         setAvailableSourceFields(enhancedSourceFields);
         
         // Advance to configure mappings step
-        setActiveStep(4);
+        setActiveStep(2);
     };
     
     const canAdvanceFromStep = (step: number): boolean => {
@@ -331,8 +330,6 @@ const TemplateConfigurationPageContent: React.FC = () => {
                 return selectedMasterQuery !== null;
             case 2: // Configure Mappings
                 return templateFields.length > 0;
-            case 3: // Generate & Save
-                return true;
             default:
                 return true;
         }
@@ -634,7 +631,7 @@ const TemplateConfigurationPageContent: React.FC = () => {
         const result = await response.text();
         console.log('✅ Configuration saved successfully! ID:', result);
         
-        setActiveStep(3); // Move to final step after successful generation
+        // Configuration saved successfully - stay on current step
         const { templateMetadata } = configWithMetadata;
         const successMessage = `✅ Configuration saved successfully!
 
@@ -655,8 +652,7 @@ Configuration ID: ${result}
             } catch (saveError) {
                 console.warn('⚠️ Save operation failed:', saveError);
                 
-                // Show template generation success with next steps
-                setActiveStep(3);
+                // Show template generation success
                 const { templateMetadata } = configWithMetadata;
                 const successMessage = `✅ Template configuration generated successfully!
 
@@ -1414,22 +1410,10 @@ Fields prepared: ${enhancedFields.length}
                             This is the current working method for field mapping configuration.
                         </Alert>
                         
-                        {/* Save Configuration Button for Manual Mappings */}
-                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                        <Box sx={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'center', mb: 2 }}>
                             <Typography variant="body2" color="text.secondary">
                                 Configure your field mappings below, then save the configuration when ready.
                             </Typography>
-                            <Button
-                                variant="contained"
-                                color="primary"
-                                size="medium"
-                                startIcon={loading ? <CircularProgress size={16} /> : <Save />}
-                                onClick={generateConfiguration}
-                                disabled={loading || !localSelectedSourceSystem || !templateJobName || templateFields.length === 0}
-                                sx={{ minWidth: '180px' }}
-                            >
-                                {loading ? 'Saving...' : 'Save Configuration'}
-                            </Button>
                         </Box>
                         
                         {uploadedFileName && (
@@ -1794,135 +1778,85 @@ Fields prepared: ${enhancedFields.length}
                             </Box>
                         )}
 
-                        {/* Bottom Save Configuration Button */}
+                        {/* Save Configuration and Utility Buttons */}
                         {templateFields.length > 0 && (
-                            <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3, pt: 2, borderTop: 1, borderColor: 'divider' }}>
-                                <Button
-                                    variant="contained"
-                                    color="success"
-                                    size="large"
-                                    startIcon={loading ? <CircularProgress size={20} /> : <Save />}
-                                    onClick={generateConfiguration}
-                                    disabled={loading || !localSelectedSourceSystem || !templateJobName}
-                                    sx={{ 
-                                        minWidth: '200px',
-                                        py: 1.5,
-                                        fontSize: '1rem',
-                                        fontWeight: 'bold'
-                                    }}
-                                >
-                                    {loading ? 'Saving Configuration...' : 'Save Field Mappings'}
-                                </Button>
+                            <Box sx={{ mt: 3, pt: 2, borderTop: 1, borderColor: 'divider' }}>
+                                <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
+                                    <Button
+                                        variant="contained"
+                                        color="success"
+                                        size="large"
+                                        startIcon={loading ? <CircularProgress size={20} /> : <Save />}
+                                        onClick={generateConfiguration}
+                                        disabled={loading || !localSelectedSourceSystem || !templateJobName}
+                                        sx={{ 
+                                            minWidth: '200px',
+                                            py: 1.5,
+                                            fontSize: '1rem',
+                                            fontWeight: 'bold'
+                                        }}
+                                    >
+                                        {loading ? 'Saving Configuration...' : 'Save Field Mappings'}
+                                    </Button>
+                                </Box>
+                                
+                                {/* Utility Buttons */}
+                                <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', justifyContent: 'center' }}>
+                                    <Button
+                                        variant="outlined"
+                                        startIcon={<Download />}
+                                        disabled={loading}
+                                        onClick={exportCurrentTemplate}
+                                    >
+                                        Export Template
+                                    </Button>
+                                    
+                                    <Button
+                                        variant="outlined"
+                                        startIcon={<Download />}
+                                        disabled={loading}
+                                        onClick={downloadSampleCSV}
+                                        color="secondary"
+                                    >
+                                        Download Sample CSV
+                                    </Button>
+
+                                    <input
+                                        accept=".xlsx,.xls,.csv"
+                                        style={{ display: 'none' }}
+                                        id="config-upload-button-step3"
+                                        type="file"
+                                        onChange={handleFileUpload}
+                                    />
+                                    <label htmlFor="config-upload-button-step3">
+                                        <Button
+                                            variant="outlined"
+                                            component="span"
+                                            startIcon={<Upload />}
+                                            disabled={loading}
+                                        >
+                                            Import Configuration
+                                        </Button>
+                                    </label>
+                                </Box>
                             </Box>
                         )}
 
-                        <Box sx={{ display: 'flex', gap: 2, mt: 3, justifyContent: 'space-between' }}>
+                        <Box sx={{ display: 'flex', gap: 2, mt: 3, justifyContent: 'flex-start' }}>
                             <Button
                                 variant="outlined"
                                 onClick={() => handleStepNavigation(activeStep - 1)}
                             >
                                 Previous
                             </Button>
-                            <Button
-                                variant="contained"
-                                onClick={() => handleStepNavigation(activeStep + 1)}
-                                disabled={!canAdvanceFromStep(activeStep)}
-                            >
-                                Next: Generate & Save
-                            </Button>
                         </Box>
                     </CardContent>
                 </Card>
             )}
 
-            {/* Step 4: Generate & Save */}
-            {templateFields.length > 0 && activeStep >= 3 && (
-                <Card>
-                    <CardContent>
-                        <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                            <Save /> 4. Generate & Save Configuration
-                        </Typography>
-
-                        <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', mb: 2 }}>
-                            <Button
-                                variant="contained"
-                                startIcon={loading ? <CircularProgress size={20} /> : <Save />}
-                                onClick={generateConfiguration}
-                                disabled={loading || !localSelectedSourceSystem || !templateJobName}
-                            >
-                                Generate & Save Configuration
-                            </Button>
-
-                            <Button
-                                variant="outlined"
-                                startIcon={<Download />}
-                                disabled={loading}
-                                onClick={exportCurrentTemplate}
-                            >
-                                Export Template
-                            </Button>
-                            
-                            <Button
-                                variant="outlined"
-                                startIcon={<Download />}
-                                disabled={loading}
-                                onClick={downloadSampleCSV}
-                                color="secondary"
-                            >
-                                Download Sample CSV
-                            </Button>
-
-                            <input
-                                accept=".xlsx,.xls,.csv"
-                                style={{ display: 'none' }}
-                                id="config-upload-button"
-                                type="file"
-                                onChange={handleFileUpload}
-                            />
-                            <label htmlFor="config-upload-button">
-                                <Button
-                                    variant="outlined"
-                                    component="span"
-                                    startIcon={<Upload />}
-                                    disabled={loading}
-                                >
-                                    Import Configuration
-                                </Button>
-                            </label>
-                        </Box>
-
-                        {(!localSelectedSourceSystem || !templateJobName) && (
-                            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                                {!localSelectedSourceSystem
-                                    ? "Please select a source system from the dropdown above."
-                                    : "Please select a template to generate a job name."
-                                }
-                            </Typography>
-                        )}
-
-                        <Box sx={{ display: 'flex', gap: 2, justifyContent: 'space-between' }}>
-                            <Button
-                                variant="outlined"
-                                onClick={() => handleStepNavigation(activeStep - 1)}
-                            >
-                                Previous
-                            </Button>
-                            <Button
-                                variant="contained"
-                                color="success"
-                                onClick={generateConfiguration}
-                                disabled={loading || !localSelectedSourceSystem || !templateJobName}
-                                startIcon={<Save />}
-                            >
-                                Complete Configuration
-                            </Button>
-                        </Box>
-                    </CardContent>
-                </Card>
-            )}
 
             {/* Generated Configuration Display */}
-            {generatedConfig && activeStep === 3 && (
+            {generatedConfig && (
                 <Card sx={{ mt: 3 }}>
                     <CardContent>
                         <Typography variant="h6" gutterBottom>

@@ -259,9 +259,9 @@ public class TemplateSourceMappingRepositoryImpl implements TemplateSourceMappin
         String sql = """
             INSERT INTO CM3INT.TEMPLATE_SOURCE_MAPPINGS 
             (FILE_TYPE, TRANSACTION_TYPE, SOURCE_SYSTEM_ID, JOB_NAME, TARGET_FIELD_NAME, 
-             SOURCE_FIELD_NAME, TRANSFORMATION_TYPE, TRANSFORMATION_CONFIG, TARGET_POSITION, 
+             SOURCE_FIELD_NAME, TRANSFORMATION_TYPE, VALUE, DEFAULT_VALUE, TARGET_POSITION, 
              LENGTH, DATA_TYPE, CREATED_BY, CREATED_DATE, VERSION, ENABLED)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """;
 
         if (entity.getCreatedDate() == null) {
@@ -269,12 +269,6 @@ public class TemplateSourceMappingRepositoryImpl implements TemplateSourceMappin
         }
         if (entity.getVersion() == null) {
             entity.setVersion(1);
-        }
-        if (entity.getEnabled() == null) {
-            entity.setEnabled("Y");
-        }
-        if (entity.getTransformationType() == null) {
-            entity.setTransformationType("source");
         }
 
         // Insert without using generated keys to avoid Oracle ROWID casting issues
@@ -286,7 +280,8 @@ public class TemplateSourceMappingRepositoryImpl implements TemplateSourceMappin
             entity.getTargetFieldName(),
             entity.getSourceFieldName(),
             entity.getTransformationType(),
-            entity.getTransformationConfig(),
+            entity.getValue(),
+            entity.getDefaultValue(),
             entity.getTargetPosition(),
             entity.getLength(),
             entity.getDataType(),
@@ -325,7 +320,7 @@ public class TemplateSourceMappingRepositoryImpl implements TemplateSourceMappin
             UPDATE CM3INT.TEMPLATE_SOURCE_MAPPINGS 
             SET FILE_TYPE = ?, TRANSACTION_TYPE = ?, SOURCE_SYSTEM_ID = ?, JOB_NAME = ?, 
                 TARGET_FIELD_NAME = ?, SOURCE_FIELD_NAME = ?, TRANSFORMATION_TYPE = ?, 
-                TRANSFORMATION_CONFIG = ?, TARGET_POSITION = ?, LENGTH = ?, DATA_TYPE = ?, 
+                VALUE = ?, DEFAULT_VALUE = ?, TARGET_POSITION = ?, LENGTH = ?, DATA_TYPE = ?, 
                 MODIFIED_BY = ?, MODIFIED_DATE = ?, VERSION = ?, ENABLED = ?
             WHERE ID = ?
         """;
@@ -340,7 +335,8 @@ public class TemplateSourceMappingRepositoryImpl implements TemplateSourceMappin
                 entity.getTargetFieldName(),
                 entity.getSourceFieldName(),
                 entity.getTransformationType(),
-                entity.getTransformationConfig(),
+                entity.getValue(),
+                entity.getDefaultValue(),
                 entity.getTargetPosition(),
                 entity.getLength(),
                 entity.getDataType(),
@@ -370,7 +366,8 @@ public class TemplateSourceMappingRepositoryImpl implements TemplateSourceMappin
             entity.setTargetFieldName(rs.getString("TARGET_FIELD_NAME"));
             entity.setSourceFieldName(rs.getString("SOURCE_FIELD_NAME"));
             entity.setTransformationType(rs.getString("TRANSFORMATION_TYPE"));
-            entity.setTransformationConfig(rs.getString("TRANSFORMATION_CONFIG"));
+            entity.setValue(rs.getString("VALUE"));
+            entity.setDefaultValue(rs.getString("DEFAULT_VALUE"));
             
             entity.setTargetPosition(rs.getInt("TARGET_POSITION"));
             if (rs.wasNull()) entity.setTargetPosition(null);
