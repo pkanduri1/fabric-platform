@@ -61,8 +61,8 @@ public class ManualJobConfigRepositoryImpl implements ManualJobConfigRepository 
         String sql = """
             INSERT INTO MANUAL_JOB_CONFIG (
                 CONFIG_ID, JOB_NAME, JOB_TYPE, SOURCE_SYSTEM, TARGET_SYSTEM,
-                JOB_PARAMETERS, STATUS, CREATED_BY, CREATED_DATE, VERSION_DECIMAL
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                MASTER_QUERY_ID, JOB_PARAMETERS, STATUS, CREATED_BY, CREATED_DATE, VERSION_DECIMAL
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """;
         
         LocalDateTime now = LocalDateTime.now();
@@ -74,6 +74,7 @@ public class ManualJobConfigRepositoryImpl implements ManualJobConfigRepository 
             entity.getJobType(),
             entity.getSourceSystem(),
             entity.getTargetSystem(),
+            entity.getMasterQueryId(),
             entity.getJobParameters(),
             entity.getStatus(),
             entity.getCreatedBy(),
@@ -88,7 +89,7 @@ public class ManualJobConfigRepositoryImpl implements ManualJobConfigRepository 
         String sql = """
             UPDATE MANUAL_JOB_CONFIG SET
                 JOB_NAME = ?, JOB_TYPE = ?, SOURCE_SYSTEM = ?, TARGET_SYSTEM = ?,
-                JOB_PARAMETERS = ?, STATUS = ?, UPDATED_BY = ?, UPDATED_DATE = ?,
+                MASTER_QUERY_ID = ?, JOB_PARAMETERS = ?, STATUS = ?, UPDATED_BY = ?, UPDATED_DATE = ?,
                 VERSION_DECIMAL = VERSION_DECIMAL + 1
             WHERE CONFIG_ID = ?
         """;
@@ -101,6 +102,7 @@ public class ManualJobConfigRepositoryImpl implements ManualJobConfigRepository 
             entity.getJobType(),
             entity.getSourceSystem(),
             entity.getTargetSystem(),
+            entity.getMasterQueryId(),
             entity.getJobParameters(),
             entity.getStatus(),
             entity.getUpdatedBy(),
@@ -214,6 +216,7 @@ public class ManualJobConfigRepositoryImpl implements ManualJobConfigRepository 
             entity.setJobType(rs.getString("JOB_TYPE"));
             entity.setSourceSystem(rs.getString("SOURCE_SYSTEM"));
             entity.setTargetSystem(rs.getString("TARGET_SYSTEM"));
+            entity.setMasterQueryId(rs.getString("MASTER_QUERY_ID"));
             entity.setJobParameters(rs.getString("JOB_PARAMETERS"));
             entity.setStatus(rs.getString("STATUS"));
             entity.setCreatedBy(rs.getString("CREATED_BY"));

@@ -85,6 +85,13 @@ public class ManualJobConfigRequest {
     @JsonProperty("targetSystem")
     private String targetSystem;
 
+    @Schema(description = "Master query identifier for linking to predefined SQL queries", 
+            example = "mq_daily_transactions_001", 
+            required = false)
+    @Size(max = 100, message = "Master query ID cannot exceed 100 characters")
+    @JsonProperty("masterQueryId")
+    private String masterQueryId;
+
     @Schema(description = "Job execution parameters in JSON format", 
             example = "{\"batchSize\": 1000, \"connectionTimeout\": 30, \"retryCount\": 3}", 
             required = true)

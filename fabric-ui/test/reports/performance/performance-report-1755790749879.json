@@ -1,0 +1,15 @@
+{
+  "testRun": {
+    "timestamp": "2025-08-21T15:39:09.879Z",
+    "totalPages": 0,
+    "thresholds": {
+      "performance": 85,
+      "accessibility": 90,
+      "bestPractices": 85,
+      "seo": 80,
+      "pwa": 60
+    }
+  },
+  "results": [],
+  "summary": {}
+}

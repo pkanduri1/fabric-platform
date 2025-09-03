@@ -6,7 +6,9 @@
 
 export interface MasterQuery {
   masterQueryId: string;
+  sourceSystem?: string;
   queryName: string;
+  queryType?: 'SELECT' | 'WITH';
   querySql: string;
   queryDescription?: string;
   queryParameters?: Record<string, any>;
@@ -26,7 +28,9 @@ export interface MasterQuery {
 
 export interface MasterQueryRequest {
   masterQueryId: string;
+  sourceSystem?: string;
   queryName: string;
+  queryType?: 'SELECT' | 'WITH';
   querySql: string;
   queryDescription?: string;
   queryParameters?: Record<string, any>;

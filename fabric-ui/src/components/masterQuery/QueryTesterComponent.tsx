@@ -380,16 +380,16 @@ export const QueryTesterComponent: React.FC<QueryTesterComponentProps> = ({
     }
     
     setSavedExecutions(newSaved);
-    localStorage.setItem('fabric-saved-executions', JSON.stringify([...newSaved]));
+    localStorage.setItem('fabric-saved-executions', JSON.stringify(Array.from(newSaved)));
   }, [savedExecutions]);
   
   // Export results to CSV
   const exportResults = useCallback(() => {
     if (!queryResults || !columnMetadata) return;
     
-    const headers = columnMetadata.map(col => col.name).join(',');
-    const rows = queryResults.map(row =>
-      columnMetadata.map(col => {
+    const headers = columnMetadata.map((col: ColumnMetadata) => col.name).join(',');
+    const rows = queryResults.map((row: any) =>
+      columnMetadata.map((col: ColumnMetadata) => {
         const value = row[col.name];
         return typeof value === 'string' && value.includes(',') 
           ? `"${value}"` 
@@ -649,7 +649,7 @@ export const QueryTesterComponent: React.FC<QueryTesterComponentProps> = ({
                   <Table stickyHeader size="small">
                     <TableHead>
                       <TableRow>
-                        {columnMetadata?.map(col => (
+                        {columnMetadata?.map((col: ColumnMetadata) => (
                           <TableCell
                             key={col.name}
                             onClick={() => handleSort(col.name)}
@@ -690,7 +690,7 @@ export const QueryTesterComponent: React.FC<QueryTesterComponentProps> = ({
                     <TableBody>
                       {paginatedResults.map((row, index) => (
                         <TableRow key={index} hover>
-                          {columnMetadata?.map(col => (
+                          {columnMetadata?.map((col: ColumnMetadata) => (
                             <TableCell key={col.name}>
                               {col.dataClassification === 'SENSITIVE' ? 
                                 '***masked***' : 
@@ -854,7 +854,7 @@ export const QueryTesterComponent: React.FC<QueryTesterComponentProps> = ({
             <Box sx={{ p: 2 }}>
               {executionHistory.length > 0 ? (
                 <List>
-                  {executionHistory.map((execution, index) => {
+                  {executionHistory.map((execution: any, index: number) => {
                     const isSaved = savedExecutions.has(execution.correlationId || '');
                     
                     return (

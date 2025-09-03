@@ -220,7 +220,7 @@ export const MasterQuerySelector: React.FC<MasterQuerySelectorProps> = ({
     }
     
     setSavedQueries(newSaved);
-    localStorage.setItem('fabric-saved-queries', JSON.stringify([...newSaved]));
+    localStorage.setItem('fabric-saved-queries', JSON.stringify(Array.from(newSaved)));
   }, [savedQueries]);
   
   // Clear all filters
@@ -240,7 +240,7 @@ export const MasterQuerySelector: React.FC<MasterQuerySelectorProps> = ({
         query.queryName.toLowerCase().includes(search) ||
         query.queryDescription?.toLowerCase().includes(search) ||
         query.querySql.toLowerCase().includes(search) ||
-        query.complianceTags?.some(tag => tag.toLowerCase().includes(search))
+        query.complianceTags?.some((tag: string) => tag.toLowerCase().includes(search))
       );
     }
     

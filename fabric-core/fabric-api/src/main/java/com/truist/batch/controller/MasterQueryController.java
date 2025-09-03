@@ -3,8 +3,11 @@ package com.truist.batch.controller;
 import com.truist.batch.dto.MasterQueryRequest;
 import com.truist.batch.dto.MasterQueryResponse;
 import com.truist.batch.dto.MasterQueryConfigDTO;
+import com.truist.batch.dto.MasterQueryCreateRequest;
+import com.truist.batch.dto.MasterQueryUpdateRequest;
 import com.truist.batch.repository.MasterQueryRepository;
 import com.truist.batch.service.MasterQueryService;
+import com.truist.batch.service.MasterQueryValidationService;
 import com.truist.batch.service.SmartFieldMappingService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -28,6 +31,7 @@ import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 /**
  * =========================================================================
@@ -965,5 +969,604 @@ public class MasterQueryController {
             "Loan Management",
             "Investment Tracking"
         );
+    }
+
+    // =========================================================================
+    // MASTER QUERY CRUD ENDPOINTS
+    // =========================================================================
+
+    /**
+     * Create a new master query configuration.
+     */
+    @PostMapping
+    @PreAuthorize("hasAnyRole('JOB_CREATOR', 'ADMIN')")
+    @Operation(
+        summary = "Create Master Query Configuration",
+        description = "Create a new master query configuration with comprehensive validation and audit trail. " +
+                     "Supports template-based creation and enforces banking compliance requirements. " +
+                     "Requires business justification for SOX compliance and audit purposes.",
+        requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+            description = "Master query creation request with validation rules",
+            required = true,
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = MasterQueryCreateRequest.class),
+                examples = @ExampleObject(
+                    name = "Account Summary Query Creation",
+                    description = "Example request to create an account summary query",
+                    value = """
+                        {
+                          "sourceSystem": "ENCORE",
+                          "queryName": "customer_account_summary_v1",
+                          "description": "Comprehensive customer account summary including balance and risk indicators",
+                          "queryType": "SELECT",
+                          "querySql": "SELECT account_id, customer_id, account_type, balance, status, risk_score FROM accounts a JOIN risk_assessment r ON a.customer_id = r.customer_id WHERE a.customer_id = :customerId AND a.status = 'ACTIVE'",
+                          "dataClassification": "SENSITIVE",
+                          "securityClassification": "INTERNAL",
+                          "businessJustification": "Required for daily customer account reconciliation and regulatory reporting to meet SOX compliance requirements",
+                          "complianceTags": ["SOX", "PCI_DSS", "BASEL_III"],
+                          "expectedParameters": [
+                            {
+                              "name": "customerId",
+                              "type": "STRING",
+                              "required": true,
+                              "description": "Unique customer identifier",
+                              "validationPattern": "^[A-Z0-9]{6,12}$"
+                            }
+                          ],
+                          "templateCategory": "Account Management",
+                          "templateName": "Account Summary"
+                        }
+                        """
+                )
+            )
+        )
+    )
+    @ApiResponses(value = {
+        @ApiResponse(
+            responseCode = "201", 
+            description = "Master query created successfully",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = MasterQueryConfigDTO.class),
+                examples = @ExampleObject(
+                    name = "Created Query Response",
+                    value = """
+                        {
+                          "id": 15,
+                          "sourceSystem": "ENCORE",
+                          "queryName": "customer_account_summary_v1",
+                          "queryType": "SELECT",
+                          "querySql": "SELECT account_id, customer_id, account_type, balance, status, risk_score FROM accounts a JOIN risk_assessment r ON a.customer_id = r.customer_id WHERE a.customer_id = :customerId AND a.status = 'ACTIVE'",
+                          "version": 1,
+                          "isActive": "Y",
+                          "createdBy": "john.creator",
+                          "createdDate": "2025-08-22T14:30:45.123",
+                          "displayName": "customer_account_summary_v1 (v1) - ENCORE",
+                          "dataClassification": "SENSITIVE",
+                          "statusIndicator": "ACTIVE",
+                          "complexityLevel": "MEDIUM",
+                          "parameterCount": 1,
+                          "complianceRequirements": ["SOX", "FFIEC", "BASEL_III"]
+                        }
+                        """
+                )
+            )
+        ),
+        @ApiResponse(
+            responseCode = "400", 
+            description = "Validation error or invalid request data",
+            content = @Content(
+                mediaType = "application/json",
+                examples = @ExampleObject(
+                    name = "Validation Error Response",
+                    value = """
+                        {
+                          "error": "VALIDATION_ERROR",
+                          "message": "SQL validation failed: PROHIBITED_KEYWORD: Prohibited keyword detected: INSERT",
+                          "correlationId": "corr_12345678-abcd-1234-5678-123456789012",
+                          "timestamp": "2025-08-22T14:30:45.123Z",
+                          "field": "querySql"
+                        }
+                        """
+                )
+            )
+        ),
+        @ApiResponse(
+            responseCode = "403", 
+            description = "Insufficient permissions to create master queries",
+            content = @Content(mediaType = "application/json")
+        ),
+        @ApiResponse(
+            responseCode = "409", 
+            description = "Query name already exists in source system",
+            content = @Content(
+                mediaType = "application/json",
+                examples = @ExampleObject(
+                    name = "Duplicate Name Error",
+                    value = """
+                        {
+                          "error": "DUPLICATE_NAME",
+                          "message": "Query name 'customer_account_summary_v1' already exists in source system 'ENCORE'",
+                          "correlationId": "corr_12345678-abcd-1234-5678-123456789012",
+                          "timestamp": "2025-08-22T14:30:45.123Z"
+                        }
+                        """
+                )
+            )
+        )
+    })
+    public ResponseEntity<MasterQueryConfigDTO> createMasterQuery(
+            @Valid @RequestBody MasterQueryCreateRequest request,
+            @Parameter(description = "User role extracted from JWT token", hidden = true)
+            @RequestHeader(value = "X-User-Role", defaultValue = "JOB_CREATOR") String userRole) {
+        
+        log.info("Received master query creation request - Name: {}, System: {}, User: {}", 
+                request.getQueryName(), request.getSourceSystem(), userRole);
+        
+        try {
+            MasterQueryConfigDTO created = masterQueryService.createMasterQuery(request, userRole);
+            
+            log.info("Master query created successfully - ID: {}, Name: {}", 
+                    created.getId(), created.getQueryName());
+            
+            return ResponseEntity.status(HttpStatus.CREATED).body(created);
+            
+        } catch (IllegalArgumentException e) {
+            log.warn("Master query creation validation failed - Name: {}, Error: {}", 
+                    request.getQueryName(), e.getMessage());
+            
+            return ResponseEntity.badRequest().build();
+            
+        } catch (Exception e) {
+            log.error("Unexpected error during master query creation - Name: {}", 
+                     request.getQueryName(), e);
+            
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    /**
+     * Update an existing master query configuration.
+     */
+    @PutMapping("/{id}")
+    @PreAuthorize("hasAnyRole('JOB_MODIFIER', 'JOB_CREATOR', 'ADMIN')")
+    @Operation(
+        summary = "Update Master Query Configuration",
+        description = "Update an existing master query configuration with optimistic locking and version control. " +
+                     "Supports partial updates and maintains complete audit trail for SOX compliance. " +
+                     "Major changes (SQL, type) increment version number automatically.",
+        parameters = @Parameter(
+            name = "id",
+            description = "Unique identifier of the master query to update",
+            required = true,
+            example = "15"
+        ),
+        requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+            description = "Master query update request with change justification",
+            required = true,
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = MasterQueryUpdateRequest.class),
+                examples = @ExampleObject(
+                    name = "Query Enhancement Update",
+                    description = "Example request to enhance an existing query with additional fields",
+                    value = """
+                        {
+                          "id": 15,
+                          "currentVersion": 1,
+                          "querySql": "SELECT account_id, customer_id, account_type, balance, status, risk_score, credit_limit FROM accounts a JOIN risk_assessment r ON a.customer_id = r.customer_id LEFT JOIN credit_limits c ON a.account_id = c.account_id WHERE a.customer_id = :customerId AND a.status = 'ACTIVE'",
+                          "description": "Enhanced customer account summary with credit limit information",
+                          "dataClassification": "CONFIDENTIAL",
+                          "changeJustification": "Enhanced query to include credit limit data for improved risk assessment and compliance with updated BASEL III requirements",
+                          "changeSummary": "Added LEFT JOIN with credit_limits table and credit_limit column to output",
+                          "complianceTags": ["SOX", "PCI_DSS", "BASEL_III", "GDPR"],
+                          "createNewVersion": true,
+                          "preserveOldVersion": true
+                        }
+                        """
+                )
+            )
+        )
+    )
+    @ApiResponses(value = {
+        @ApiResponse(
+            responseCode = "200", 
+            description = "Master query updated successfully",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = MasterQueryConfigDTO.class)
+            )
+        ),
+        @ApiResponse(
+            responseCode = "400", 
+            description = "Validation error or invalid update data",
+            content = @Content(mediaType = "application/json")
+        ),
+        @ApiResponse(
+            responseCode = "404", 
+            description = "Master query not found",
+            content = @Content(mediaType = "application/json")
+        ),
+        @ApiResponse(
+            responseCode = "409", 
+            description = "Optimistic locking conflict - query was modified by another user",
+            content = @Content(
+                mediaType = "application/json",
+                examples = @ExampleObject(
+                    name = "Version Conflict Error",
+                    value = """
+                        {
+                          "error": "VERSION_CONFLICT",
+                          "message": "Optimistic locking failed - query was modified by another user. Expected version: 1, actual version: 2",
+                          "correlationId": "corr_12345678-abcd-1234-5678-123456789012",
+                          "timestamp": "2025-08-22T14:30:45.123Z",
+                          "currentVersion": 2
+                        }
+                        """
+                )
+            )
+        )
+    })
+    public ResponseEntity<MasterQueryConfigDTO> updateMasterQuery(
+            @PathVariable Long id,
+            @Valid @RequestBody MasterQueryUpdateRequest request,
+            @Parameter(description = "User role extracted from JWT token", hidden = true)
+            @RequestHeader(value = "X-User-Role", defaultValue = "JOB_MODIFIER") String userRole) {
+        
+        log.info("Received master query update request - ID: {}, Fields: {}, User: {}", 
+                id, request.getUpdatedFields(), userRole);
+        
+        // Ensure ID consistency
+        request.setId(id);
+        
+        try {
+            MasterQueryConfigDTO updated = masterQueryService.updateMasterQuery(request, userRole);
+            
+            log.info("Master query updated successfully - ID: {}, New Version: {}", 
+                    updated.getId(), updated.getVersion());
+            
+            return ResponseEntity.ok(updated);
+            
+        } catch (IllegalArgumentException e) {
+            log.warn("Master query update validation failed - ID: {}, Error: {}", id, e.getMessage());
+            
+            if (e.getMessage().contains("not found")) {
+                return ResponseEntity.notFound().build();
+            } else if (e.getMessage().contains("locking failed")) {
+                return ResponseEntity.status(HttpStatus.CONFLICT).build();
+            }
+            
+            return ResponseEntity.badRequest().build();
+            
+        } catch (Exception e) {
+            log.error("Unexpected error during master query update - ID: {}", id, e);
+            
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    /**
+     * Soft delete a master query configuration.
+     */
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(
+        summary = "Delete Master Query Configuration",
+        description = "Soft delete a master query configuration with comprehensive audit trail. " +
+                     "Only administrators can delete queries. Queries in use by active job configurations " +
+                     "cannot be deleted. Requires business justification for SOX compliance.",
+        parameters = {
+            @Parameter(
+                name = "id",
+                description = "Unique identifier of the master query to delete",
+                required = true,
+                example = "15"
+            ),
+            @Parameter(
+                name = "deleteJustification",
+                description = "Business justification for deletion (minimum 20 characters)",
+                required = true,
+                example = "Query is obsolete due to system migration and no longer needed for regulatory reporting"
+            )
+        }
+    )
+    @ApiResponses(value = {
+        @ApiResponse(
+            responseCode = "200", 
+            description = "Master query deleted successfully",
+            content = @Content(
+                mediaType = "application/json",
+                examples = @ExampleObject(
+                    name = "Deletion Success Response",
+                    value = """
+                        {
+                          "deleted": true,
+                          "id": 15,
+                          "queryName": "customer_account_summary_v1",
+                          "sourceSystem": "ENCORE",
+                          "deletedBy": "admin.user",
+                          "deletedAt": "2025-08-22T14:30:45.123",
+                          "correlationId": "corr_12345678-abcd-1234-5678-123456789012",
+                          "auditTrail": "audit_12345678-abcd-1234-5678"
+                        }
+                        """
+                )
+            )
+        ),
+        @ApiResponse(
+            responseCode = "400", 
+            description = "Invalid deletion request or missing justification",
+            content = @Content(mediaType = "application/json")
+        ),
+        @ApiResponse(
+            responseCode = "403", 
+            description = "Insufficient permissions - only administrators can delete",
+            content = @Content(mediaType = "application/json")
+        ),
+        @ApiResponse(
+            responseCode = "404", 
+            description = "Master query not found",
+            content = @Content(mediaType = "application/json")
+        ),
+        @ApiResponse(
+            responseCode = "409", 
+            description = "Cannot delete - query is referenced by active job configurations",
+            content = @Content(
+                mediaType = "application/json",
+                examples = @ExampleObject(
+                    name = "In Use Error",
+                    value = """
+                        {
+                          "error": "QUERY_IN_USE",
+                          "message": "Cannot delete master query - it is currently referenced by active job configurations",
+                          "correlationId": "corr_12345678-abcd-1234-5678-123456789012",
+                          "timestamp": "2025-08-22T14:30:45.123Z",
+                          "referencingJobs": 3
+                        }
+                        """
+                )
+            )
+        )
+    })
+    public ResponseEntity<Map<String, Object>> deleteMasterQuery(
+            @PathVariable Long id,
+            @RequestParam String deleteJustification,
+            @Parameter(description = "User role extracted from JWT token", hidden = true)
+            @RequestHeader(value = "X-User-Role", defaultValue = "ADMIN") String userRole) {
+        
+        log.info("Received master query deletion request - ID: {}, User: {}", id, userRole);
+        
+        try {
+            Map<String, Object> result = masterQueryService.deleteMasterQuery(id, userRole, deleteJustification);
+            
+            log.info("Master query deleted successfully - ID: {}", id);
+            
+            return ResponseEntity.ok(result);
+            
+        } catch (IllegalArgumentException e) {
+            log.warn("Master query deletion validation failed - ID: {}, Error: {}", id, e.getMessage());
+            
+            if (e.getMessage().contains("not found")) {
+                return ResponseEntity.notFound().build();
+            } else if (e.getMessage().contains("currently referenced")) {
+                return ResponseEntity.status(HttpStatus.CONFLICT).build();
+            }
+            
+            return ResponseEntity.badRequest().build();
+            
+        } catch (Exception e) {
+            log.error("Unexpected error during master query deletion - ID: {}", id, e);
+            
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    /**
+     * Validate SQL query without creating or updating.
+     */
+    @PostMapping("/validate-sql")
+    @PreAuthorize("hasAnyRole('JOB_CREATOR', 'JOB_MODIFIER', 'ADMIN')")
+    @Operation(
+        summary = "Validate SQL Query",
+        description = "Comprehensive SQL validation for master queries without creating or updating. " +
+                     "Performs security scanning, complexity analysis, and banking compliance checks. " +
+                     "Returns detailed validation results with suggestions for improvement.",
+        requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+            description = "SQL validation request",
+            required = true,
+            content = @Content(
+                mediaType = "application/json",
+                examples = @ExampleObject(
+                    name = "SQL Validation Request",
+                    value = """
+                        {
+                          "querySql": "SELECT account_id, balance FROM accounts WHERE customer_id = :customerId AND balance > :minBalance",
+                          "queryType": "SELECT",
+                          "sourceSystem": "ENCORE"
+                        }
+                        """
+                )
+            )
+        )
+    )
+    @ApiResponses(value = {
+        @ApiResponse(
+            responseCode = "200", 
+            description = "SQL validation completed",
+            content = @Content(
+                mediaType = "application/json",
+                examples = @ExampleObject(
+                    name = "Validation Success Response",
+                    value = """
+                        {
+                          "valid": true,
+                          "securityRisk": "LOW",
+                          "complexityLevel": "LOW",
+                          "parameterCount": 2,
+                          "warnings": [
+                            {
+                              "type": "PERFORMANCE_HINT",
+                              "message": "Consider adding index on customer_id for better performance"
+                            }
+                          ],
+                          "checks": [
+                            {
+                              "type": "SQL_INJECTION",
+                              "message": "SQL injection validation completed"
+                            },
+                            {
+                              "type": "KEYWORD_VALIDATION", 
+                              "message": "Keyword validation completed"
+                            }
+                          ],
+                          "correlationId": "corr_12345678-abcd-1234-5678-123456789012",
+                          "validatedAt": "2025-08-22T14:30:45.123Z"
+                        }
+                        """
+                )
+            )
+        ),
+        @ApiResponse(
+            responseCode = "400", 
+            description = "SQL validation failed",
+            content = @Content(
+                mediaType = "application/json",
+                examples = @ExampleObject(
+                    name = "Validation Failure Response",
+                    value = """
+                        {
+                          "valid": false,
+                          "securityRisk": "HIGH",
+                          "errors": [
+                            {
+                              "type": "PROHIBITED_KEYWORD",
+                              "message": "Prohibited keyword detected: DELETE"
+                            },
+                            {
+                              "type": "SQL_INJECTION_DETECTED",
+                              "message": "Potential SQL injection pattern detected"
+                            }
+                          ],
+                          "correlationId": "corr_12345678-abcd-1234-5678-123456789012",
+                          "validatedAt": "2025-08-22T14:30:45.123Z"
+                        }
+                        """
+                )
+            )
+        )
+    })
+    public ResponseEntity<Map<String, Object>> validateSqlQuery(
+            @RequestBody Map<String, String> request,
+            @Parameter(description = "User role extracted from JWT token", hidden = true)
+            @RequestHeader(value = "X-User-Role", defaultValue = "JOB_CREATOR") String userRole) {
+        
+        String sql = request.get("querySql");
+        String correlationId = UUID.randomUUID().toString();
+        
+        log.info("Received SQL validation request - User: {}, Correlation: {}", userRole, correlationId);
+        
+        try {
+            if (sql == null || sql.trim().isEmpty()) {
+                return ResponseEntity.badRequest().body(Map.of(
+                    "valid", false,
+                    "error", "SQL query is required",
+                    "correlationId", correlationId
+                ));
+            }
+            
+            MasterQueryValidationService.ValidationResult result = 
+                masterQueryService.getValidationService().validateSqlQuery(sql, userRole, correlationId);
+            
+            Map<String, Object> response = Map.of(
+                "valid", result.isValid(),
+                "securityRisk", result.getSecurityRisk(),
+                "errors", result.getErrors(),
+                "warnings", result.getWarnings(),
+                "checks", result.getChecks(),
+                "correlationId", correlationId,
+                "validatedAt", result.getValidatedAt(),
+                "validatedBy", userRole
+            );
+            
+            log.info("SQL validation completed - Valid: {}, Risk: {}, Correlation: {}", 
+                    result.isValid(), result.getSecurityRisk(), correlationId);
+            
+            return ResponseEntity.ok(response);
+            
+        } catch (Exception e) {
+            log.error("Error during SQL validation - Correlation: {}", correlationId, e);
+            
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
+                "valid", false,
+                "error", "Internal validation error",
+                "correlationId", correlationId
+            ));
+        }
+    }
+
+    /**
+     * Get available query templates.
+     */
+    @GetMapping("/templates")
+    @PreAuthorize("hasAnyRole('JOB_VIEWER', 'JOB_CREATOR', 'JOB_MODIFIER', 'ADMIN')")
+    @Operation(
+        summary = "Get Query Templates",
+        description = "Retrieve available query templates organized by category. " +
+                     "Templates provide starting points for common banking queries and follow " +
+                     "best practices for security and performance.",
+        responses = {
+            @ApiResponse(
+                responseCode = "200", 
+                description = "Query templates retrieved successfully",
+                content = @Content(
+                    mediaType = "application/json",
+                    examples = @ExampleObject(
+                        name = "Templates Response",
+                        value = """
+                            {
+                              "categories": [
+                                {
+                                  "name": "Account Management",
+                                  "description": "Templates for account-related queries",
+                                  "templates": [
+                                    {
+                                      "name": "Account Summary",
+                                      "sql": "SELECT account_id, account_type, balance, status FROM accounts WHERE batch_date = :batchDate",
+                                      "parameters": ["batchDate"],
+                                      "description": "Basic account information summary"
+                                    }
+                                  ]
+                                }
+                              ],
+                              "totalTemplates": 8,
+                              "lastUpdated": "2025-08-22T14:30:45.123",
+                              "version": "1.0"
+                            }
+                            """
+                    )
+                )
+            )
+        }
+    )
+    public ResponseEntity<Map<String, Object>> getQueryTemplates(
+            @Parameter(description = "User role extracted from JWT token", hidden = true)
+            @RequestHeader(value = "X-User-Role", defaultValue = "JOB_VIEWER") String userRole) {
+        
+        log.info("Received query templates request - User: {}", userRole);
+        
+        try {
+            Map<String, Object> templates = masterQueryService.getQueryTemplates(userRole);
+            
+            log.info("Query templates retrieved successfully - Categories: {}", 
+                    ((List<?>) templates.get("categories")).size());
+            
+            return ResponseEntity.ok(templates);
+            
+        } catch (Exception e) {
+            log.error("Error retrieving query templates", e);
+            
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 }

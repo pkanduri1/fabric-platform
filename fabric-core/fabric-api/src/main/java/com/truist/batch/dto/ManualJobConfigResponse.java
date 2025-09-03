@@ -72,6 +72,11 @@ public class ManualJobConfigResponse {
     @JsonProperty("targetSystem")
     private String targetSystem;
 
+    @Schema(description = "Master query identifier for linked SQL queries", 
+            example = "mq_daily_transactions_001")
+    @JsonProperty("masterQueryId")
+    private String masterQueryId;
+
     @Schema(description = "Job execution parameters (sensitive values masked)", 
             example = "{\"batchSize\": 1000, \"connectionTimeout\": 30, \"password\": \"***MASKED***\"}", 
             required = true)

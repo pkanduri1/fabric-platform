@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.truist.batch.model.FieldMappingConfig;
+import com.truist.batch.model.FieldMapping;
 import com.truist.batch.model.FieldTemplate;
 import com.truist.batch.model.FileTypeTemplate;
 import com.truist.batch.model.TemplateImportRequest;
@@ -124,20 +125,36 @@ public class TemplateController {
             @RequestParam String jobName,
             @RequestParam(defaultValue = "system") String createdBy) {
         try {
-            log.info("Creating configuration from template: {}/{} for {}/{}", 
+            log.info("🔍 TRACE: Template configuration save called - Creating configuration from template: {}/{} for {}/{}", 
                     fileType, transactionType, sourceSystem, jobName);
+            log.info("🔍 TRACE: Request parameters - fileType={}, transactionType={}, sourceSystem={}, jobName={}, createdBy={}", 
+                    fileType, transactionType, sourceSystem, jobName, createdBy);
             
-            // 1. Create configuration from template
+            // 1. Create configuration from template (this should now use saved mappings!)
             FieldMappingConfig config = templateService.createConfigurationFromTemplate(
                 fileType, transactionType, sourceSystem, jobName, createdBy);
             
+            // Debug: Log the resulting configuration
+            if (config != null && config.getFieldMappings() != null) {
+                log.info("🔍 TRACE: Created configuration with {} field mappings", config.getFieldMappings().size());
+                log.info("🔍 TRACE: Full field mapping details:");
+                for (int i = 0; i < config.getFieldMappings().size(); i++) {
+                    FieldMapping mapping = config.getFieldMappings().get(i);
+                    log.info("🔍 TRACE: Field[{}]: name={}, transformationType={}, value={}, sourceField={}, defaultValue={}", 
+                        i, mapping.getFieldName(), mapping.getTransformationType(), mapping.getValue(), 
+                        mapping.getSourceField(), mapping.getDefaultValue());
+                }
+            } else {
+                log.warn("🚨 TRACE: Configuration is null or has no field mappings!");
+            }
+            
             // 2. Save the configuration to batch_configurations table
             String saveResult = configurationService.saveConfiguration(config);
-            log.info("Configuration saved to batch_configurations table: {}", saveResult);
+            log.info("DEBUG: Configuration saved to batch_configurations table: {}", saveResult);
             
             return ResponseEntity.ok(config);
         } catch (Exception e) {
-            log.error("Error creating and saving configuration from template: {}/{}", fileType, transactionType, e);
+            log.error("DEBUG: Error creating and saving configuration from template: {}/{}", fileType, transactionType, e);
             return ResponseEntity.internalServerError().build();
         }
     }

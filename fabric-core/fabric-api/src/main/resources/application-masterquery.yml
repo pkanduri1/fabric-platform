@@ -1,0 +1,335 @@
+# =========================================================================
+# MASTER QUERY MANAGEMENT CONFIGURATION
+# =========================================================================
+#
+# Purpose: Comprehensive configuration for master query creation and editing
+# Features: Feature toggles, validation rules, templates, UI configuration
+# Security: Banking-grade controls with SOX compliance
+#
+# @author Senior Full Stack Developer Agent
+# @version 1.0
+# @since Master Query CRUD Implementation
+# =========================================================================
+
+# Feature toggle configuration
+fabric:
+  master-query:
+    features:
+      # Core CRUD operations
+      create-enabled: true
+      edit-enabled: true
+      delete-enabled: true
+      soft-delete-only: true
+      validate-enabled: true
+      template-enabled: true
+      
+      # Advanced features
+      version-control: true
+      audit-trail: true
+      approval-workflow: false  # Future implementation
+      query-preview: true
+      syntax-highlighting: true
+      auto-save: false  # Manual save only for banking compliance
+      
+      # Security features
+      role-based-access: true
+      query-signing: false  # Future implementation
+      encryption-at-rest: false  # Future implementation
+
+    # SQL validation configuration
+    validation:
+      # Query type restrictions (banking compliance)
+      allowed-query-types:
+        - "SELECT"
+        - "WITH"
+      
+      prohibited-query-types:
+        - "INSERT"
+        - "UPDATE"
+        - "DELETE"
+        - "CREATE"
+        - "DROP"
+        - "ALTER"
+        - "TRUNCATE"
+        - "MERGE"
+      
+      # SQL keyword controls
+      keyword-whitelist:
+        - "SELECT"
+        - "FROM"
+        - "WHERE"
+        - "JOIN"
+        - "INNER JOIN"
+        - "LEFT JOIN"
+        - "RIGHT JOIN"
+        - "FULL OUTER JOIN"
+        - "ON"
+        - "AND"
+        - "OR"
+        - "ORDER BY"
+        - "GROUP BY"
+        - "HAVING"
+        - "UNION"
+        - "UNION ALL"
+        - "WITH"
+        - "AS"
+        - "CASE"
+        - "WHEN"
+        - "THEN"
+        - "ELSE"
+        - "END"
+        - "COUNT"
+        - "SUM"
+        - "AVG"
+        - "MIN"
+        - "MAX"
+        - "DISTINCT"
+        - "TOP"
+        - "LIMIT"
+        - "OFFSET"
+        - "FETCH"
+        - "ROW_NUMBER"
+        - "RANK"
+        - "DENSE_RANK"
+        - "OVER"
+        - "PARTITION BY"
+      
+      keyword-blacklist:
+        - "DROP"
+        - "DELETE"
+        - "INSERT"
+        - "UPDATE"
+        - "CREATE"
+        - "ALTER"
+        - "TRUNCATE"
+        - "EXEC"
+        - "EXECUTE"
+        - "MERGE"
+        - "BULK"
+        - "OPENROWSET"
+        - "OPENDATASOURCE"
+        - "xp_"
+        - "sp_"
+        - "SHUTDOWN"
+        - "KILL"
+      
+      # Query complexity limits
+      max-sql-length: 10000
+      max-parameter-count: 20
+      max-table-joins: 10
+      max-subquery-depth: 5
+      max-union-count: 5
+      
+      # Performance limits
+      max-execution-time-seconds: 30
+      max-result-rows: 1000
+      query-timeout-seconds: 60
+      
+      # Strictness levels
+      strictness-level: "HIGH"  # LOW, MEDIUM, HIGH, BANKING
+      case-sensitive: false
+      require-table-aliases: false
+      require-parameter-prefix: true  # :parameterName format
+      
+    # Template management
+    templates:
+      enabled: true
+      categories:
+        - name: "Account Management"
+          description: "Templates for account-related queries"
+          templates:
+            - name: "Account Summary"
+              sql: "SELECT account_id, account_type, balance, status FROM accounts WHERE batch_date = :batchDate"
+              parameters: ["batchDate"]
+              description: "Basic account information summary"
+            - name: "Account Transaction History"
+              sql: "SELECT account_id, transaction_date, amount, transaction_type FROM transactions WHERE account_id = :accountId AND transaction_date >= :startDate"
+              parameters: ["accountId", "startDate"]
+              description: "Transaction history for specific account"
+        
+        - name: "Transaction Processing"
+          description: "Templates for transaction analysis"
+          templates:
+            - name: "Daily Transaction Summary"
+              sql: "SELECT transaction_date, COUNT(*) as transaction_count, SUM(amount) as total_amount FROM transactions WHERE transaction_date = :batchDate GROUP BY transaction_date"
+              parameters: ["batchDate"]
+              description: "Daily transaction volume and amount summary"
+            - name: "High Value Transactions"
+              sql: "SELECT transaction_id, account_id, amount, transaction_date FROM transactions WHERE amount > :minAmount AND transaction_date = :batchDate ORDER BY amount DESC"
+              parameters: ["minAmount", "batchDate"]
+              description: "Transactions above specified amount threshold"
+        
+        - name: "Customer Analytics"
+          description: "Templates for customer data analysis"
+          templates:
+            - name: "Customer Profile"
+              sql: "SELECT customer_id, first_name, last_name, account_count, total_balance FROM customer_summary WHERE customer_id = :customerId"
+              parameters: ["customerId"]
+              description: "Basic customer profile information"
+            - name: "Customer Activity"
+              sql: "SELECT customer_id, last_login_date, transaction_count, avg_monthly_balance FROM customer_activity WHERE last_activity_date >= :startDate"
+              parameters: ["startDate"]
+              description: "Customer activity metrics and engagement"
+        
+        - name: "Risk Assessment"
+          description: "Templates for risk analysis and monitoring"
+          templates:
+            - name: "Risk Score Analysis"
+              sql: "SELECT customer_id, risk_score, risk_category, last_assessment_date FROM risk_assessment WHERE risk_score > :minRiskScore"
+              parameters: ["minRiskScore"]
+              description: "Customer risk scores above threshold"
+            - name: "Fraud Detection"
+              sql: "SELECT transaction_id, account_id, fraud_score, alert_type FROM fraud_alerts WHERE alert_date = :alertDate AND fraud_score > :minScore"
+              parameters: ["alertDate", "minScore"]
+              description: "Fraud alerts and suspicious activities"
+
+    # UI configuration
+    ui:
+      editor:
+        theme: "sql-dark"  # sql-light, sql-dark, banking-theme
+        font-size: 14
+        tab-size: 2
+        line-numbers: true
+        word-wrap: true
+        auto-indent: true
+        bracket-matching: true
+        syntax-highlighting: true
+        error-highlighting: true
+        
+      validation:
+        real-time: true
+        debounce-ms: 500
+        show-line-numbers: true
+        highlight-errors: true
+        show-suggestions: true
+        
+      save-behavior:
+        auto-save: false  # Banking compliance - manual save only
+        save-on-blur: false
+        confirm-before-save: true
+        validate-before-save: true
+        
+      preview:
+        enabled: true
+        max-preview-rows: 10
+        show-execution-plan: false  # Future feature
+        show-estimated-cost: false  # Future feature
+
+    # Source system configuration
+    source-systems:
+      encore:
+        display-name: "ENCORE Transaction System"
+        description: "Core banking transaction processing system"
+        priority: 1
+        default-schema: "ENCORE"
+        available-tables:
+          - "ENCORE_TEST_DATA"
+          - "TRANSACTION_HISTORY"
+          - "ACCOUNT_MASTER"
+        sample-queries:
+          - "SELECT * FROM ENCORE_TEST_DATA WHERE BATCH_DATE = :batchDate"
+      
+      atlas:
+        display-name: "ATLAS Customer System"
+        description: "Customer relationship management system"
+        priority: 2
+        default-schema: "ATLAS"
+        available-tables:
+          - "CUSTOMER_MASTER"
+          - "CUSTOMER_PROFILES"
+          - "CUSTOMER_PREFERENCES"
+        sample-queries:
+          - "SELECT * FROM CUSTOMER_MASTER WHERE CUSTOMER_ID = :customerId"
+      
+      core-banking:
+        display-name: "Core Banking System"
+        description: "Primary banking operations platform"
+        priority: 3
+        default-schema: "CORE"
+        available-tables:
+          - "ACCOUNTS"
+          - "DEPOSITS"
+          - "LOANS"
+        sample-queries:
+          - "SELECT * FROM ACCOUNTS WHERE ACCOUNT_TYPE = :accountType"
+
+    # Data classification and compliance
+    compliance:
+      data-classification:
+        auto-classify: true
+        default-classification: "INTERNAL"
+        classification-rules:
+          - pattern: "(?i).*(account|customer|ssn|tax_id).*"
+            classification: "CONFIDENTIAL"
+            requirements: ["PCI_DSS", "SOX", "GLBA"]
+          - pattern: "(?i).*(transaction|payment|amount).*"
+            classification: "SENSITIVE"
+            requirements: ["SOX", "FFIEC", "BASEL_III"]
+          - pattern: "(?i).*(risk|score|rating).*"
+            classification: "SENSITIVE"
+            requirements: ["SOX", "BASEL_III"]
+      
+      audit-requirements:
+        track-all-changes: true
+        require-business-justification: true
+        require-approval: false  # Future implementation
+        retention-days: 2555  # 7 years for SOX compliance
+        
+      user-restrictions:
+        guest-users: []
+        read-only-users: ["JOB_VIEWER"]
+        create-users: ["JOB_CREATOR", "ADMIN"]
+        modify-users: ["JOB_MODIFIER", "ADMIN"]
+        delete-users: ["ADMIN"]
+
+    # Performance and monitoring
+    performance:
+      query-analysis:
+        enabled: true
+        analyze-complexity: true
+        estimate-performance: false  # Future feature
+        suggest-optimizations: false  # Future feature
+      
+      monitoring:
+        track-usage: true
+        collect-metrics: true
+        alert-on-errors: true
+        performance-threshold-ms: 5000
+
+    # Integration settings
+    integration:
+      database:
+        test-connection-on-startup: true
+        validate-schemas: true
+        cache-metadata: true
+        metadata-cache-ttl-minutes: 60
+      
+      api:
+        enable-cors: true
+        rate-limiting: true
+        request-timeout-seconds: 30
+        max-concurrent-requests: 100
+
+# Logging configuration for master query operations
+logging:
+  level:
+    com.truist.batch.controller.MasterQueryController: INFO
+    com.truist.batch.service.MasterQueryService: INFO
+    com.truist.batch.service.MasterQueryValidationService: DEBUG
+    AUDIT.MasterQueryManagement: INFO
+  
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level [%X{correlationId}] %logger{36} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level [%X{correlationId}] %logger{50} - %msg%n"
+
+# Management and actuator endpoints
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "health,info,metrics,masterquery"
+  endpoint:
+    masterquery:
+      enabled: true
+    health:
+      show-details: when-authorized

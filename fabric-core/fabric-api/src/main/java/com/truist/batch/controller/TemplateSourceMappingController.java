@@ -43,6 +43,17 @@ public class TemplateSourceMappingController {
             logger.info("Saving template-source mappings for {}/{} -> {}", 
                     request.getFileType(), request.getTransactionType(), request.getSourceSystemId());
             
+            // DEBUG: Log detailed field mapping data to trace transformation type persistence
+            if (request.getFieldMappings() != null) {
+                logger.info("DEBUG: Received {} field mappings from frontend:", request.getFieldMappings().size());
+                for (int i = 0; i < request.getFieldMappings().size(); i++) {
+                    var mapping = request.getFieldMappings().get(i);
+                    logger.info("DEBUG: Field[{}]: target={}, source={}, transformationType={}, transformationConfig={}", 
+                            i, mapping.getTargetFieldName(), mapping.getSourceFieldName(), 
+                            mapping.getTransformationType(), mapping.getTransformationConfig());
+                }
+            }
+            
             TemplateSourceMappingResponse response = templateSourceMappingService.saveTemplateSourceMapping(request);
             
             logger.info("Successfully saved {} field mappings for job: {}", 

@@ -64,6 +64,13 @@ public class ManualJobConfigEntity {
     private String targetSystem;
 
     /**
+     * Master query identifier for linking to predefined SQL queries.
+     * Optional field that associates this job configuration with a master query
+     * from the MASTER_QUERY_CONFIG table.
+     */
+    private String masterQueryId;
+
+    /**
      * JSON-formatted job parameters configuration.
      * Contains all job-specific configuration including:
      * - Data source connections
@@ -182,16 +189,18 @@ public class ManualJobConfigEntity {
      * @param newJobType the new job type
      * @param newSourceSystem the new source system
      * @param newTargetSystem the new target system
+     * @param newMasterQueryId the new master query ID
      * @param newJobParameters the new job parameters (JSON format)
      * @param updatedBy the user performing the update
      */
     public void updateConfiguration(String newJobName, String newJobType, 
                                   String newSourceSystem, String newTargetSystem, 
-                                  String newJobParameters, String updatedBy) {
+                                  String newMasterQueryId, String newJobParameters, String updatedBy) {
         this.jobName = newJobName;
         this.jobType = newJobType;
         this.sourceSystem = newSourceSystem;
         this.targetSystem = newTargetSystem;
+        this.masterQueryId = newMasterQueryId;
         this.jobParameters = newJobParameters;
         this.updatedBy = updatedBy;
         this.updatedDate = LocalDateTime.now();

@@ -16,8 +16,9 @@ public class FieldMappingDto {
     @Size(max = 100, message = "Source field name must not exceed 100 characters")
     private String sourceFieldName;
 
+    @NotBlank(message = "Transformation type is required")
     @Size(max = 20, message = "Transformation type must not exceed 20 characters")
-    private String transformationType = "source";
+    private String transformationType;
 
     @Size(max = 1000, message = "Transformation config must not exceed 1000 characters")
     private String transformationConfig;
@@ -27,6 +28,12 @@ public class FieldMappingDto {
 
     @Size(max = 20, message = "Data type must not exceed 20 characters")
     private String dataType;
+
+    @Size(max = 1000, message = "Value must not exceed 1000 characters")
+    private String value;
+
+    @Size(max = 1000, message = "Default value must not exceed 1000 characters")
+    private String defaultValue;
 
     // Constructors
     public FieldMappingDto() {}
@@ -104,15 +111,34 @@ public class FieldMappingDto {
         this.dataType = dataType;
     }
 
+    public String getValue() {
+        return value;
+    }
+
+    public void setValue(String value) {
+        this.value = value;
+    }
+
+    public String getDefaultValue() {
+        return defaultValue;
+    }
+
+    public void setDefaultValue(String defaultValue) {
+        this.defaultValue = defaultValue;
+    }
+
     @Override
     public String toString() {
         return "FieldMappingDto{" +
                 "targetFieldName='" + targetFieldName + '\'' +
                 ", sourceFieldName='" + sourceFieldName + '\'' +
                 ", transformationType='" + transformationType + '\'' +
+                ", transformationConfig='" + transformationConfig + '\'' +
                 ", targetPosition=" + targetPosition +
                 ", length=" + length +
                 ", dataType='" + dataType + '\'' +
+                ", value='" + value + '\'' +
+                ", defaultValue='" + defaultValue + '\'' +
                 '}';
     }
 }

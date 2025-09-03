@@ -411,6 +411,7 @@ export function useWebSocket(
     connecting,
     error,
     send,
+    connect,
     disconnect,
     reconnect,
     lastMessage,

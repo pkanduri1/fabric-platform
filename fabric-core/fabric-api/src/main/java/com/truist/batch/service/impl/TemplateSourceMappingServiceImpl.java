@@ -4,6 +4,7 @@ import com.truist.batch.dto.FieldMappingDto;
 import com.truist.batch.dto.TemplateSourceMappingRequest;
 import com.truist.batch.dto.TemplateSourceMappingResponse;
 import com.truist.batch.entity.TemplateSourceMappingEntity;
+import com.truist.batch.model.FieldMapping;
 import com.truist.batch.repository.TemplateSourceMappingRepository;
 import com.truist.batch.service.SourceSystemService;
 import com.truist.batch.service.TemplateSourceMappingService;
@@ -39,9 +40,16 @@ public class TemplateSourceMappingServiceImpl implements TemplateSourceMappingSe
 
     @Override
     public TemplateSourceMappingResponse saveTemplateSourceMapping(TemplateSourceMappingRequest request) {
-        logger.info("Saving template-source mappings for {}/{} -> {} with {} field mappings", 
+        logger.info("DEBUG: Saving template-source mappings for {}/{} -> {} with {} field mappings", 
                 request.getFileType(), request.getTransactionType(), request.getSourceSystemId(), 
                 request.getFieldMappings().size());
+                
+        // Debug: Log the first few field mappings to see what the frontend is sending
+        for (int i = 0; i < Math.min(3, request.getFieldMappings().size()); i++) {
+            FieldMappingDto mapping = request.getFieldMappings().get(i);
+            logger.info("DEBUG: Frontend sent field {}: transformationType={}, value={}, defaultValue={}", 
+                mapping.getTargetFieldName(), mapping.getTransformationType(), mapping.getValue(), mapping.getDefaultValue());
+        }
 
         try {
             // Validate request
@@ -108,6 +116,8 @@ public class TemplateSourceMappingServiceImpl implements TemplateSourceMappingSe
                         entity.setSourceFieldName(rs.getString("source_field_name"));
                         entity.setTransformationType(rs.getString("transformation_type"));
                         entity.setTransformationConfig(rs.getString("transformation_config"));
+                        entity.setValue(rs.getString("value"));
+                        entity.setDefaultValue(rs.getString("default_value"));
                         entity.setTargetPosition(rs.getInt("target_position"));
                         entity.setLength(rs.getInt("length"));
                         entity.setDataType(rs.getString("data_type"));
@@ -360,9 +370,81 @@ public class TemplateSourceMappingServiceImpl implements TemplateSourceMappingSe
             throw new IllegalArgumentException("Field mappings are required");
         }
 
+        // Validate individual field mappings
+        for (int i = 0; i < request.getFieldMappings().size(); i++) {
+            FieldMappingDto mapping = request.getFieldMappings().get(i);
+            validateFieldMapping(mapping, i);
+        }
+
         // Validate that source system exists
         if (!sourceSystemService.existsById(request.getSourceSystemId())) {
             throw new IllegalArgumentException("Source system not found: " + request.getSourceSystemId());
+        }
+    }
+
+    /**
+     * Validates an individual field mapping for business rules compliance.
+     * 
+     * @param mapping The field mapping to validate
+     * @param index The index of the mapping for error reporting
+     * @throws IllegalArgumentException if validation fails
+     */
+    private void validateFieldMapping(FieldMappingDto mapping, int index) {
+        String fieldContext = "Field mapping at index " + index + " (field: " + mapping.getTargetFieldName() + ")";
+        
+        // Validate target field name
+        if (mapping.getTargetFieldName() == null || mapping.getTargetFieldName().trim().isEmpty()) {
+            throw new IllegalArgumentException(fieldContext + " - Target field name is required");
+        }
+        
+        // Validate transformation type specific rules
+        String transformationType = mapping.getTransformationType();
+        if (transformationType != null) {
+            switch (transformationType.toLowerCase()) {
+                case "constant":
+                    validateConstantTransformation(mapping, fieldContext);
+                    break;
+                case "source":
+                    validateSourceTransformation(mapping, fieldContext);
+                    break;
+                // Add other transformation type validations as needed
+            }
+        }
+    }
+
+    /**
+     * Validates constant transformation specific requirements.
+     * 
+     * @param mapping The field mapping to validate
+     * @param fieldContext Context string for error reporting
+     * @throws IllegalArgumentException if validation fails
+     */
+    private void validateConstantTransformation(FieldMappingDto mapping, String fieldContext) {
+        String constantValue = mapping.getValue();
+        String defaultValue = mapping.getDefaultValue();
+        
+        // For constant transformations, either value or defaultValue must be provided
+        if ((constantValue == null || constantValue.trim().isEmpty()) && 
+            (defaultValue == null || defaultValue.trim().isEmpty())) {
+            throw new IllegalArgumentException(
+                fieldContext + " - Constant transformation requires a 'value' or 'defaultValue' to be set");
+        }
+        
+        logger.debug("✅ Constant transformation validated for field {}: value='{}', defaultValue='{}'", 
+                mapping.getTargetFieldName(), constantValue, defaultValue);
+    }
+
+    /**
+     * Validates source transformation specific requirements.
+     * 
+     * @param mapping The field mapping to validate
+     * @param fieldContext Context string for error reporting
+     * @throws IllegalArgumentException if validation fails
+     */
+    private void validateSourceTransformation(FieldMappingDto mapping, String fieldContext) {
+        // For source transformations, source field name should be provided
+        if (mapping.getSourceFieldName() == null || mapping.getSourceFieldName().trim().isEmpty()) {
+            logger.warn("{} - Source transformation without source field name, this may be intentional", fieldContext);
         }
     }
 
@@ -390,14 +472,32 @@ public class TemplateSourceMappingServiceImpl implements TemplateSourceMappingSe
             INSERT INTO CM3INT.TEMPLATE_SOURCE_MAPPINGS 
             (FILE_TYPE, TRANSACTION_TYPE, SOURCE_SYSTEM_ID, JOB_NAME, TARGET_FIELD_NAME, 
              SOURCE_FIELD_NAME, TRANSFORMATION_TYPE, TRANSFORMATION_CONFIG, TARGET_POSITION, 
-             LENGTH, DATA_TYPE, CREATED_BY, CREATED_DATE, VERSION, ENABLED)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+             LENGTH, DATA_TYPE, VALUE, DEFAULT_VALUE, CREATED_BY, CREATED_DATE, VERSION, ENABLED)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """;
 
         List<Object[]> batchArgs = new ArrayList<>();
         LocalDateTime now = LocalDateTime.now();
 
         for (FieldMappingDto mapping : request.getFieldMappings()) {
+            String transformationType = mapping.getTransformationType() != null && !mapping.getTransformationType().trim().isEmpty() 
+                    ? mapping.getTransformationType() : "source";
+            
+            // Handle constant transformation values
+            String transformationConfig = prepareTransformationConfig(mapping, transformationType);
+            
+            // Extract the value and defaultValue from the mapping
+            String value = null;
+            String defaultValue = null;
+            
+            if ("constant".equalsIgnoreCase(transformationType)) {
+                value = mapping.getValue();
+                defaultValue = mapping.getDefaultValue();
+                
+                logger.debug("💾 Saving constant field {}: value='{}', defaultValue='{}'", 
+                        mapping.getTargetFieldName(), value, defaultValue);
+            }
+            
             Object[] args = {
                 request.getFileType(),
                 request.getTransactionType(),
@@ -405,11 +505,13 @@ public class TemplateSourceMappingServiceImpl implements TemplateSourceMappingSe
                 request.getJobName(),
                 mapping.getTargetFieldName(),
                 mapping.getSourceFieldName(),
-                mapping.getTransformationType() != null ? mapping.getTransformationType() : "source",
-                mapping.getTransformationConfig(),
+                transformationType,
+                transformationConfig,
                 mapping.getTargetPosition(),
                 mapping.getLength(),
                 mapping.getDataType(),
+                value,                    // VALUE column
+                defaultValue,             // DEFAULT_VALUE column
                 request.getCreatedBy(),
                 now,
                 1,
@@ -437,6 +539,140 @@ public class TemplateSourceMappingServiceImpl implements TemplateSourceMappingSe
         dto.setTargetPosition(entity.getTargetPosition());
         dto.setLength(entity.getLength());
         dto.setDataType(entity.getDataType());
+        
+        // Set value and defaultValue directly from entity columns
+        dto.setValue(entity.getValue());
+        dto.setDefaultValue(entity.getDefaultValue());
+        
+        logger.debug("🔄 Converting entity to DTO for field {}: value='{}', defaultValue='{}'", 
+                entity.getTargetFieldName(), entity.getValue(), entity.getDefaultValue());
+        
+        // Also extract constant values from transformation config as fallback (for backward compatibility)
+        if ((dto.getValue() == null || dto.getValue().trim().isEmpty()) && 
+            (dto.getDefaultValue() == null || dto.getDefaultValue().trim().isEmpty())) {
+            extractConstantValues(dto, entity.getTransformationType(), entity.getTransformationConfig());
+        }
+        
         return dto;
+    }
+
+    /**
+     * Prepares transformation configuration for storage in database.
+     * For constant transformations, serializes the value into the config field.
+     * 
+     * @param mapping The field mapping DTO
+     * @param transformationType The transformation type
+     * @return The transformation configuration string
+     */
+    private String prepareTransformationConfig(FieldMappingDto mapping, String transformationType) {
+        try {
+            if ("constant".equalsIgnoreCase(transformationType)) {
+                // For constant transformations, store the value in transformation config
+                String constantValue = mapping.getValue();
+                if (constantValue == null || constantValue.trim().isEmpty()) {
+                    constantValue = mapping.getDefaultValue();
+                }
+                
+                if (constantValue != null && !constantValue.trim().isEmpty()) {
+                    return "{\"value\":\"" + constantValue.replace("\"", "\\\"") + "\"}";
+                } else {
+                    throw new IllegalArgumentException("Constant transformation requires a value or defaultValue");
+                }
+            } else {
+                // For other transformation types, use the provided config
+                return mapping.getTransformationConfig();
+            }
+        } catch (Exception e) {
+            logger.error("Error preparing transformation config for field {}: {}", 
+                    mapping.getTargetFieldName(), e.getMessage());
+            throw new RuntimeException("Failed to prepare transformation config", e);
+        }
+    }
+
+    /**
+     * Extracts constant values from transformation configuration and populates DTO fields.
+     * 
+     * @param dto The field mapping DTO to populate
+     * @param transformationType The transformation type
+     * @param transformationConfig The stored transformation configuration
+     */
+    private void extractConstantValues(FieldMappingDto dto, String transformationType, String transformationConfig) {
+        try {
+            if ("constant".equalsIgnoreCase(transformationType) && transformationConfig != null) {
+                // Parse JSON configuration to extract constant value
+                if (transformationConfig.startsWith("{") && transformationConfig.contains("\"value\"")) {
+                    // Simple JSON parsing for value extraction
+                    String valuePattern = "\"value\"\\s*:\\s*\"([^\"]*?)\"";
+                    java.util.regex.Pattern pattern = java.util.regex.Pattern.compile(valuePattern);
+                    java.util.regex.Matcher matcher = pattern.matcher(transformationConfig);
+                    
+                    if (matcher.find()) {
+                        String extractedValue = matcher.group(1).replace("\\\"", "\"");
+                        dto.setValue(extractedValue);
+                    }
+                }
+            }
+        } catch (Exception e) {
+            logger.warn("Could not extract constant value from transformation config for field {}: {}", 
+                    dto.getTargetFieldName(), e.getMessage());
+        }
+    }
+
+    /**
+     * Converts FieldMappingDto to FieldMapping model object for YAML generation.
+     * This method ensures that constant values are properly propagated to the YAML generation process.
+     * 
+     * @param dto The FieldMappingDto to convert
+     * @return FieldMapping model object with constant values properly set
+     */
+    public FieldMapping convertToFieldMapping(FieldMappingDto dto) {
+        logger.debug("Converting FieldMappingDto to FieldMapping for field: {}", dto.getTargetFieldName());
+        
+        FieldMapping fieldMapping = FieldMapping.builder()
+                .targetField(dto.getTargetFieldName())
+                .sourceField(dto.getSourceFieldName()) 
+                .transformationType(dto.getTransformationType())
+                .targetPosition(dto.getTargetPosition() != null ? dto.getTargetPosition() : 0)
+                .length(dto.getLength() != null ? dto.getLength() : 0)
+                .dataType(dto.getDataType())
+                .build();
+
+        // Handle constant values - this is the key fix
+        if ("constant".equalsIgnoreCase(dto.getTransformationType())) {
+            // Set the constant value in the FieldMapping object
+            if (dto.getValue() != null && !dto.getValue().trim().isEmpty()) {
+                fieldMapping.setValue(dto.getValue());
+            } else if (dto.getDefaultValue() != null && !dto.getDefaultValue().trim().isEmpty()) {
+                fieldMapping.setValue(dto.getDefaultValue());
+            }
+            
+            // Also set defaultValue for fallback scenarios
+            if (dto.getDefaultValue() != null && !dto.getDefaultValue().trim().isEmpty()) {
+                fieldMapping.setDefaultValue(dto.getDefaultValue());
+            }
+            
+            logger.debug("✅ Set constant value for field {}: value='{}', defaultValue='{}'", 
+                    dto.getTargetFieldName(), fieldMapping.getValue(), fieldMapping.getDefaultValue());
+        }
+
+        return fieldMapping;
+    }
+
+    /**
+     * Converts a list of FieldMappingDto objects to FieldMapping model objects for YAML generation.
+     * 
+     * @param dtos List of FieldMappingDto objects to convert
+     * @return List of FieldMapping model objects
+     */
+    public List<FieldMapping> convertToFieldMappings(List<FieldMappingDto> dtos) {
+        if (dtos == null || dtos.isEmpty()) {
+            return new ArrayList<>();
+        }
+        
+        logger.debug("Converting {} FieldMappingDto objects to FieldMapping models", dtos.size());
+        
+        return dtos.stream()
+                .map(this::convertToFieldMapping)
+                .collect(Collectors.toList());
     }
 }

@@ -102,7 +102,10 @@ expect.extend({
 });
 
 // Mock environment variables
-process.env.NODE_ENV = 'test';
+Object.defineProperty(process.env, 'NODE_ENV', {
+  value: 'test',
+  writable: true
+});
 process.env.REACT_APP_API_URL = 'http://localhost:8080';
 process.env.REACT_APP_WS_URL = 'ws://localhost:8080/ws';
 process.env.REACT_APP_VERSION = '1.0.0-test';

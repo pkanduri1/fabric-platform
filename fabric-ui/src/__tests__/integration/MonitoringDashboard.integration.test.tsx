@@ -21,6 +21,9 @@ import {
   DashboardData, 
   ActiveJob, 
   JobStatus, 
+  JobPriority,
+  TrendIndicator,
+  AlertType,
   AlertSeverity,
   WebSocketMessage 
 } from '../../types/monitoring';
@@ -95,7 +98,7 @@ const createMockJob = (overrides: Partial<ActiveJob> = {}): ActiveJob => ({
   jobName: 'Test Batch Job',
   sourceSystem: 'TestSystem',
   status: JobStatus.RUNNING,
-  priority: 'NORMAL',
+  priority: JobPriority.NORMAL,
   startTime: '2025-08-08T10:00:00Z',
   progress: 50,
   recordsProcessed: 1000,
@@ -105,7 +108,7 @@ const createMockJob = (overrides: Partial<ActiveJob> = {}): ActiveJob => ({
   errorCount: 0,
   warningCount: 0,
   performanceScore: 85,
-  trendIndicator: 'STABLE',
+  trendIndicator: TrendIndicator.STABLE,
   lastHeartbeat: '2025-08-08T10:05:00Z',
   correlationId: 'corr-123',
   ...overrides
@@ -174,7 +177,7 @@ const createMockDashboardData = (): DashboardData => ({
   alerts: [
     {
       alertId: 'alert-1',
-      type: 'ERROR_RATE',
+      type: AlertType.ERROR_RATE,
       severity: AlertSeverity.WARNING,
       title: 'High Error Rate in Job Processing',
       description: 'Error rate has exceeded 5% threshold',
@@ -187,7 +190,7 @@ const createMockDashboardData = (): DashboardData => ({
     },
     {
       alertId: 'alert-2',
-      type: 'PERFORMANCE',
+      type: AlertType.PERFORMANCE,
       severity: AlertSeverity.INFO,
       title: 'Performance Degradation Detected',
       description: 'System performance has decreased by 10%',

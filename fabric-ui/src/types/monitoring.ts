@@ -481,6 +481,7 @@ export interface JobGridProps {
 
 export interface AlertPanelProps {
   alerts: Alert[];
+  loading?: boolean;
   onAcknowledge?: (alertId: string) => void;
   onResolve?: (alertId: string) => void;
   onConfigure?: () => void;
@@ -512,8 +513,9 @@ export interface UseWebSocketReturn {
   connecting: boolean;
   error: MonitoringError | null;
   send: (message: any) => void;
+  connect: () => Promise<void>;
   disconnect: () => void;
-  reconnect: () => void;
+  reconnect: () => Promise<void>;
   lastMessage: WebSocketMessage | null;
   subscribe: (topics: string[]) => void;
   unsubscribe: (topics: string[]) => void;

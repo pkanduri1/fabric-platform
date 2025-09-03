@@ -71,6 +71,11 @@ public class BatchConfigurationDaoImpl implements BatchConfigurationDao {
             configuration.setId(generateId(configuration));
         }
         
+        // Check for duplicates before saving (only for new configurations)
+        if (!existsById(configuration.getId())) {
+            checkForDuplicateConfiguration(configuration);
+        }
+        
         if (existsById(configuration.getId())) {
             configuration.setLastModifiedDate(LocalDateTime.now());
             jdbcTemplate.update(UPDATE_SQL,
@@ -175,6 +180,31 @@ public class BatchConfigurationDaoImpl implements BatchConfigurationDao {
     private String generateId(BatchConfiguration config) {
         return config.getSourceSystem() + "-" + config.getJobName() + "-" + 
                config.getTransactionType() + "-" + System.currentTimeMillis();
+    }
+    
+    /**
+     * Check for duplicate configurations based on the unique constraint:
+     * (SOURCE_SYSTEM, JOB_NAME, TRANSACTION_TYPE)
+     */
+    private void checkForDuplicateConfiguration(BatchConfiguration configuration) {
+        Optional<BatchConfiguration> existing = findBySourceSystemAndJobNameAndTransactionType(
+            configuration.getSourceSystem(), 
+            configuration.getJobName(), 
+            configuration.getTransactionType()
+        );
+        
+        if (existing.isPresent()) {
+            String message = String.format(
+                "Configuration already exists for SOURCE_SYSTEM='%s', JOB_NAME='%s', TRANSACTION_TYPE='%s'. " +
+                "Existing configuration ID: %s. Please use a different combination or update the existing configuration.",
+                configuration.getSourceSystem(),
+                configuration.getJobName(), 
+                configuration.getTransactionType(),
+                existing.get().getId()
+            );
+            System.out.println("DUPLICATE CHECK FAILED: " + message);
+            throw new IllegalArgumentException(message);
+        }
     }
     
     private void validateAndSetDefaults(BatchConfiguration config) {

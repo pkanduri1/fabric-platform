@@ -583,8 +583,8 @@ describe('WebSocketService', () => {
       service.off('message', messageHandler);
 
       // Trigger events
-      service.emit('message', { test: 'data' });
-      service.emit('error', { code: 'TEST_ERROR' });
+      service.emitForTesting('message', { test: 'data' });
+      service.emitForTesting('error', { code: 'TEST_ERROR' });
 
       expect(messageHandler).not.toHaveBeenCalled();
       expect(errorHandler).toHaveBeenCalled();
@@ -598,7 +598,7 @@ describe('WebSocketService', () => {
       });
 
       service.on('message', faultyHandler);
-      service.emit('message', { test: 'data' });
+      service.emitForTesting('message', { test: 'data' });
 
       expect(consoleSpy).toHaveBeenCalledWith(
         expect.stringContaining('Error in WebSocket event listener'),

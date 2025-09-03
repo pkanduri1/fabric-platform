@@ -259,9 +259,9 @@ public class TemplateSourceMappingRepositoryImpl implements TemplateSourceMappin
         String sql = """
             INSERT INTO CM3INT.TEMPLATE_SOURCE_MAPPINGS 
             (FILE_TYPE, TRANSACTION_TYPE, SOURCE_SYSTEM_ID, JOB_NAME, TARGET_FIELD_NAME, 
-             SOURCE_FIELD_NAME, TRANSFORMATION_TYPE, TRANSFORMATION_CONFIG, TARGET_POSITION, 
+             SOURCE_FIELD_NAME, TRANSFORMATION_TYPE, VALUE, DEFAULT_VALUE, TARGET_POSITION, 
              LENGTH, DATA_TYPE, CREATED_BY, CREATED_DATE, VERSION, ENABLED)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """;
 
         if (entity.getCreatedDate() == null) {
@@ -270,40 +270,48 @@ public class TemplateSourceMappingRepositoryImpl implements TemplateSourceMappin
         if (entity.getVersion() == null) {
             entity.setVersion(1);
         }
-        if (entity.getEnabled() == null) {
-            entity.setEnabled("Y");
-        }
-        if (entity.getTransformationType() == null) {
-            entity.setTransformationType("source");
+
+        // Insert without using generated keys to avoid Oracle ROWID casting issues
+        int rowsAffected = jdbcTemplate.update(sql,
+            entity.getFileType(),
+            entity.getTransactionType(),
+            entity.getSourceSystemId(),
+            entity.getJobName(),
+            entity.getTargetFieldName(),
+            entity.getSourceFieldName(),
+            entity.getTransformationType(),
+            entity.getValue(),
+            entity.getDefaultValue(),
+            entity.getTargetPosition(),
+            entity.getLength(),
+            entity.getDataType(),
+            entity.getCreatedBy(),
+            entity.getCreatedDate(),
+            entity.getVersion(),
+            entity.getEnabled()
+        );
+
+        // Query back the inserted record to get the generated ID
+        if (rowsAffected > 0) {
+            String selectIdSql = """
+                SELECT ID FROM CM3INT.TEMPLATE_SOURCE_MAPPINGS 
+                WHERE FILE_TYPE = ? AND TRANSACTION_TYPE = ? AND SOURCE_SYSTEM_ID = ? 
+                AND JOB_NAME = ? AND TARGET_FIELD_NAME = ? AND CREATED_DATE = ?
+                ORDER BY ID DESC FETCH FIRST 1 ROWS ONLY
+            """;
+            try {
+                Long id = jdbcTemplate.queryForObject(selectIdSql, Long.class,
+                    entity.getFileType(), entity.getTransactionType(), entity.getSourceSystemId(),
+                    entity.getJobName(), entity.getTargetFieldName(), entity.getCreatedDate());
+                entity.setId(id);
+                logger.info("Inserted template source mapping with ID: {} (rows affected: {})", entity.getId(), rowsAffected);
+            } catch (Exception ex) {
+                logger.error("Failed to retrieve generated ID after insert: {}", ex.getMessage());
+                // Set a placeholder ID to avoid null issues
+                entity.setId(-1L);
+            }
         }
 
-        KeyHolder keyHolder = new GeneratedKeyHolder();
-        
-        jdbcTemplate.update(connection -> {
-            PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
-            ps.setString(1, entity.getFileType());
-            ps.setString(2, entity.getTransactionType());
-            ps.setString(3, entity.getSourceSystemId());
-            ps.setString(4, entity.getJobName());
-            ps.setString(5, entity.getTargetFieldName());
-            ps.setString(6, entity.getSourceFieldName());
-            ps.setString(7, entity.getTransformationType());
-            ps.setString(8, entity.getTransformationConfig());
-            ps.setObject(9, entity.getTargetPosition());
-            ps.setObject(10, entity.getLength());
-            ps.setString(11, entity.getDataType());
-            ps.setString(12, entity.getCreatedBy());
-            ps.setObject(13, entity.getCreatedDate());
-            ps.setInt(14, entity.getVersion());
-            ps.setString(15, entity.getEnabled());
-            return ps;
-        }, keyHolder);
-
-        if (keyHolder.getKey() != null) {
-            entity.setId(keyHolder.getKey().longValue());
-        }
-
-        logger.info("Inserted template source mapping: {}", entity.getId());
         return entity;
     }
 
@@ -312,7 +320,7 @@ public class TemplateSourceMappingRepositoryImpl implements TemplateSourceMappin
             UPDATE CM3INT.TEMPLATE_SOURCE_MAPPINGS 
             SET FILE_TYPE = ?, TRANSACTION_TYPE = ?, SOURCE_SYSTEM_ID = ?, JOB_NAME = ?, 
                 TARGET_FIELD_NAME = ?, SOURCE_FIELD_NAME = ?, TRANSFORMATION_TYPE = ?, 
-                TRANSFORMATION_CONFIG = ?, TARGET_POSITION = ?, LENGTH = ?, DATA_TYPE = ?, 
+                VALUE = ?, DEFAULT_VALUE = ?, TARGET_POSITION = ?, LENGTH = ?, DATA_TYPE = ?, 
                 MODIFIED_BY = ?, MODIFIED_DATE = ?, VERSION = ?, ENABLED = ?
             WHERE ID = ?
         """;
@@ -327,7 +335,8 @@ public class TemplateSourceMappingRepositoryImpl implements TemplateSourceMappin
                 entity.getTargetFieldName(),
                 entity.getSourceFieldName(),
                 entity.getTransformationType(),
-                entity.getTransformationConfig(),
+                entity.getValue(),
+                entity.getDefaultValue(),
                 entity.getTargetPosition(),
                 entity.getLength(),
                 entity.getDataType(),
@@ -357,7 +366,8 @@ public class TemplateSourceMappingRepositoryImpl implements TemplateSourceMappin
             entity.setTargetFieldName(rs.getString("TARGET_FIELD_NAME"));
             entity.setSourceFieldName(rs.getString("SOURCE_FIELD_NAME"));
             entity.setTransformationType(rs.getString("TRANSFORMATION_TYPE"));
-            entity.setTransformationConfig(rs.getString("TRANSFORMATION_CONFIG"));
+            entity.setValue(rs.getString("VALUE"));
+            entity.setDefaultValue(rs.getString("DEFAULT_VALUE"));
             
             entity.setTargetPosition(rs.getInt("TARGET_POSITION"));
             if (rs.wasNull()) entity.setTargetPosition(null);
