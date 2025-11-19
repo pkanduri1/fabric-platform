@@ -1,0 +1,71 @@
+fileType: atoctran-200
+transactionType: 200
+fields:
+  location_code:
+    fieldName: location-code
+    value: 100030
+    sourceField: 100030
+    targetField: location-code
+    transformationType: constant
+    targetPosition: 1
+    dataType: string
+    length: 6
+  acct_num:
+    fieldName: acct-num
+    sourceField: acct_num
+    targetField: acct-num
+    transformationType: source
+    targetPosition: 2
+    dataType: string
+    length: 18
+  transaction_code:
+    fieldName: transaction-code
+    value: 200
+    sourceField: 200
+    targetField: transaction-code
+    transformationType: constant
+    targetPosition: 3
+    dataType: string
+    length: 3
+  transaction_date:
+    fieldName: transaction-date
+    sourceField: batch_date
+    targetField: transaction-date
+    transformationType: source
+    targetPosition: 4
+    dataType: string
+    length: 8
+    format: YYYYMMDD
+  previous_cci:
+    fieldName: previous-cci
+    sourceField: cci
+    targetField: previous-cci
+    transformationType: source
+    targetPosition: 5
+    dataType: string
+    length: 1
+  portfolio_location_cd:
+    fieldName: portfolio-location-cd
+    value: 200000
+    sourceField: 200000
+    targetField: portfolio-location-cd
+    transformationType: constant
+    targetPosition: 6
+    dataType: string
+    length: 6
+  customer_portfolio_id:
+    fieldName: customer-portfolio-id
+    sourceField: contact_id
+    targetField: customer-portfolio-id
+    transformationType: source
+    targetPosition: 7
+    dataType: string
+    length: 18
+  portfolio_contact_id:
+    fieldName: portfolio-contact-id
+    sourceField: contact_id
+    targetField: portfolio-contact-id
+    transformationType: source
+    targetPosition: 8
+    dataType: string
+    length: 18

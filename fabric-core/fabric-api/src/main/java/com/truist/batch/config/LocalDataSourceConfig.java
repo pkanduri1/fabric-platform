@@ -30,21 +30,24 @@ public class LocalDataSourceConfig {
     @Primary
     public DataSource dataSource() {
         logger.info("Creating PRIMARY Oracle DataSource for local profile");
-        DataSource ds = DataSourceBuilder.create()
+        com.zaxxer.hikari.HikariDataSource ds = DataSourceBuilder.create()
+                .type(com.zaxxer.hikari.HikariDataSource.class)
                 .driverClassName("oracle.jdbc.OracleDriver")
                 .url("jdbc:oracle:thin:@localhost:1521/ORCLPDB1")
                 .username("cm3int")
                 .password("MySecurePass123")
                 .build();
-        logger.info("PRIMARY Oracle DataSource created successfully");
+
+        // Force READ_COMMITTED to avoid ORA-08177
+        ds.setTransactionIsolation("TRANSACTION_READ_COMMITTED");
+        ds.setMaximumPoolSize(10);
+
+        logger.info("PRIMARY Oracle DataSource created successfully with READ_COMMITTED isolation");
         return ds;
     }
 
-    @Bean
-    @Primary
-    public PlatformTransactionManager transactionManager(DataSource dataSource) {
-        return new DataSourceTransactionManager(dataSource);
-    }
+    // Removed duplicate transactionManager bean - let LocalTransactionConfig handle
+    // it
 
     @Bean
     @Primary

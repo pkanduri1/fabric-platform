@@ -17,6 +17,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.annotation.Isolation;
 
 import com.truist.batch.adapter.DataSourceAdapterRegistry;
 import com.truist.batch.listener.GenericJobListener;
@@ -34,38 +35,43 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Configuration
-@EnableBatchProcessing
 @RequiredArgsConstructor
 @Slf4j
-public class GenericJobConfig {
+public class GenericJobConfig extends org.springframework.batch.core.configuration.support.DefaultBatchConfiguration {
 
 	private final YamlMappingService mappingService;
-	private final JobRepository jobRepository;
-	private final PlatformTransactionManager transactionManager;
+	// private final JobRepository jobRepository; // Removed: Provided by superclass
+	// private final PlatformTransactionManager transactionManager; // Removed:
+	// Provided by superclass
 	private final BatchJobProperties config;
 	private final GenericJobListener jobListener;
 	private final GenericStepListener stepListener;
 	private final TaskExecutor taskExecutor;
 	private final LoadBatchDateTasklet loadBatchDateTasklet;
-	//private final SimpleExecutionMonitor executionMonitor;
+	// private final SimpleExecutionMonitor executionMonitor;
 	private final DynamicBatchConfigLoader configLoader;
-	
-	// ✅ NEW: Inject the adapter registry 6/11/25	
-		private final DataSourceAdapterRegistry adapterRegistry;
+
+	// ✅ NEW: Inject the adapter registry 6/11/25
+	private final DataSourceAdapterRegistry adapterRegistry;
+
+	@Override
+	protected Isolation getIsolationLevelForCreate() {
+		return Isolation.READ_COMMITTED;
+	}
 
 	@Bean
 	public Step loadBatchDateStep() {
-		return new StepBuilder("loadBatchDateStep", jobRepository)
-				.tasklet(loadBatchDateTasklet, transactionManager)
+		return new StepBuilder("loadBatchDateStep", jobRepository())
+				.tasklet(loadBatchDateTasklet, getTransactionManager())
 				.build();
 	}
 
 	@Bean
 	public Job genericJob() {
-		return new org.springframework.batch.core.job.builder.JobBuilder("genericJob", jobRepository)
+		return new org.springframework.batch.core.job.builder.JobBuilder("genericJob", jobRepository())
 				.incrementer(new RunIdIncrementer())
 				.listener(jobListener)
-				//.listener(executionMonitor)
+				// .listener(executionMonitor)
 				.start(loadBatchDateStep())
 				.next(filePartitionStep(null, null))
 				.build();
@@ -80,7 +86,7 @@ public class GenericJobConfig {
 	public Step filePartitionStep(
 			@Value("#{jobParameters['jobName']}") String jobName,
 			@Value("#{jobParameters['sourceSystem']}") String sourceSystem) {
-		
+
 		log.info("🔥 Creating partition step for job: {}.{}", sourceSystem, jobName);
 
 		try {
@@ -92,17 +98,16 @@ public class GenericJobConfig {
 
 			// Create partitioner with context
 			GenericPartitioner partitioner = new GenericPartitioner(
-				mappingService, 
-				systemConfig, 
-				jobConfig,
-				sourceSystem,
-				jobName        
-			);
+					mappingService,
+					systemConfig,
+					jobConfig,
+					sourceSystem,
+					jobName);
 
 			// Create partitioned step - key change: use string name, not bean reference
-			return new StepBuilder(jobName + "PartitionStep", jobRepository)
-					.partitioner("workerStep", partitioner)  // ← String reference
-					.step(createWorkerStep(jobName))          // ← Method call, not bean
+			return new StepBuilder(jobName + "PartitionStep", jobRepository())
+					.partitioner("workerStep", partitioner) // ← String reference
+					.step(createWorkerStep(jobName)) // ← Method call, not bean
 					.gridSize(config.getGridSize())
 					.taskExecutor(taskExecutor)
 					.build();
@@ -119,12 +124,12 @@ public class GenericJobConfig {
 	 */
 	private Step createWorkerStep(String jobName) {
 		String stepName = jobName + "WorkerStep";
-		
-		return new StepBuilder(stepName, jobRepository)
-				.<Map<String, Object>, Map<String, Object>>chunk(config.getChunkSize(), transactionManager)
-				.reader(genericReader(null))   // These ARE beans and @StepScope
-				.processor(genericProcessor(null))   // These ARE beans and @StepScope  
-				.writer(genericWriter(null))         // These ARE beans and @StepScope
+
+		return new StepBuilder(stepName, jobRepository())
+				.<Map<String, Object>, Map<String, Object>>chunk(config.getChunkSize(), getTransactionManager())
+				.reader(genericReader(null)) // These ARE beans and @StepScope
+				.processor(genericProcessor(null)) // These ARE beans and @StepScope
+				.writer(genericWriter(null)) // These ARE beans and @StepScope
 				.listener(stepListener)
 				.faultTolerant()
 				.skipLimit(10)
