@@ -342,8 +342,6 @@ export const MasterQuerySelector: React.FC<MasterQuerySelectorProps> = ({
     return (
       <ListItem
         key={query.masterQueryId}
-        component="button"
-        selected={isSelected}
         onClick={() => handleQuerySelect(query)}
         sx={{
           mb: 1,
@@ -351,6 +349,7 @@ export const MasterQuerySelector: React.FC<MasterQuerySelectorProps> = ({
           border: isSelected ? 2 : 1,
           borderColor: isSelected ? 'primary.main' : 'divider',
           backgroundColor: isSelected ? 'primary.lighter' : 'background.paper',
+          cursor: 'pointer',
           '&:hover': {
             backgroundColor: isSelected ? 'primary.lighter' : 'action.hover'
           }

@@ -851,7 +851,11 @@ export const QueryColumnAnalyzer: React.FC<QueryColumnAnalyzerProps> = ({
                     
                     <List dense>
                       {columnsAtRisk.map(analysis => (
-                        <ListItem key={analysis.column.name} button onClick={() => handleColumnSelect(analysis.column)}>
+                        <ListItem
+                          key={analysis.column.name}
+                          onClick={() => handleColumnSelect(analysis.column)}
+                          sx={{ cursor: 'pointer', '&:hover': { backgroundColor: 'action.hover' } }}
+                        >
                           <ListItemIcon>
                             {analysis.column.dataClassification === 'SENSITIVE' ? (
                               <Security color="error" />
