@@ -45,8 +45,9 @@ const TemplateStudioPageContent: React.FC = () => {
     const { selectedSourceSystem, selectSourceSystem } = useConfigurationContext();
     const { sourceSystems, isLoading: isLoadingSourceSystems } = useSourceSystems();
 
-    // Suppress ResizeObserver errors by wrapping the constructor
+    // Suppress ResizeObserver errors (both console and runtime errors)
     useEffect(() => {
+        // 1. Suppress console.error for ResizeObserver warnings
         const resizeObserverErr = window.console.error;
         window.console.error = (...args: any[]) => {
             if (args[0]?.toString().includes('ResizeObserver loop')) {
@@ -55,8 +56,22 @@ const TemplateStudioPageContent: React.FC = () => {
             resizeObserverErr(...args);
         };
 
+        // 2. Suppress runtime errors thrown by ResizeObserver
+        const handleGlobalError = (event: ErrorEvent) => {
+            if (event.message && event.message.includes('ResizeObserver loop')) {
+                event.stopImmediatePropagation();
+                event.preventDefault();
+                return true;
+            }
+            return false;
+        };
+
+        // Add global error listener with capture phase to catch errors before React's error boundary
+        window.addEventListener('error', handleGlobalError, true);
+
         return () => {
             window.console.error = resizeObserverErr;
+            window.removeEventListener('error', handleGlobalError, true);
         };
     }, []);
 
