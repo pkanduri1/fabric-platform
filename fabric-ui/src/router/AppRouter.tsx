@@ -7,6 +7,7 @@ import { YamlPreviewPage } from '../pages/YamlPreviewPage';
 import { TestingPage } from '../pages/TestingPage';
 import { PageLayout } from '../components/layout/PageLayout';
 import TemplateConfigurationPage from '../pages/TemplateConfigurationPage/TemplateConfigurationPage';
+import TemplateStudioPage from '../pages/TemplateStudioPage/TemplateStudioPage';
 import TemplateAdminPage from '../pages/TemplateAdminPage/TemplateAdminPage';
 import { MonitoringDashboard } from '../pages/MonitoringDashboard/MonitoringDashboard';
 import { ManualJobConfigurationPage } from '../pages/ManualJobConfigurationPage';
@@ -36,13 +37,14 @@ export const AppRouter: React.FC = () => {
 
                 {/* Template Administration Routes */}
                 <Route path="/admin/templates" element={<TemplateAdminPage />} />
-                
+                <Route path="/template-studio" element={<TemplateStudioPage />} />
+
                 {/* Monitoring Dashboard Routes */}
                 <Route path="/monitoring" element={<MonitoringDashboard />} />
-                
+
                 {/* Manual Job Configuration Routes - Phase 3A */}
                 <Route path="/manual-job-config" element={<ManualJobConfigurationPage />} />
-                
+
                 <Route path="/yaml-preview" element={<YamlPreviewPage />} />
                 <Route path="/testing" element={<TestingPage />} />
                 <Route path="*" element={<Navigate to="/dashboard" replace />} />

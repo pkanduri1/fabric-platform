@@ -38,14 +38,14 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 @RestController
 @RequestMapping("/admin/templates")
-@CrossOrigin(origins = {"http://localhost:3000", "https://localhost:3000"}, 
-             allowedHeaders = "*", 
-             methods = {RequestMethod.GET, RequestMethod.POST, RequestMethod.PUT, RequestMethod.DELETE, RequestMethod.OPTIONS})
+@CrossOrigin(origins = { "http://localhost:3000", "https://localhost:3000",
+        "http://localhost:3001" }, allowedHeaders = "*", methods = {
+                RequestMethod.GET, RequestMethod.POST, RequestMethod.PUT, RequestMethod.DELETE, RequestMethod.OPTIONS })
 public class TemplateController {
 
     @Autowired
     private TemplateService templateService;
-    
+
     @Autowired
     private ConfigurationService configurationService;
 
@@ -73,7 +73,7 @@ public class TemplateController {
         try {
             Optional<FileTypeTemplate> template = templateService.getFileTypeTemplate(fileType);
             return template.map(ResponseEntity::ok)
-                          .orElse(ResponseEntity.notFound().build());
+                    .orElse(ResponseEntity.notFound().build());
         } catch (Exception e) {
             log.error("Error fetching template for fileType: {}", fileType, e);
             return ResponseEntity.internalServerError().build();
@@ -82,14 +82,16 @@ public class TemplateController {
 
     /**
      * Get fields for a specific file type and transaction type
-     * Frontend expects: GET /api/admin/templates/{fileType}/{transactionType}/fields
+     * Frontend expects: GET
+     * /api/admin/templates/{fileType}/{transactionType}/fields
      */
     @GetMapping("/{fileType}/{transactionType}/fields")
     public ResponseEntity<List<FieldTemplate>> getTemplateFields(
             @PathVariable String fileType,
             @PathVariable String transactionType) {
         try {
-            List<FieldTemplate> fields = templateService.getFieldTemplatesByFileTypeAndTransactionType(fileType, transactionType);
+            List<FieldTemplate> fields = templateService.getFieldTemplatesByFileTypeAndTransactionType(fileType,
+                    transactionType);
             return ResponseEntity.ok(fields);
         } catch (Exception e) {
             log.error("Error fetching fields for fileType: {}, transactionType: {}", fileType, transactionType, e);
@@ -114,7 +116,8 @@ public class TemplateController {
 
     /**
      * Create configuration from template
-     * Frontend expects: POST /api/admin/templates/{fileType}/{transactionType}/create-config
+     * Frontend expects: POST
+     * /api/admin/templates/{fileType}/{transactionType}/create-config
      */
     @PostMapping("/{fileType}/{transactionType}/create-config")
     @Transactional
@@ -125,36 +128,40 @@ public class TemplateController {
             @RequestParam String jobName,
             @RequestParam(defaultValue = "system") String createdBy) {
         try {
-            log.info("🔍 TRACE: Template configuration save called - Creating configuration from template: {}/{} for {}/{}", 
+            log.info(
+                    "🔍 TRACE: Template configuration save called - Creating configuration from template: {}/{} for {}/{}",
                     fileType, transactionType, sourceSystem, jobName);
-            log.info("🔍 TRACE: Request parameters - fileType={}, transactionType={}, sourceSystem={}, jobName={}, createdBy={}", 
+            log.info(
+                    "🔍 TRACE: Request parameters - fileType={}, transactionType={}, sourceSystem={}, jobName={}, createdBy={}",
                     fileType, transactionType, sourceSystem, jobName, createdBy);
-            
+
             // 1. Create configuration from template (this should now use saved mappings!)
             FieldMappingConfig config = templateService.createConfigurationFromTemplate(
-                fileType, transactionType, sourceSystem, jobName, createdBy);
-            
+                    fileType, transactionType, sourceSystem, jobName, createdBy);
+
             // Debug: Log the resulting configuration
             if (config != null && config.getFieldMappings() != null) {
                 log.info("🔍 TRACE: Created configuration with {} field mappings", config.getFieldMappings().size());
                 log.info("🔍 TRACE: Full field mapping details:");
                 for (int i = 0; i < config.getFieldMappings().size(); i++) {
                     FieldMapping mapping = config.getFieldMappings().get(i);
-                    log.info("🔍 TRACE: Field[{}]: name={}, transformationType={}, value={}, sourceField={}, defaultValue={}", 
-                        i, mapping.getFieldName(), mapping.getTransformationType(), mapping.getValue(), 
-                        mapping.getSourceField(), mapping.getDefaultValue());
+                    log.info(
+                            "🔍 TRACE: Field[{}]: name={}, transformationType={}, value={}, sourceField={}, defaultValue={}",
+                            i, mapping.getFieldName(), mapping.getTransformationType(), mapping.getValue(),
+                            mapping.getSourceField(), mapping.getDefaultValue());
                 }
             } else {
                 log.warn("🚨 TRACE: Configuration is null or has no field mappings!");
             }
-            
+
             // 2. Save the configuration to batch_configurations table
             String saveResult = configurationService.saveConfiguration(config);
             log.info("DEBUG: Configuration saved to batch_configurations table: {}", saveResult);
-            
+
             return ResponseEntity.ok(config);
         } catch (Exception e) {
-            log.error("DEBUG: Error creating and saving configuration from template: {}/{}", fileType, transactionType, e);
+            log.error("DEBUG: Error creating and saving configuration from template: {}/{}", fileType, transactionType,
+                    e);
             return ResponseEntity.internalServerError().build();
         }
     }
@@ -170,16 +177,16 @@ public class TemplateController {
             @RequestParam String jobName,
             @RequestParam(defaultValue = "system") String createdBy) {
         try {
-            log.info("DEBUG: Creating configuration from template: {}/{} for {}/{}", 
+            log.info("DEBUG: Creating configuration from template: {}/{} for {}/{}",
                     fileType, transactionType, sourceSystem, jobName);
-            
+
             // 1. Create configuration from template (WITHOUT SAVING)
             FieldMappingConfig config = templateService.createConfigurationFromTemplate(
-                fileType, transactionType, sourceSystem, jobName, createdBy);
-            
-            log.info("DEBUG: Configuration created with {} field mappings", 
+                    fileType, transactionType, sourceSystem, jobName, createdBy);
+
+            log.info("DEBUG: Configuration created with {} field mappings",
                     config.getFieldMappings() != null ? config.getFieldMappings().size() : 0);
-            
+
             return ResponseEntity.ok(config);
         } catch (Exception e) {
             log.error("DEBUG: Error creating configuration from template: {}/{}", fileType, transactionType, e);
@@ -202,9 +209,9 @@ public class TemplateController {
         } catch (Exception e) {
             log.error("Error importing template from Excel", e);
             TemplateImportResult errorResult = new TemplateImportResult(
-                false, fileType, 0, 0, 
-                List.of("Import failed: " + e.getMessage()), 
-                List.of(), "Excel import failed");
+                    false, fileType, 0, 0,
+                    List.of("Import failed: " + e.getMessage()),
+                    List.of(), "Excel import failed");
             return ResponseEntity.ok(errorResult);
         }
     }
@@ -314,14 +321,14 @@ public class TemplateController {
         try {
             String fileType = (String) request.get("fileType");
             String description = (String) request.get("description");
-            
+
             if (fileType == null || fileType.trim().isEmpty()) {
                 Map<String, Object> errorResponse = new HashMap<>();
                 errorResponse.put("success", false);
                 errorResponse.put("message", "File type is required");
                 return ResponseEntity.badRequest().body(errorResponse);
             }
-            
+
             // Create a minimal FileTypeTemplate with just the basics
             FileTypeTemplate template = new FileTypeTemplate();
             template.setFileType(fileType.trim());
@@ -329,15 +336,15 @@ public class TemplateController {
             template.setTotalFields(0);
             template.setRecordLength(0);
             template.setEnabled("Y");
-            
+
             FileTypeTemplate created = templateService.createFileTypeTemplate(template, createdBy);
-            
+
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
             response.put("fileType", created.getFileType());
             response.put("description", created.getDescription());
             response.put("message", "File type created successfully. You can now add fields to this template.");
-            
+
             log.info("Created simple file type: {} by {}", fileType, createdBy);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
@@ -349,12 +356,7 @@ public class TemplateController {
         }
     }
 
-
-
-
-
-    
- // Add these methods to the existing TemplateController.java
+    // Add these methods to the existing TemplateController.java
 
     /**
      * Create individual field template
@@ -379,12 +381,12 @@ public class TemplateController {
             fieldTemplate.setDescription((String) fieldRequest.get("description"));
             fieldTemplate.setEnabled((String) fieldRequest.getOrDefault("enabled", "Y"));
             fieldTemplate.setCreatedBy(createdBy);
-            
+
             FieldTemplate created = templateService.createFieldTemplate(fieldTemplate, createdBy);
             log.info("Created field template: {} for fileType: {}", fieldTemplate.getFieldName(), fileType);
             return ResponseEntity.ok(created);
         } catch (Exception e) {
-            log.error("Error creating field template for fileType: {}, field: {}", fileType, 
+            log.error("Error creating field template for fileType: {}, field: {}", fileType,
                     fieldRequest.get("fieldName"), e);
             return ResponseEntity.internalServerError().build();
         }
@@ -405,7 +407,7 @@ public class TemplateController {
             fieldTemplate.setFileType(fileType);
             fieldTemplate.setFieldName(fieldName);
             fieldTemplate.setModifiedBy(modifiedBy);
-            
+
             FieldTemplate updated = templateService.updateFieldTemplate(fieldTemplate);
             log.info("Updated field template: {} for fileType: {}", fieldName, fileType);
             return ResponseEntity.ok(updated);
@@ -427,16 +429,18 @@ public class TemplateController {
             @RequestParam(defaultValue = "system") String deletedBy) {
         try {
             templateService.deleteFieldTemplate(fileType, transactionType, fieldName, deletedBy);
-            
+
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
             response.put("message", "Field deleted successfully");
             response.put("fieldName", fieldName);
-            
-            log.info("Deleted field template: {} for fileType: {}, transactionType: {}", fieldName, fileType, transactionType);
+
+            log.info("Deleted field template: {} for fileType: {}, transactionType: {}", fieldName, fileType,
+                    transactionType);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
-            log.error("Error deleting field template for fileType: {}, transactionType: {}, field: {}", fileType, transactionType, fieldName, e);
+            log.error("Error deleting field template for fileType: {}, transactionType: {}, field: {}", fileType,
+                    transactionType, fieldName, e);
             return ResponseEntity.internalServerError().build();
         }
     }
@@ -453,19 +457,19 @@ public class TemplateController {
         try {
             @SuppressWarnings("unchecked")
             List<Map<String, Object>> fieldsData = (List<Map<String, Object>>) request.get("fields");
-            
+
             if (fieldsData == null || fieldsData.isEmpty()) {
                 return ResponseEntity.badRequest().build();
             }
-            
+
             List<FieldTemplate> fields = fieldsData.stream()
-                .map(this::mapToFieldTemplate)
-                .peek(field -> {
-                    field.setFileType(fileType);
-                    field.setModifiedBy(modifiedBy);
-                })
-                .toList();
-            
+                    .map(this::mapToFieldTemplate)
+                    .peek(field -> {
+                        field.setFileType(fileType);
+                        field.setModifiedBy(modifiedBy);
+                    })
+                    .toList();
+
             List<FieldTemplate> updated = templateService.bulkUpdateFieldTemplates(fileType, fields);
             log.info("Bulk updated {} field templates for fileType: {}", fields.size(), fileType);
             return ResponseEntity.ok(updated);
@@ -477,7 +481,8 @@ public class TemplateController {
 
     /**
      * Duplicate field template
-     * Frontend expects: POST /api/admin/templates/{fileType}/fields/{fieldName}/duplicate
+     * Frontend expects: POST
+     * /api/admin/templates/{fileType}/fields/{fieldName}/duplicate
      */
     @PostMapping("/{fileType}/fields/{fieldName}/duplicate")
     public ResponseEntity<FieldTemplate> duplicateField(
@@ -489,14 +494,14 @@ public class TemplateController {
             String newFieldName = (String) request.get("newFieldName");
             Integer newPosition = (Integer) request.get("newPosition");
             String transactionType = (String) request.getOrDefault("transactionType", "default");
-            
+
             if (newFieldName == null || newPosition == null) {
                 return ResponseEntity.badRequest().build();
             }
-            
+
             FieldTemplate duplicated = templateService.duplicateFieldTemplate(
-                fileType, transactionType, fieldName, newFieldName, newPosition, createdBy);
-            
+                    fileType, transactionType, fieldName, newFieldName, newPosition, createdBy);
+
             log.info("Duplicated field template: {} to {} for fileType: {}", fieldName, newFieldName, fileType);
             return ResponseEntity.ok(duplicated);
         } catch (Exception e) {
@@ -517,11 +522,11 @@ public class TemplateController {
         try {
             @SuppressWarnings("unchecked")
             List<Map<String, Object>> fieldOrders = (List<Map<String, Object>>) request.get("fieldOrders");
-            
+
             if (fieldOrders == null || fieldOrders.isEmpty()) {
                 return ResponseEntity.badRequest().build();
             }
-            
+
             List<FieldTemplate> reordered = templateService.reorderFieldTemplates(fileType, fieldOrders, modifiedBy);
             log.info("Reordered {} field templates for fileType: {}", fieldOrders.size(), fileType);
             return ResponseEntity.ok(reordered);
@@ -533,7 +538,8 @@ public class TemplateController {
 
     /**
      * Create configuration from template with metadata
-     * Frontend expects: POST /api/admin/templates/{fileType}/{transactionType}/create-config-with-metadata
+     * Frontend expects: POST
+     * /api/admin/templates/{fileType}/{transactionType}/create-config-with-metadata
      */
     @PostMapping("/{fileType}/{transactionType}/create-config-with-metadata")
     @Transactional
@@ -544,17 +550,17 @@ public class TemplateController {
             @RequestParam String jobName,
             @RequestParam(defaultValue = "system") String createdBy) {
         try {
-            log.info("Creating configuration with metadata from template: {}/{} for {}/{}", 
+            log.info("Creating configuration with metadata from template: {}/{} for {}/{}",
                     fileType, transactionType, sourceSystem, jobName);
-            
+
             // 1. Create the basic configuration
             FieldMappingConfig config = templateService.createConfigurationFromTemplate(
-                fileType, transactionType, sourceSystem, jobName, createdBy);
-            
+                    fileType, transactionType, sourceSystem, jobName, createdBy);
+
             // 2. Save the configuration to batch_configurations table
             String saveResult = configurationService.saveConfiguration(config);
             log.info("Configuration saved to batch_configurations table: {}", saveResult);
-            
+
             // 3. Add template metadata
             TemplateMetadata metadata = new TemplateMetadata();
             metadata.setFileType(fileType);
@@ -564,10 +570,11 @@ public class TemplateController {
             metadata.setTotalFields(config.getFieldMappings() != null ? config.getFieldMappings().size() : 0);
             metadata.setGeneratedAt(java.time.LocalDateTime.now().toString());
             metadata.setGeneratedBy(createdBy);
-            
+
             // 4. Create the result with metadata using the factory method
-            TemplateToConfigurationResult result = TemplateToConfigurationResult.fromFieldMappingConfig(config, metadata);
-            
+            TemplateToConfigurationResult result = TemplateToConfigurationResult.fromFieldMappingConfig(config,
+                    metadata);
+
             log.info("Created configuration with metadata for template: {}/{}", fileType, transactionType);
             return ResponseEntity.ok(result);
         } catch (Exception e) {
@@ -591,5 +598,28 @@ public class TemplateController {
         field.setDescription((String) data.get("description"));
         field.setEnabled((String) data.getOrDefault("enabled", "Y"));
         return field;
+    }
+
+    /**
+     * Save complete template configuration (Job + Fields + Query)
+     * Frontend expects: POST /api/admin/templates/save-config
+     */
+    @PostMapping("/save-config")
+    public ResponseEntity<Map<String, Object>> saveTemplateConfiguration(
+            @RequestBody com.truist.batch.model.TemplateConfigDto config) {
+        try {
+            String configId = templateService.saveTemplateConfiguration(config);
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("configId", configId);
+            response.put("message", "Configuration saved successfully");
+
+            log.info("Saved template configuration for job: {}, ID: {}", config.getJobName(), configId);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            log.error("Error saving template configuration", e);
+            return ResponseEntity.internalServerError().build();
+        }
     }
 }

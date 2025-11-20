@@ -16,6 +16,7 @@ export interface FieldTemplate {
   enabled?: 'Y' | 'N';
   sourceField?: string;
   transformationType?: 'source' | 'constant' | 'composite' | 'conditional';
+  transformationConfig?: string; // JSON string for complex configurations
   // Enhanced transformation properties
   value?: string;  // For constant transformations
   defaultValue?: string;  // Default value for the field
@@ -169,6 +170,16 @@ export interface TemplateMetadata {
 
 export interface TemplateToConfigurationResult extends FieldMappingConfig {
   templateMetadata: TemplateMetadata;
+}
+
+export interface TemplateConfigDto {
+  jobName: string;
+  sourceSystem: string;
+  fileType: string;
+  transactionType: string;
+  masterQuery: string;
+  fields: FieldTemplate[];
+  createdBy?: string;
 }
 
 // Statistics and analytics
@@ -335,7 +346,7 @@ export interface TemplateError {
 // Constants for validation
 export const DATA_TYPES = [
   'String',
-  'Number', 
+  'Number',
   'Date',
   'Boolean',
   'Decimal',
@@ -354,7 +365,7 @@ export const ENABLED_OPTIONS = [
 
 // Type guards
 export const isFieldTemplate = (obj: any): obj is FieldTemplate => {
-  return obj && 
+  return obj &&
     typeof obj.fieldName === 'string' &&
     typeof obj.targetPosition === 'number' &&
     typeof obj.length === 'number' &&

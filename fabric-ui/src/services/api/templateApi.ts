@@ -1,10 +1,10 @@
 // src/services/api/templateApi.ts
 import axios from 'axios';
-import { 
+import {
   FileType,
-  FileTypeTemplate, 
-  FieldTemplate, 
-  TemplateImportRequest, 
+  FileTypeTemplate,
+  FieldTemplate,
+  TemplateImportRequest,
   TemplateImportResult,
   TemplateValidationResult,
   FieldMappingConfig,
@@ -12,7 +12,8 @@ import {
   CreateFieldRequest,
   UpdateFieldRequest,
   CreateFileTypeRequest,
-  TemplateMetadata
+  TemplateMetadata,
+  TemplateConfigDto
 } from '../../types/template';
 
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080';
@@ -34,9 +35,9 @@ templateApi.interceptors.request.use(
   (config) => {
     // Add cache-busting timestamp to all GET requests
     if (config.method === 'get') {
-      config.params = { 
-        ...config.params, 
-        _t: Date.now() 
+      config.params = {
+        ...config.params,
+        _t: Date.now()
       };
     }
     console.log(`🔄 Template API Request: ${config.method?.toUpperCase()} ${config.url}`);
@@ -263,9 +264,9 @@ export const templateApiService = {
 
   // Configuration generation
   async createConfigurationFromTemplate(
-    fileType: string, 
-    transactionType: string, 
-    sourceSystem: string, 
+    fileType: string,
+    transactionType: string,
+    sourceSystem: string,
     jobName: string
   ): Promise<FieldMappingConfig> {
     try {
@@ -284,9 +285,9 @@ export const templateApiService = {
   },
 
   async createConfigurationFromTemplateWithMetadata(
-    fileType: string, 
-    transactionType: string, 
-    sourceSystem: string, 
+    fileType: string,
+    transactionType: string,
+    sourceSystem: string,
     jobName: string
   ): Promise<TemplateToConfigurationResult> {
     try {
@@ -301,13 +302,13 @@ export const templateApiService = {
       return response.data;
     } catch (error) {
       console.warn('Metadata endpoint not available, using standard endpoint');
-      
+
       // Fallback to standard endpoint and add metadata manually
       try {
         const config = await this.createConfigurationFromTemplate(
           fileType, transactionType, sourceSystem, jobName
         );
-        
+
         // Add template metadata manually
         const templateMetadata: TemplateMetadata = {
           fileType,
@@ -318,7 +319,7 @@ export const templateApiService = {
           generatedAt: new Date().toISOString(),
           generatedBy: 'ui-user'
         };
-        
+
         return {
           ...config,
           templateMetadata
@@ -327,6 +328,19 @@ export const templateApiService = {
         console.error('Both endpoints failed:', fallbackError);
         throw new Error('Failed to generate configuration from template');
       }
+    }
+  },
+
+  async saveTemplateConfiguration(config: TemplateConfigDto): Promise<string> {
+    try {
+      const response = await templateApi.post<{ success: boolean; configId: string; message: string }>(
+        '/save-config',
+        config
+      );
+      return response.data.configId;
+    } catch (error) {
+      console.error('Failed to save template configuration:', error);
+      throw new Error('Failed to save template configuration');
     }
   },
 

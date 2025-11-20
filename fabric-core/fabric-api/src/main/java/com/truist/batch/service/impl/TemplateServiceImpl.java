@@ -44,6 +44,10 @@ import com.truist.batch.service.TemplateService;
 import com.truist.batch.service.TemplateSourceMappingService;
 import com.truist.batch.dto.TemplateSourceMappingResponse;
 import com.truist.batch.dto.FieldMappingDto;
+import com.truist.batch.model.TemplateConfigDto;
+import com.truist.batch.entity.TemplateMasterQueryMappingEntity;
+import com.truist.batch.repository.TemplateMasterQueryMappingRepository;
+import com.truist.batch.service.ConfigurationService;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -59,25 +63,99 @@ public class TemplateServiceImpl implements TemplateService {
 	private FileTypeTemplateRepository fileTypeTemplateRepository;
 
 	@Autowired
+	private TemplateMasterQueryMappingRepository masterQueryMappingRepository;
+
+	@Autowired
+	private ConfigurationService configurationService;
+
+	@Override
+	@Transactional
+	public String saveTemplateConfiguration(TemplateConfigDto config) {
+		log.info("Saving template configuration for job: {}", config.getJobName());
+
+		// 1. Save Job Configuration
+		FieldMappingConfig jobConfig = new FieldMappingConfig();
+		jobConfig.setSourceSystem(config.getSourceSystem());
+		jobConfig.setJobName(config.getJobName());
+		jobConfig.setTransactionType(config.getTransactionType());
+		jobConfig.setDescription(config.getDescription());
+		jobConfig.setCreatedBy(config.getCreatedBy());
+		jobConfig.setVersion(1);
+
+		// Convert FieldTemplates to FieldMappings for Job Config
+		List<FieldMapping> fieldMappings = config.getFieldMappings().stream()
+				.map(ft -> {
+					FieldMapping fm = new FieldMapping();
+					fm.setFieldName(ft.getFieldName());
+					fm.setSourceField(ft.getSourceField());
+					fm.setTargetField(ft.getFieldName()); // Usually same
+					fm.setTargetPosition(ft.getTargetPosition());
+					fm.setLength(ft.getLength());
+					fm.setDataType(ft.getDataType());
+					fm.setTransformationType(ft.getTransformationType());
+					// fm.setTransactionType(ft.getTransactionType()); // FieldMapping does not have
+					// transactionType
+					fm.setValue(ft.getValue());
+					fm.setDefaultValue(ft.getDefaultValue());
+					fm.setFormat(ft.getFormat());
+					return fm;
+				})
+				.collect(Collectors.toList());
+
+		jobConfig.setFieldMappings(fieldMappings);
+		String configId = configurationService.saveConfiguration(jobConfig);
+
+		// 2. Save Field Templates (Metadata)
+		// We iterate and save each field template to ensure the metadata table is
+		// updated
+		for (FieldTemplate ft : config.getFieldMappings()) {
+			// Ensure file type is set (derived from job name or passed explicitly if we
+			// added it to DTO)
+			// For now, we might need to infer or assume it's part of the DTO.
+			// Let's assume we update existing or create new if ID is missing.
+			if (ft.getFileType() == null) {
+				// Fallback or error? For now, log warning.
+				log.warn("Field template missing file type: {}", ft.getFieldName());
+			}
+			createFieldTemplate(ft, config.getCreatedBy());
+		}
+
+		// 3. Save Master Query Mapping
+		if (config.getMasterQuery() != null && config.getMasterQuery().getQuerySql() != null) {
+			TemplateMasterQueryMappingEntity queryMapping = new TemplateMasterQueryMappingEntity();
+			queryMapping.setConfigId(configId);
+			queryMapping.setQueryName(config.getMasterQuery().getQueryName());
+			queryMapping.setQuerySql(config.getMasterQuery().getQuerySql());
+			queryMapping.setQueryDescription(config.getMasterQuery().getQueryDescription());
+			queryMapping.setCreatedBy(config.getCreatedBy());
+			queryMapping.setStatus("ACTIVE");
+
+			masterQueryMappingRepository.save(queryMapping);
+		}
+
+		return configId;
+	}
+
+	@Autowired
 	private AuditService auditService;
-	
+
 	// EntityManager removed - now using JdbcTemplate
-	
+
 	@Autowired
 	private JdbcTemplate jdbcTemplate;
-	
+
 	@Autowired
 	private TemplateSourceMappingService templateSourceMappingService;
-	
+
 	// Constructor to verify injection
-	public TemplateServiceImpl(FieldTemplateRepository fieldTemplateRepository, 
-	                         FileTypeTemplateRepository fileTypeTemplateRepository,
-	                         AuditService auditService) {
-	    this.fieldTemplateRepository = fieldTemplateRepository;
-	    this.fileTypeTemplateRepository = fileTypeTemplateRepository;
-	    this.auditService = auditService;
-	    log.info("TemplateServiceImpl initialized with repositories: field={}, fileType={}", 
-	             fieldTemplateRepository != null, fileTypeTemplateRepository != null);
+	public TemplateServiceImpl(FieldTemplateRepository fieldTemplateRepository,
+			FileTypeTemplateRepository fileTypeTemplateRepository,
+			AuditService auditService) {
+		this.fieldTemplateRepository = fieldTemplateRepository;
+		this.fileTypeTemplateRepository = fileTypeTemplateRepository;
+		this.auditService = auditService;
+		log.info("TemplateServiceImpl initialized with repositories: field={}, fileType={}",
+				fieldTemplateRepository != null, fileTypeTemplateRepository != null);
 	}
 
 	@Override
@@ -106,28 +184,30 @@ public class TemplateServiceImpl implements TemplateService {
 	@Override
 	public List<FieldTemplate> getFieldTemplatesByFileTypeAndTransactionType(String fileType, String transactionType) {
 		log.debug("Getting field templates for fileType: {}, transactionType: {}", fileType, transactionType);
-		
+
 		try {
 			List<FieldTemplateEntity> entities = fieldTemplateRepository
 					.findByFileTypeAndTransactionTypeAndEnabledOrderByTargetPosition(fileType, transactionType, "Y");
-			
+
 			log.debug("Found {} field template entities for {}/{}", entities.size(), fileType, transactionType);
-			
+
 			if (entities.isEmpty()) {
 				log.info("No field templates found for fileType: {}, transactionType: {}", fileType, transactionType);
 				return new ArrayList<>();
 			}
-			
+
 			List<FieldTemplate> templates = entities.stream()
 					.map(this::convertToFieldTemplate)
 					.filter(template -> template != null) // Filter out any null conversions
 					.collect(Collectors.toList());
-					
-			log.debug("Successfully converted {} field templates for {}/{}", templates.size(), fileType, transactionType);
+
+			log.debug("Successfully converted {} field templates for {}/{}", templates.size(), fileType,
+					transactionType);
 			return templates;
-			
+
 		} catch (Exception e) {
-			log.error("Error retrieving field templates for fileType: {}, transactionType: {}", fileType, transactionType, e);
+			log.error("Error retrieving field templates for fileType: {}, transactionType: {}", fileType,
+					transactionType, e);
 			throw new RuntimeException("Failed to retrieve field templates", e);
 		}
 	}
@@ -144,54 +224,69 @@ public class TemplateServiceImpl implements TemplateService {
 	}
 
 	/**
-	 * Create configuration from template with optional user-provided constant values.
-	 * This method first tries to use saved template-source mappings, falling back to hardcoded logic if none exist.
+	 * Create configuration from template with optional user-provided constant
+	 * values.
+	 * This method first tries to use saved template-source mappings, falling back
+	 * to hardcoded logic if none exist.
 	 * 
-	 * @param fileType the file type
-	 * @param transactionType the transaction type
-	 * @param sourceSystem the source system
-	 * @param jobName the job name
-	 * @param createdBy the creator
-	 * @param userProvidedConstants map of field names to user-provided constant values (optional)
+	 * @param fileType              the file type
+	 * @param transactionType       the transaction type
+	 * @param sourceSystem          the source system
+	 * @param jobName               the job name
+	 * @param createdBy             the creator
+	 * @param userProvidedConstants map of field names to user-provided constant
+	 *                              values (optional)
 	 * @return the generated field mapping configuration
 	 */
 	public FieldMappingConfig createConfigurationFromTemplate(String fileType, String transactionType,
 			String sourceSystem, String jobName, String createdBy, Map<String, String> userProvidedConstants) {
-		log.info("🔍 TRACE: Creating configuration from template: {}/{} for {}.{} with user constants: {}", 
-				fileType, transactionType, sourceSystem, jobName, userProvidedConstants != null ? userProvidedConstants.size() : 0);
+		log.info("🔍 TRACE: Creating configuration from template: {}/{} for {}.{} with user constants: {}",
+				fileType, transactionType, sourceSystem, jobName,
+				userProvidedConstants != null ? userProvidedConstants.size() : 0);
 
 		// Try to get saved template-source mappings first
 		TemplateSourceMappingResponse savedMappings = null;
 		try {
-			log.info("🔍 TRACE: Looking for saved template-source mappings for {}/{} -> {}", fileType, transactionType, sourceSystem);
+			log.info("🔍 TRACE: Looking for saved template-source mappings for {}/{} -> {}", fileType, transactionType,
+					sourceSystem);
 			log.info("🔍 TRACE: templateSourceMappingService is null? {}", templateSourceMappingService == null);
-			log.info("🔍 TRACE: About to call templateSourceMappingService.getTemplateSourceMapping({}, {}, {})", fileType, transactionType, sourceSystem);
-			savedMappings = templateSourceMappingService.getTemplateSourceMapping(fileType, transactionType, sourceSystem);
-			log.info("🔍 TRACE: templateSourceMappingService.getTemplateSourceMapping returned: {}", savedMappings != null ? "not null" : "null");
-			
-			if (savedMappings != null && savedMappings.getFieldMappings() != null && !savedMappings.getFieldMappings().isEmpty()) {
-				log.info("🔍 TRACE: Found {} saved template-source mappings for {}/{} -> {}", 
-					savedMappings.getFieldMappings().size(), fileType, transactionType, sourceSystem);
-				
+			log.info("🔍 TRACE: About to call templateSourceMappingService.getTemplateSourceMapping({}, {}, {})",
+					fileType, transactionType, sourceSystem);
+			savedMappings = templateSourceMappingService.getTemplateSourceMapping(fileType, transactionType,
+					sourceSystem);
+			log.info("🔍 TRACE: templateSourceMappingService.getTemplateSourceMapping returned: {}",
+					savedMappings != null ? "not null" : "null");
+
+			if (savedMappings != null && savedMappings.getFieldMappings() != null
+					&& !savedMappings.getFieldMappings().isEmpty()) {
+				log.info("🔍 TRACE: Found {} saved template-source mappings for {}/{} -> {}",
+						savedMappings.getFieldMappings().size(), fileType, transactionType, sourceSystem);
+
 				// Log details of the saved mappings
 				savedMappings.getFieldMappings().forEach(mapping -> {
-					log.info("🔍 TRACE: Saved mapping - field={}, transformationType={}, sourceField={}, value={}, defaultValue={}", 
-						mapping.getTargetFieldName(), mapping.getTransformationType(), mapping.getSourceFieldName(), mapping.getValue(), mapping.getDefaultValue());
+					log.info(
+							"🔍 TRACE: Saved mapping - field={}, transformationType={}, sourceField={}, value={}, defaultValue={}",
+							mapping.getTargetFieldName(), mapping.getTransformationType(), mapping.getSourceFieldName(),
+							mapping.getValue(), mapping.getDefaultValue());
 				});
-				
-				FieldMappingConfig configFromSaved = createConfigurationFromSavedMappings(savedMappings, sourceSystem, jobName, createdBy);
-				log.info("🔍 TRACE: Created configuration from saved mappings with {} field mappings", 
-					configFromSaved.getFieldMappings() != null ? configFromSaved.getFieldMappings().size() : 0);
-				
-				// Log details of the created configuration to verify constant values are preserved
+
+				FieldMappingConfig configFromSaved = createConfigurationFromSavedMappings(savedMappings, sourceSystem,
+						jobName, createdBy);
+				log.info("🔍 TRACE: Created configuration from saved mappings with {} field mappings",
+						configFromSaved.getFieldMappings() != null ? configFromSaved.getFieldMappings().size() : 0);
+
+				// Log details of the created configuration to verify constant values are
+				// preserved
 				if (configFromSaved.getFieldMappings() != null) {
 					configFromSaved.getFieldMappings().forEach(fieldMapping -> {
-						log.info("🔍 TRACE: Final field mapping - field={}, transformationType={}, value={}, sourceField={}, defaultValue={}", 
-							fieldMapping.getFieldName(), fieldMapping.getTransformationType(), fieldMapping.getValue(), 
-							fieldMapping.getSourceField(), fieldMapping.getDefaultValue());
+						log.info(
+								"🔍 TRACE: Final field mapping - field={}, transformationType={}, value={}, sourceField={}, defaultValue={}",
+								fieldMapping.getFieldName(), fieldMapping.getTransformationType(),
+								fieldMapping.getValue(),
+								fieldMapping.getSourceField(), fieldMapping.getDefaultValue());
 					});
 				}
-				
+
 				return configFromSaved;
 			} else {
 				log.info("🔍 TRACE: No saved template-source mappings found (response is null or empty)");
@@ -201,28 +296,31 @@ public class TemplateServiceImpl implements TemplateService {
 				}
 			}
 		} catch (Exception e) {
-			log.error("🚨 TRACE: Could not retrieve saved template-source mappings for {}/{} -> {}: {}", 
-				fileType, transactionType, sourceSystem, e.getMessage(), e);
+			log.error("🚨 TRACE: Could not retrieve saved template-source mappings for {}/{} -> {}: {}",
+					fileType, transactionType, sourceSystem, e.getMessage(), e);
 		}
 
 		// Fallback to original hardcoded logic if no saved mappings exist
-		log.info("🔍 TRACE: No saved mappings found, using fallback logic for {}/{} -> {}", fileType, transactionType, sourceSystem);
-		FieldMappingConfig fallbackConfig = createConfigurationFromTemplateFallback(fileType, transactionType, sourceSystem, jobName, createdBy, userProvidedConstants);
-		log.info("🔍 TRACE: Fallback configuration created with {} field mappings", 
-			fallbackConfig.getFieldMappings() != null ? fallbackConfig.getFieldMappings().size() : 0);
+		log.info("🔍 TRACE: No saved mappings found, using fallback logic for {}/{} -> {}", fileType, transactionType,
+				sourceSystem);
+		FieldMappingConfig fallbackConfig = createConfigurationFromTemplateFallback(fileType, transactionType,
+				sourceSystem, jobName, createdBy, userProvidedConstants);
+		log.info("🔍 TRACE: Fallback configuration created with {} field mappings",
+				fallbackConfig.getFieldMappings() != null ? fallbackConfig.getFieldMappings().size() : 0);
 		return fallbackConfig;
 	}
 
 	/**
 	 * Create configuration from saved template-source mappings.
-	 * This preserves the exact transformation types and constant values that the user configured.
+	 * This preserves the exact transformation types and constant values that the
+	 * user configured.
 	 */
-	private FieldMappingConfig createConfigurationFromSavedMappings(TemplateSourceMappingResponse savedMappings, 
+	private FieldMappingConfig createConfigurationFromSavedMappings(TemplateSourceMappingResponse savedMappings,
 			String sourceSystem, String jobName, String createdBy) {
-		
-		log.info("Creating configuration from saved template-source mappings: {} field mappings", 
-			savedMappings.getFieldMappings().size());
-		
+
+		log.info("Creating configuration from saved template-source mappings: {} field mappings",
+				savedMappings.getFieldMappings().size());
+
 		List<FieldMapping> mappings = new ArrayList<>();
 
 		for (FieldMappingDto savedMapping : savedMappings.getFieldMappings()) {
@@ -231,20 +329,22 @@ public class TemplateServiceImpl implements TemplateService {
 			mapping.setTargetField(savedMapping.getTargetFieldName());
 			mapping.setTargetPosition(savedMapping.getTargetPosition());
 			mapping.setLength(savedMapping.getLength());
-			mapping.setDataType(savedMapping.getDataType() != null ? savedMapping.getDataType().toLowerCase() : "string");
+			mapping.setDataType(
+					savedMapping.getDataType() != null ? savedMapping.getDataType().toLowerCase() : "string");
 			mapping.setFormat(null); // FieldMappingDto doesn't have format field
 			mapping.setPad("right"); // Default padding
-			
+
 			// Use the EXACT transformation type that the user configured
 			String transformationType = savedMapping.getTransformationType();
 			if (transformationType == null || transformationType.trim().isEmpty()) {
 				transformationType = "source"; // Default fallback
 			}
 			mapping.setTransformationType(transformationType);
-			
-			log.debug("Field {}: transformation_type={}, value={}, default_value={}", 
-				savedMapping.getTargetFieldName(), transformationType, savedMapping.getValue(), savedMapping.getDefaultValue());
-			
+
+			log.debug("Field {}: transformation_type={}, value={}, default_value={}",
+					savedMapping.getTargetFieldName(), transformationType, savedMapping.getValue(),
+					savedMapping.getDefaultValue());
+
 			// Handle different transformation types using saved values
 			if ("constant".equals(transformationType)) {
 				// Use the saved constant value
@@ -264,10 +364,10 @@ public class TemplateServiceImpl implements TemplateService {
 				}
 				mapping.setSourceField(sourceField);
 			}
-			
+
 			// Set default value from saved mappings
 			mapping.setDefaultValue(savedMapping.getDefaultValue());
-			
+
 			mappings.add(mapping);
 		}
 
@@ -275,35 +375,38 @@ public class TemplateServiceImpl implements TemplateService {
 		config.setSourceSystem(sourceSystem);
 		config.setJobName(jobName);
 		config.setTransactionType(savedMappings.getTransactionType());
-		config.setDescription("Generated from " + savedMappings.getFileType() + "/" + savedMappings.getTransactionType() + 
-			" template with saved user mappings by " + createdBy);
+		config.setDescription(
+				"Generated from " + savedMappings.getFileType() + "/" + savedMappings.getTransactionType() +
+						" template with saved user mappings by " + createdBy);
 		config.setFieldMappings(mappings);
 		config.setLastModified(LocalDateTime.now());
 		config.setModifiedBy(createdBy);
 		config.setVersion(1);
 		config.setCreatedDate(LocalDateTime.now());
-		config.setId(sourceSystem + "_" + jobName + "_" + savedMappings.getTransactionType() + "_" + System.currentTimeMillis());
-		
+		config.setId(sourceSystem + "_" + jobName + "_" + savedMappings.getTransactionType() + "_"
+				+ System.currentTimeMillis());
+
 		log.info("Created configuration from saved mappings with {} field mappings", mappings.size());
 		return config;
 	}
 
 	/**
-	 * Fallback method that uses the original hardcoded logic when no saved mappings exist.
+	 * Fallback method that uses the original hardcoded logic when no saved mappings
+	 * exist.
 	 */
 	private FieldMappingConfig createConfigurationFromTemplateFallback(String fileType, String transactionType,
 			String sourceSystem, String jobName, String createdBy, Map<String, String> userProvidedConstants) {
-		
+
 		log.info("🔍 TRACE: Starting fallback configuration creation for {}/{}", fileType, transactionType);
 		List<FieldTemplate> templates = getFieldTemplatesByFileTypeAndTransactionType(fileType, transactionType);
 		log.info("🔍 TRACE: Found {} templates for {}/{}", templates.size(), fileType, transactionType);
-		
+
 		// Log template details
 		for (FieldTemplate template : templates) {
-			log.info("🔍 TRACE: Template - field={}, transformationType={}, defaultValue={}", 
-				template.getFieldName(), template.getTransformationType(), template.getDefaultValue());
+			log.info("🔍 TRACE: Template - field={}, transformationType={}, defaultValue={}",
+					template.getFieldName(), template.getTransformationType(), template.getDefaultValue());
 		}
-		
+
 		List<FieldMapping> mappings = new ArrayList<>();
 
 		for (FieldTemplate template : templates) {
@@ -316,12 +419,13 @@ public class TemplateServiceImpl implements TemplateService {
 			mapping.setDataType(template.getDataType().toLowerCase());
 			mapping.setFormat(template.getFormat());
 			mapping.setPad("right"); // Default padding
-			
+
 			// Determine transformation type intelligently based on field characteristics
 			String transformationType = determineTransformationType(template);
-			log.info("🔍 TRACE: Determined transformation type '{}' for field '{}'", transformationType, template.getFieldName());
+			log.info("🔍 TRACE: Determined transformation type '{}' for field '{}'", transformationType,
+					template.getFieldName());
 			mapping.setTransformationType(transformationType);
-			
+
 			// Handle different transformation types appropriately
 			if ("constant".equals(transformationType)) {
 				// For constants, check for user-provided values first
@@ -329,7 +433,7 @@ public class TemplateServiceImpl implements TemplateService {
 				if (userProvidedConstants != null) {
 					userProvidedValue = userProvidedConstants.get(template.getFieldName());
 				}
-				
+
 				String constantValue = determineConstantValue(template, transactionType, userProvidedValue);
 				mapping.setValue(constantValue);
 				mapping.setSourceField(null); // Constants don't have source fields
@@ -337,14 +441,14 @@ public class TemplateServiceImpl implements TemplateService {
 				// For source and other types, map to potential database column
 				mapping.setSourceField(template.getFieldName().toLowerCase().replace("-", "_"));
 			}
-			
+
 			// Set default value and transformation config if available
 			mapping.setDefaultValue(template.getDefaultValue());
 			if (template.getTransformationConfig() != null && !template.getTransformationConfig().trim().isEmpty()) {
 				// TODO: Parse and apply transformation config if needed
 				log.debug("Template has transformation config: {}", template.getTransformationConfig());
 			}
-			
+
 			mappings.add(mapping);
 		}
 
@@ -359,33 +463,38 @@ public class TemplateServiceImpl implements TemplateService {
 		config.setVersion(1);
 		config.setCreatedDate(LocalDateTime.now());
 		config.setId(sourceSystem + "_" + jobName + "_" + transactionType + "_" + System.currentTimeMillis());
-		
+
 		return config;
 	}
 
 	/**
-	 * Create configuration from template while preserving user-provided constant values from existing job parameters.
-	 * This method should be used when processing saved user configurations to ensure their constant values are preserved.
+	 * Create configuration from template while preserving user-provided constant
+	 * values from existing job parameters.
+	 * This method should be used when processing saved user configurations to
+	 * ensure their constant values are preserved.
 	 * 
-	 * @param fileType the file type
-	 * @param transactionType the transaction type  
-	 * @param sourceSystem the source system
-	 * @param jobName the job name
-	 * @param createdBy the creator
+	 * @param fileType                  the file type
+	 * @param transactionType           the transaction type
+	 * @param sourceSystem              the source system
+	 * @param jobName                   the job name
+	 * @param createdBy                 the creator
 	 * @param existingJobParametersJson JSON string from saved ManualJobConfigEntity
-	 * @return the generated field mapping configuration with user constants preserved
+	 * @return the generated field mapping configuration with user constants
+	 *         preserved
 	 */
 	public FieldMappingConfig createConfigurationFromTemplateWithUserConstants(
-			String fileType, String transactionType, String sourceSystem, String jobName, 
+			String fileType, String transactionType, String sourceSystem, String jobName,
 			String createdBy, String existingJobParametersJson) {
-		
-		log.info("Creating configuration from template with preserved user constants for: {}/{}", sourceSystem, jobName);
-		
+
+		log.info("Creating configuration from template with preserved user constants for: {}/{}", sourceSystem,
+				jobName);
+
 		// Extract user-provided constants from the saved JSON
 		Map<String, String> userConstants = extractUserProvidedConstants(existingJobParametersJson);
-		
-		// Create configuration using the enhanced method that preserves user constants  
-		return createConfigurationFromTemplate(fileType, transactionType, sourceSystem, jobName, createdBy, userConstants);
+
+		// Create configuration using the enhanced method that preserves user constants
+		return createConfigurationFromTemplate(fileType, transactionType, sourceSystem, jobName, createdBy,
+				userConstants);
 	}
 
 	@Override
@@ -407,7 +516,6 @@ public class TemplateServiceImpl implements TemplateService {
 		return new ValidationResult(errors.isEmpty(), errors);
 	}
 
-
 	// Helper methods
 	private FileTypeTemplate convertToFileTypeTemplate(FileTypeTemplateEntity entity) {
 		FileTypeTemplate template = new FileTypeTemplate();
@@ -419,10 +527,10 @@ public class TemplateServiceImpl implements TemplateService {
 		if (entity == null) {
 			return null;
 		}
-		
+
 		try {
 			FieldTemplate template = new FieldTemplate();
-			
+
 			// Map all fields manually to handle data type mismatches
 			template.setFileType(entity.getFileType());
 			template.setTransactionType(entity.getTransactionType());
@@ -441,24 +549,24 @@ public class TemplateServiceImpl implements TemplateService {
 			template.setValidationRule(entity.getValidationRule());
 			template.setTransformationType(entity.getTransformationType());
 			template.setTransformationConfig(entity.getTransformationConfig());
-			
+
 			// Handle modifiedBy and modifiedDate mappings
 			template.setModifiedBy(entity.getModifiedBy());
 			template.setLastModifiedBy(entity.getModifiedBy()); // Duplicate for compatibility
-			
+
 			// Convert LocalDateTime to String for modifiedDate field in DTO
 			if (entity.getModifiedDate() != null) {
 				template.setModifiedDate(entity.getModifiedDate().toString());
 			}
 			template.setLastModifiedDate(entity.getModifiedDate()); // Keep as LocalDateTime
-			
-			log.debug("Converted FieldTemplateEntity to FieldTemplate: {}/{}/{}", 
-				entity.getFileType(), entity.getTransactionType(), entity.getFieldName());
-			
+
+			log.debug("Converted FieldTemplateEntity to FieldTemplate: {}/{}/{}",
+					entity.getFileType(), entity.getTransactionType(), entity.getFieldName());
+
 			return template;
 		} catch (Exception e) {
-			log.error("Error converting FieldTemplateEntity to FieldTemplate for {}/{}/{}", 
-				entity.getFileType(), entity.getTransactionType(), entity.getFieldName(), e);
+			log.error("Error converting FieldTemplateEntity to FieldTemplate for {}/{}/{}",
+					entity.getFileType(), entity.getTransactionType(), entity.getFieldName(), e);
 			throw new RuntimeException("Failed to convert field template entity", e);
 		}
 	}
@@ -467,46 +575,45 @@ public class TemplateServiceImpl implements TemplateService {
 	@Override
 	public FileTypeTemplate createFileTypeTemplate(FileTypeTemplate template, String createdBy) {
 		log.info("Creating file type template: {} by {}", template.getFileType(), createdBy);
-		
+
 		try {
 			// Check if template already exists
 			Optional<FileTypeTemplateEntity> existing = fileTypeTemplateRepository.findById(template.getFileType());
 			if (existing.isPresent()) {
 				throw new RuntimeException("File type template already exists: " + template.getFileType());
 			}
-			
+
 			FileTypeTemplateEntity entity = new FileTypeTemplateEntity();
 			BeanUtils.copyProperties(template, entity);
 			entity.setCreatedBy(createdBy);
 			entity.setCreatedDate(LocalDateTime.now());
 			entity.setEnabled("Y");
 			entity.setVersion(1);
-			
+
 			log.info("Saving entity with JdbcTemplate: {}", entity);
-			
+
 			// Use direct JDBC insert to bypass broken JPA transaction management
 			String insertSql = """
-				INSERT INTO CM3INT.FILE_TYPE_TEMPLATES 
-				(FILE_TYPE, DESCRIPTION, TOTAL_FIELDS, RECORD_LENGTH, CREATED_BY, CREATED_DATE, VERSION, ENABLED)
-				VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-			""";
-			
+						INSERT INTO CM3INT.FILE_TYPE_TEMPLATES
+						(FILE_TYPE, DESCRIPTION, TOTAL_FIELDS, RECORD_LENGTH, CREATED_BY, CREATED_DATE, VERSION, ENABLED)
+						VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+					""";
+
 			int rowsInserted = jdbcTemplate.update(insertSql,
-				entity.getFileType(),
-				entity.getDescription(),
-				entity.getTotalFields(),
-				entity.getRecordLength(),
-				entity.getCreatedBy(),
-				java.sql.Timestamp.valueOf(entity.getCreatedDate()),
-				entity.getVersion(),
-				entity.getEnabled()
-			);
-			
+					entity.getFileType(),
+					entity.getDescription(),
+					entity.getTotalFields(),
+					entity.getRecordLength(),
+					entity.getCreatedBy(),
+					java.sql.Timestamp.valueOf(entity.getCreatedDate()),
+					entity.getVersion(),
+					entity.getEnabled());
+
 			log.info("JDBC insert completed: {} rows inserted for file type: {}", rowsInserted, entity.getFileType());
-			
+
 			if (rowsInserted > 0) {
 				log.info("✅ Successfully saved file type template: {} using JDBC", entity.getFileType());
-				
+
 				// Create a FileTypeTemplate to return
 				FileTypeTemplate result = new FileTypeTemplate();
 				result.setFileType(entity.getFileType());
@@ -514,7 +621,7 @@ public class TemplateServiceImpl implements TemplateService {
 				result.setTotalFields(entity.getTotalFields());
 				result.setRecordLength(entity.getRecordLength());
 				result.setEnabled(entity.getEnabled());
-				
+
 				return result;
 			} else {
 				throw new RuntimeException("Failed to save file type template - no rows inserted");
@@ -565,105 +672,110 @@ public class TemplateServiceImpl implements TemplateService {
 
 	@Override
 	public FieldTemplate createFieldTemplate(FieldTemplate template, String createdBy) {
-		log.info("Creating field template: {}/{}/{} using JdbcTemplate", template.getFileType(), template.getTransactionType(),
+		log.info("Creating field template: {}/{}/{} using JdbcTemplate", template.getFileType(),
+				template.getTransactionType(),
 				template.getFieldName());
-		
+
 		try {
 			// Use direct JDBC insert to bypass broken JPA transaction management
 			String insertSql = """
-				INSERT INTO CM3INT.FIELD_TEMPLATES 
-				(FILE_TYPE, TRANSACTION_TYPE, FIELD_NAME, TARGET_POSITION, LENGTH, DATA_TYPE, FORMAT, REQUIRED, DESCRIPTION, CREATED_BY, CREATED_DATE, VERSION, ENABLED)
-				VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-			""";
-			
+						INSERT INTO CM3INT.FIELD_TEMPLATES
+						(FILE_TYPE, TRANSACTION_TYPE, FIELD_NAME, TARGET_POSITION, LENGTH, DATA_TYPE, FORMAT, REQUIRED, DESCRIPTION, CREATED_BY, CREATED_DATE, VERSION, ENABLED)
+						VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+					""";
+
 			LocalDateTime now = LocalDateTime.now();
 			int rowsInserted = jdbcTemplate.update(insertSql,
-				template.getFileType(),
-				template.getTransactionType(),
-				template.getFieldName(),
-				template.getTargetPosition(),
-				template.getLength(),
-				template.getDataType(),
-				template.getFormat(),
-				template.getRequired() != null ? template.getRequired() : "N",
-				template.getDescription(),
-				createdBy,
-				java.sql.Timestamp.valueOf(now),
-				1, // version
-				template.getEnabled() != null ? template.getEnabled() : "Y"
-			);
-			
+					template.getFileType(),
+					template.getTransactionType(),
+					template.getFieldName(),
+					template.getTargetPosition(),
+					template.getLength(),
+					template.getDataType(),
+					template.getFormat(),
+					template.getRequired() != null ? template.getRequired() : "N",
+					template.getDescription(),
+					createdBy,
+					java.sql.Timestamp.valueOf(now),
+					1, // version
+					template.getEnabled() != null ? template.getEnabled() : "Y");
+
 			if (rowsInserted > 0) {
-				log.info("Successfully created field template: {}/{}/{} using JDBC", template.getFileType(), template.getTransactionType(), template.getFieldName());
-				String auditKey = template.getFileType() + "/" + template.getTransactionType() + "/" + template.getFieldName();
+				log.info("Successfully created field template: {}/{}/{} using JDBC", template.getFileType(),
+						template.getTransactionType(), template.getFieldName());
+				String auditKey = template.getFileType() + "/" + template.getTransactionType() + "/"
+						+ template.getFieldName();
 				auditService.logCreate(auditKey, template, createdBy, "Field template created");
 				return template; // Return the original template since JDBC insert succeeded
 			} else {
 				throw new RuntimeException("Failed to create field template - no rows inserted");
 			}
 		} catch (Exception e) {
-			log.error("Failed to create field template: {}/{}/{}", template.getFileType(), template.getTransactionType(), template.getFieldName(), e);
+			log.error("Failed to create field template: {}/{}/{}", template.getFileType(),
+					template.getTransactionType(), template.getFieldName(), e);
 			throw new RuntimeException("Failed to create field template: " + e.getMessage(), e);
 		}
 	}
 
 	@Override
 	public FieldTemplate updateFieldTemplate(FieldTemplate template, String modifiedBy) {
-		log.info("Updating field template: {}/{}/{} using JdbcTemplate", template.getFileType(), template.getTransactionType(),
+		log.info("Updating field template: {}/{}/{} using JdbcTemplate", template.getFileType(),
+				template.getTransactionType(),
 				template.getFieldName());
-		
+
 		try {
 			// First check if the field template exists
 			String selectSql = """
-				SELECT COUNT(*) FROM CM3INT.FIELD_TEMPLATES 
-				WHERE FILE_TYPE = ? AND TRANSACTION_TYPE = ? AND FIELD_NAME = ?
-			""";
-			
+						SELECT COUNT(*) FROM CM3INT.FIELD_TEMPLATES
+						WHERE FILE_TYPE = ? AND TRANSACTION_TYPE = ? AND FIELD_NAME = ?
+					""";
+
 			Integer count = jdbcTemplate.queryForObject(selectSql, Integer.class,
-				template.getFileType(), template.getTransactionType(), template.getFieldName());
-			
+					template.getFileType(), template.getTransactionType(), template.getFieldName());
+
 			if (count == null || count == 0) {
 				throw new RuntimeException("Field template not found");
 			}
-			
+
 			// Use direct JDBC update to bypass broken JPA transaction management
 			String updateSql = """
-				UPDATE CM3INT.FIELD_TEMPLATES 
-				SET TARGET_POSITION = ?, LENGTH = ?, DATA_TYPE = ?, FORMAT = ?, REQUIRED = ?, 
-				    DESCRIPTION = ?, MODIFIED_BY = ?, MODIFIED_DATE = ?, VERSION = VERSION + 1, ENABLED = ?
-				WHERE FILE_TYPE = ? AND TRANSACTION_TYPE = ? AND FIELD_NAME = ?
-			""";
-			
+						UPDATE CM3INT.FIELD_TEMPLATES
+						SET TARGET_POSITION = ?, LENGTH = ?, DATA_TYPE = ?, FORMAT = ?, REQUIRED = ?,
+						    DESCRIPTION = ?, MODIFIED_BY = ?, MODIFIED_DATE = ?, VERSION = VERSION + 1, ENABLED = ?
+						WHERE FILE_TYPE = ? AND TRANSACTION_TYPE = ? AND FIELD_NAME = ?
+					""";
+
 			LocalDateTime now = LocalDateTime.now();
 			int rowsUpdated = jdbcTemplate.update(updateSql,
-				template.getTargetPosition(),
-				template.getLength(),
-				template.getDataType(),
-				template.getFormat(),
-				template.getRequired() != null ? template.getRequired() : "N",
-				template.getDescription(),
-				modifiedBy,
-				java.sql.Timestamp.valueOf(now),
-				template.getEnabled() != null ? template.getEnabled() : "Y",
-				template.getFileType(),
-				template.getTransactionType(),
-				template.getFieldName()
-			);
-			
+					template.getTargetPosition(),
+					template.getLength(),
+					template.getDataType(),
+					template.getFormat(),
+					template.getRequired() != null ? template.getRequired() : "N",
+					template.getDescription(),
+					modifiedBy,
+					java.sql.Timestamp.valueOf(now),
+					template.getEnabled() != null ? template.getEnabled() : "Y",
+					template.getFileType(),
+					template.getTransactionType(),
+					template.getFieldName());
+
 			if (rowsUpdated > 0) {
-				log.info("Successfully updated field template: {}/{}/{} using JDBC", template.getFileType(), template.getTransactionType(), template.getFieldName());
-				String auditKey = template.getFileType() + "/" + template.getTransactionType() + "/" + template.getFieldName();
+				log.info("Successfully updated field template: {}/{}/{} using JDBC", template.getFileType(),
+						template.getTransactionType(), template.getFieldName());
+				String auditKey = template.getFileType() + "/" + template.getTransactionType() + "/"
+						+ template.getFieldName();
 				auditService.logUpdate(auditKey, template, template, modifiedBy, "Field template updated");
 				return template; // Return the updated template since JDBC update succeeded
 			} else {
 				throw new RuntimeException("Failed to update field template - no rows updated");
 			}
 		} catch (Exception e) {
-			log.error("Failed to update field template: {}/{}/{}", template.getFileType(), template.getTransactionType(), template.getFieldName(), e);
+			log.error("Failed to update field template: {}/{}/{}", template.getFileType(),
+					template.getTransactionType(), template.getFieldName(), e);
 			throw new RuntimeException("Failed to update field template: " + e.getMessage(), e);
 		}
 	}
-
 
 	@Override
 	public TemplateImportResult importFromJson(TemplateImportRequest request) {
@@ -696,21 +808,21 @@ public class TemplateServiceImpl implements TemplateService {
 			return null;
 
 		switch (cell.getCellType()) {
-		case STRING:
-			return cell.getStringCellValue().trim();
-		case NUMERIC:
-			// Handle numeric values that should be treated as strings
-			return String.valueOf((long) cell.getNumericCellValue());
-		case BOOLEAN:
-			return String.valueOf(cell.getBooleanCellValue());
-		case FORMULA:
-			try {
+			case STRING:
 				return cell.getStringCellValue().trim();
-			} catch (Exception e) {
-				return String.valueOf(cell.getNumericCellValue());
-			}
-		default:
-			return null;
+			case NUMERIC:
+				// Handle numeric values that should be treated as strings
+				return String.valueOf((long) cell.getNumericCellValue());
+			case BOOLEAN:
+				return String.valueOf(cell.getBooleanCellValue());
+			case FORMULA:
+				try {
+					return cell.getStringCellValue().trim();
+				} catch (Exception e) {
+					return String.valueOf(cell.getNumericCellValue());
+				}
+			default:
+				return null;
 		}
 	}
 
@@ -723,23 +835,24 @@ public class TemplateServiceImpl implements TemplateService {
 			return null;
 
 		switch (cell.getCellType()) {
-		case NUMERIC:
-			return (int) cell.getNumericCellValue();
-		case STRING:
-			try {
-				return Integer.parseInt(cell.getStringCellValue().trim());
-			} catch (NumberFormatException e) {
-				throw new IllegalArgumentException(String.format("Invalid number format in cell %d: '%s'",
-						cellIndex + 1, cell.getStringCellValue()));
-			}
-		case FORMULA:
-			try {
+			case NUMERIC:
 				return (int) cell.getNumericCellValue();
-			} catch (Exception e) {
-				throw new IllegalArgumentException(String.format("Cannot evaluate formula in cell %d", cellIndex + 1));
-			}
-		default:
-			return null;
+			case STRING:
+				try {
+					return Integer.parseInt(cell.getStringCellValue().trim());
+				} catch (NumberFormatException e) {
+					throw new IllegalArgumentException(String.format("Invalid number format in cell %d: '%s'",
+							cellIndex + 1, cell.getStringCellValue()));
+				}
+			case FORMULA:
+				try {
+					return (int) cell.getNumericCellValue();
+				} catch (Exception e) {
+					throw new IllegalArgumentException(
+							String.format("Cannot evaluate formula in cell %d", cellIndex + 1));
+				}
+			default:
+				return null;
 		}
 	}
 
@@ -813,7 +926,7 @@ public class TemplateServiceImpl implements TemplateService {
 	private boolean isValidDataType(String dataType) {
 		return dataType.equalsIgnoreCase("String") || dataType.equalsIgnoreCase("BigDecimal")
 				|| dataType.equalsIgnoreCase("Date") || dataType.equalsIgnoreCase("Integer")
-				|| dataType.equalsIgnoreCase("Long")||dataType.equalsIgnoreCase("Numeric");
+				|| dataType.equalsIgnoreCase("Long") || dataType.equalsIgnoreCase("Numeric");
 	}
 
 	/**
@@ -840,35 +953,39 @@ public class TemplateServiceImpl implements TemplateService {
 
 		// Length validation by data type
 		switch (dataType.toLowerCase()) {
-		case "date":
-			if (length != 8 && length != 10) {
-				errors.add(String.format("Date field '%s' should have length 8 (yyyyMMdd) or 10 (yyyy-MM-dd), found %d",
-						fieldName, length));
-			}
-			break;
-		case "bigdecimal":
-			if (length > 20) {
-				errors.add(String.format("BigDecimal field '%s' length should not exceed 20, found %d", fieldName,
-						length));
-			}
-			if (length < 1) {
-				errors.add(
-						String.format("BigDecimal field '%s' length must be at least 1, found %d", fieldName, length));
-			}
-			break;
-		case "string":
-			if (length > 255) {
-				errors.add(
-						String.format("String field '%s' length should not exceed 255, found %d", fieldName, length));
-			}
-			break;
-		case "integer":
-		case "long":
-			if (length > 19) {
-				errors.add(
-						String.format("Numeric field '%s' length should not exceed 19, found %d", fieldName, length));
-			}
-			break;
+			case "date":
+				if (length != 8 && length != 10) {
+					errors.add(String.format(
+							"Date field '%s' should have length 8 (yyyyMMdd) or 10 (yyyy-MM-dd), found %d",
+							fieldName, length));
+				}
+				break;
+			case "bigdecimal":
+				if (length > 20) {
+					errors.add(String.format("BigDecimal field '%s' length should not exceed 20, found %d", fieldName,
+							length));
+				}
+				if (length < 1) {
+					errors.add(
+							String.format("BigDecimal field '%s' length must be at least 1, found %d", fieldName,
+									length));
+				}
+				break;
+			case "string":
+				if (length > 255) {
+					errors.add(
+							String.format("String field '%s' length should not exceed 255, found %d", fieldName,
+									length));
+				}
+				break;
+			case "integer":
+			case "long":
+				if (length > 19) {
+					errors.add(
+							String.format("Numeric field '%s' length should not exceed 19, found %d", fieldName,
+									length));
+				}
+				break;
 		}
 
 		// Throw exception if any validation errors found
@@ -961,8 +1078,8 @@ public class TemplateServiceImpl implements TemplateService {
 						successMessage);
 			} else {
 				if (!errors.isEmpty()) {
-				    log.error("First 5 validation errors:");
-				    errors.stream().limit(5).forEach(log::error);
+					log.error("First 5 validation errors:");
+					errors.stream().limit(5).forEach(log::error);
 				}
 				String errorMessage = String.format("Import failed for file type '%s'. Found %d validation errors.",
 						fileType, errors.size());
@@ -973,7 +1090,7 @@ public class TemplateServiceImpl implements TemplateService {
 			}
 
 		} catch (Exception e) {
-			
+
 			log.error("Excel processing failed for file type: " + fileType, e);
 			errors.add("Failed to process Excel file: " + e.getMessage());
 			return new TemplateImportResult(false, fileType, 0, 0, errors, warnings, "Excel processing failed");
@@ -1070,49 +1187,52 @@ public class TemplateServiceImpl implements TemplateService {
 	private int saveImportedFields(List<FieldTemplate> fields, String fileType, String createdBy) {
 		try {
 			log.info("Saving {} field templates using JdbcTemplate approach", fields.size());
-			
+
 			// Use direct JDBC insert to bypass broken JPA transaction management
 			String insertSql = """
-				INSERT INTO CM3INT.FIELD_TEMPLATES 
-				(FILE_TYPE, TRANSACTION_TYPE, FIELD_NAME, TARGET_POSITION, LENGTH, DATA_TYPE, FORMAT, REQUIRED, DESCRIPTION, CREATED_BY, CREATED_DATE, VERSION, ENABLED)
-				VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-			""";
-			
+						INSERT INTO CM3INT.FIELD_TEMPLATES
+						(FILE_TYPE, TRANSACTION_TYPE, FIELD_NAME, TARGET_POSITION, LENGTH, DATA_TYPE, FORMAT, REQUIRED, DESCRIPTION, CREATED_BY, CREATED_DATE, VERSION, ENABLED)
+						VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+					""";
+
 			int savedCount = 0;
 			LocalDateTime now = LocalDateTime.now();
-			
+
 			for (FieldTemplate field : fields) {
 				try {
 					int rowsInserted = jdbcTemplate.update(insertSql,
-						field.getFileType(),
-						field.getTransactionType(),
-						field.getFieldName(),
-						field.getTargetPosition(),
-						field.getLength(),
-						field.getDataType(),
-						field.getFormat(),
-						field.getRequired() != null ? field.getRequired() : "N",
-						field.getDescription(),
-						createdBy,
-						java.sql.Timestamp.valueOf(now),
-						1, // version
-						field.getEnabled() != null ? field.getEnabled() : "Y"
-					);
-					
+							field.getFileType(),
+							field.getTransactionType(),
+							field.getFieldName(),
+							field.getTargetPosition(),
+							field.getLength(),
+							field.getDataType(),
+							field.getFormat(),
+							field.getRequired() != null ? field.getRequired() : "N",
+							field.getDescription(),
+							createdBy,
+							java.sql.Timestamp.valueOf(now),
+							1, // version
+							field.getEnabled() != null ? field.getEnabled() : "Y");
+
 					if (rowsInserted > 0) {
 						savedCount++;
-						log.debug("Saved field template: {}/{}/{}", field.getFileType(), field.getTransactionType(), field.getFieldName());
+						log.debug("Saved field template: {}/{}/{}", field.getFileType(), field.getTransactionType(),
+								field.getFieldName());
 					} else {
-						log.warn("Failed to insert field template: {}/{}/{}", field.getFileType(), field.getTransactionType(), field.getFieldName());
+						log.warn("Failed to insert field template: {}/{}/{}", field.getFileType(),
+								field.getTransactionType(), field.getFieldName());
 					}
 				} catch (Exception e) {
-					log.error("Failed to save individual field template: {}/{}/{}", field.getFileType(), field.getTransactionType(), field.getFieldName(), e);
-					throw new RuntimeException("Failed to save field: " + field.getFieldName() + " - " + e.getMessage(), e);
+					log.error("Failed to save individual field template: {}/{}/{}", field.getFileType(),
+							field.getTransactionType(), field.getFieldName(), e);
+					throw new RuntimeException("Failed to save field: " + field.getFieldName() + " - " + e.getMessage(),
+							e);
 				}
 			}
-			
+
 			log.info("Successfully saved {} field templates for file type: {} using JDBC", savedCount, fileType);
-			
+
 			// Create audit entry
 			/*
 			 * createAuditEntry("TEMPLATE_IMPORT", fileType, createdBy,
@@ -1162,16 +1282,16 @@ public class TemplateServiceImpl implements TemplateService {
 	 */
 	@Transactional(propagation = Propagation.REQUIRES_NEW)
 	private void createAuditEntry(String operation, String fileType, String user, String description) {
-	    try {
-	        if (auditService != null) {
-	            String auditKey = operation + "_" + fileType;
-	            // Don't let audit failures kill the import
-	            auditService.logCreate(auditKey, fileType, user, description);
-	        }
-	    } catch (Exception e) {
-	        log.warn("Audit failed (non-critical): {}", e.getMessage());
-	        // Swallow the exception - don't fail the import
-	    }
+		try {
+			if (auditService != null) {
+				String auditKey = operation + "_" + fileType;
+				// Don't let audit failures kill the import
+				auditService.logCreate(auditKey, fileType, user, description);
+			}
+		} catch (Exception e) {
+			log.warn("Audit failed (non-critical): {}", e.getMessage());
+			// Swallow the exception - don't fail the import
+		}
 	}
 
 	/**
@@ -1195,347 +1315,350 @@ public class TemplateServiceImpl implements TemplateService {
 		}
 		return true;
 	}
-	
+
 	// Add these methods to the TemplateServiceImpl class
 
 	@Override
 	@Transactional
 	public FieldTemplate createFieldTemplate(FieldTemplate fieldTemplate) {
-	    try {
-	        // Validate the field template
-	        ValidationResult validation = validateFieldTemplate(fieldTemplate);
-	        if (!validation.isValid()) {
-	            throw new IllegalArgumentException("Invalid field template: " + String.join(", ", validation.getErrors()));
-	        }
-	        
-	        // Check for duplicates
-	        Optional<FieldTemplateEntity> existing = fieldTemplateRepository
-	            .findByFileTypeAndTransactionTypeAndFieldName(
-	                fieldTemplate.getFileType(), 
-	                fieldTemplate.getTransactionType(), 
-	                fieldTemplate.getFieldName());
-	        
-	        if (existing.isPresent()) {
-	            throw new IllegalArgumentException("Field template already exists: " + fieldTemplate.getFieldName());
-	        }
-	        
-	        // Check for position conflicts
-	        Optional<FieldTemplateEntity> positionConflict = fieldTemplateRepository
-	            .findByFileTypeAndTransactionTypeAndTargetPosition(
-	                fieldTemplate.getFileType(), 
-	                fieldTemplate.getTransactionType(), 
-	                fieldTemplate.getTargetPosition());
-	        
-	        if (positionConflict.isPresent()) {
-	            throw new IllegalArgumentException("Position already occupied: " + fieldTemplate.getTargetPosition());
-	        }
-	        
-	        // Create entity
-	        FieldTemplateEntity entity = convertToFieldTemplateEntity(fieldTemplate);
-	        entity.setCreatedDate(LocalDateTime.now());
-	        entity.setEnabled("Y");
-	        
-	        // Save and audit
-	        FieldTemplateEntity saved = fieldTemplateRepository.save(entity);
-	      //  auditService.logCreate("FIELD_TEMPLATE", saved.getFieldName(), fieldTemplate.getCreatedBy());
-	        
-	        log.info("Created field template: {} for {}/{}", 
-	            fieldTemplate.getFieldName(), fieldTemplate.getFileType(), fieldTemplate.getTransactionType());
-	        
-	        return convertToFieldTemplate(saved);
-	    } catch (Exception e) {
-	        log.error("Error creating field template: {}", fieldTemplate.getFieldName(), e);
-	        throw new RuntimeException("Failed to create field template", e);
-	    }
+		try {
+			// Validate the field template
+			ValidationResult validation = validateFieldTemplate(fieldTemplate);
+			if (!validation.isValid()) {
+				throw new IllegalArgumentException(
+						"Invalid field template: " + String.join(", ", validation.getErrors()));
+			}
+
+			// Check for duplicates
+			Optional<FieldTemplateEntity> existing = fieldTemplateRepository
+					.findByFileTypeAndTransactionTypeAndFieldName(
+							fieldTemplate.getFileType(),
+							fieldTemplate.getTransactionType(),
+							fieldTemplate.getFieldName());
+
+			if (existing.isPresent()) {
+				throw new IllegalArgumentException("Field template already exists: " + fieldTemplate.getFieldName());
+			}
+
+			// Check for position conflicts
+			Optional<FieldTemplateEntity> positionConflict = fieldTemplateRepository
+					.findByFileTypeAndTransactionTypeAndTargetPosition(
+							fieldTemplate.getFileType(),
+							fieldTemplate.getTransactionType(),
+							fieldTemplate.getTargetPosition());
+
+			if (positionConflict.isPresent()) {
+				throw new IllegalArgumentException("Position already occupied: " + fieldTemplate.getTargetPosition());
+			}
+
+			// Create entity
+			FieldTemplateEntity entity = convertToFieldTemplateEntity(fieldTemplate);
+			entity.setCreatedDate(LocalDateTime.now());
+			entity.setEnabled("Y");
+
+			// Save and audit
+			FieldTemplateEntity saved = fieldTemplateRepository.save(entity);
+			// auditService.logCreate("FIELD_TEMPLATE", saved.getFieldName(),
+			// fieldTemplate.getCreatedBy());
+
+			log.info("Created field template: {} for {}/{}",
+					fieldTemplate.getFieldName(), fieldTemplate.getFileType(), fieldTemplate.getTransactionType());
+
+			return convertToFieldTemplate(saved);
+		} catch (Exception e) {
+			log.error("Error creating field template: {}", fieldTemplate.getFieldName(), e);
+			throw new RuntimeException("Failed to create field template", e);
+		}
 	}
 
 	@Override
 	@Transactional
 	public FieldTemplate updateFieldTemplate(FieldTemplate fieldTemplate) {
-	    try {
-	        // Find existing field
-	        Optional<FieldTemplateEntity> existing = fieldTemplateRepository
-	            .findByFileTypeAndTransactionTypeAndFieldName(
-	                fieldTemplate.getFileType(), 
-	                fieldTemplate.getTransactionType(), 
-	                fieldTemplate.getFieldName());
-	        
-	        if (existing.isEmpty()) {
-	            throw new IllegalArgumentException("Field template not found: " + fieldTemplate.getFieldName());
-	        }
-	        
-	        FieldTemplateEntity entity = existing.get();
-	        String oldValue = entity.toString();
-	        
-	        // Update fields
-	        entity.setTargetPosition(fieldTemplate.getTargetPosition());
-	        entity.setLength(fieldTemplate.getLength());
-	        entity.setDataType(fieldTemplate.getDataType());
-	        entity.setFormat(fieldTemplate.getFormat());
-	        entity.setRequired(fieldTemplate.getRequired());
-	        entity.setDescription(fieldTemplate.getDescription());
-	        entity.setEnabled(fieldTemplate.getEnabled());
-	        entity.setModifiedBy(fieldTemplate.getModifiedBy());
-	        entity.setModifiedDate(LocalDateTime.now());
-	        entity.setVersion(entity.getVersion() + 1);
-	        
-	        // Save and audit
-	        FieldTemplateEntity saved = fieldTemplateRepository.save(entity);
-	        auditService.logUpdate("FIELD_TEMPLATE", saved.getFieldName(), 
-	                              oldValue, saved.toString(), fieldTemplate.getModifiedBy());
-	        
-	        log.info("Updated field template: {} for {}/{}", 
-	            fieldTemplate.getFieldName(), fieldTemplate.getFileType(), fieldTemplate.getTransactionType());
-	        
-	        return convertToFieldTemplate(saved);
-	    } catch (Exception e) {
-	        log.error("Error updating field template: {}", fieldTemplate.getFieldName(), e);
-	        throw new RuntimeException("Failed to update field template", e);
-	    }
+		try {
+			// Find existing field
+			Optional<FieldTemplateEntity> existing = fieldTemplateRepository
+					.findByFileTypeAndTransactionTypeAndFieldName(
+							fieldTemplate.getFileType(),
+							fieldTemplate.getTransactionType(),
+							fieldTemplate.getFieldName());
+
+			if (existing.isEmpty()) {
+				throw new IllegalArgumentException("Field template not found: " + fieldTemplate.getFieldName());
+			}
+
+			FieldTemplateEntity entity = existing.get();
+			String oldValue = entity.toString();
+
+			// Update fields
+			entity.setTargetPosition(fieldTemplate.getTargetPosition());
+			entity.setLength(fieldTemplate.getLength());
+			entity.setDataType(fieldTemplate.getDataType());
+			entity.setFormat(fieldTemplate.getFormat());
+			entity.setRequired(fieldTemplate.getRequired());
+			entity.setDescription(fieldTemplate.getDescription());
+			entity.setEnabled(fieldTemplate.getEnabled());
+			entity.setModifiedBy(fieldTemplate.getModifiedBy());
+			entity.setModifiedDate(LocalDateTime.now());
+			entity.setVersion(entity.getVersion() + 1);
+
+			// Save and audit
+			FieldTemplateEntity saved = fieldTemplateRepository.save(entity);
+			auditService.logUpdate("FIELD_TEMPLATE", saved.getFieldName(),
+					oldValue, saved.toString(), fieldTemplate.getModifiedBy());
+
+			log.info("Updated field template: {} for {}/{}",
+					fieldTemplate.getFieldName(), fieldTemplate.getFileType(), fieldTemplate.getTransactionType());
+
+			return convertToFieldTemplate(saved);
+		} catch (Exception e) {
+			log.error("Error updating field template: {}", fieldTemplate.getFieldName(), e);
+			throw new RuntimeException("Failed to update field template", e);
+		}
 	}
 
 	@Override
 	@Transactional
 	public void deleteFieldTemplate(String fileType, String transactionType, String fieldName, String deletedBy) {
-	    try {
-	        Optional<FieldTemplateEntity> existing = fieldTemplateRepository
-	            .findByFileTypeAndTransactionTypeAndFieldName(fileType, transactionType, fieldName);
-	        
-	        if (existing.isEmpty()) {
-	            throw new IllegalArgumentException("Field template not found: " + fieldName);
-	        }
-	        
-	        FieldTemplateEntity entity = existing.get();
-	        String oldValue = entity.toString();
-	        
-	        // Soft delete - mark as disabled
-	        entity.setEnabled("N");
-	        entity.setModifiedBy(deletedBy);
-	        entity.setModifiedDate(LocalDateTime.now());
-	        entity.setVersion(entity.getVersion() + 1);
-	        
-	        fieldTemplateRepository.save(entity);
-	        auditService.logDelete("FIELD_TEMPLATE", fieldName, oldValue, deletedBy);
-	        
-	        log.info("Deleted field template: {} for {}/{}", fieldName, fileType, transactionType);
-	    } catch (Exception e) {
-	        log.error("Error deleting field template: {}", fieldName, e);
-	        throw new RuntimeException("Failed to delete field template", e);
-	    }
+		try {
+			Optional<FieldTemplateEntity> existing = fieldTemplateRepository
+					.findByFileTypeAndTransactionTypeAndFieldName(fileType, transactionType, fieldName);
+
+			if (existing.isEmpty()) {
+				throw new IllegalArgumentException("Field template not found: " + fieldName);
+			}
+
+			FieldTemplateEntity entity = existing.get();
+			String oldValue = entity.toString();
+
+			// Soft delete - mark as disabled
+			entity.setEnabled("N");
+			entity.setModifiedBy(deletedBy);
+			entity.setModifiedDate(LocalDateTime.now());
+			entity.setVersion(entity.getVersion() + 1);
+
+			fieldTemplateRepository.save(entity);
+			auditService.logDelete("FIELD_TEMPLATE", fieldName, oldValue, deletedBy);
+
+			log.info("Deleted field template: {} for {}/{}", fieldName, fileType, transactionType);
+		} catch (Exception e) {
+			log.error("Error deleting field template: {}", fieldName, e);
+			throw new RuntimeException("Failed to delete field template", e);
+		}
 	}
 
 	@Override
 	@Transactional
-	public FieldTemplate duplicateFieldTemplate(String fileType, String transactionType, String fieldName, 
-	                                           String newFieldName, Integer newPosition, String createdBy) {
-	    try {
-	        // Find original field
-	        Optional<FieldTemplateEntity> original = fieldTemplateRepository
-	            .findByFileTypeAndTransactionTypeAndFieldName(fileType, transactionType, fieldName);
-	        
-	        if (original.isEmpty()) {
-	            throw new IllegalArgumentException("Original field template not found: " + fieldName);
-	        }
-	        
-	        // Create duplicate
-	        FieldTemplateEntity originalEntity = original.get();
-	        FieldTemplate duplicateTemplate = convertToFieldTemplate(originalEntity);
-	        duplicateTemplate.setFieldName(newFieldName);
-	        duplicateTemplate.setTargetPosition(newPosition);
-	        duplicateTemplate.setCreatedBy(createdBy);
-	        
-	        return createFieldTemplate(duplicateTemplate);
-	    } catch (Exception e) {
-	        log.error("Error duplicating field template: {} to {}", fieldName, newFieldName, e);
-	        throw new RuntimeException("Failed to duplicate field template", e);
-	    }
+	public FieldTemplate duplicateFieldTemplate(String fileType, String transactionType, String fieldName,
+			String newFieldName, Integer newPosition, String createdBy) {
+		try {
+			// Find original field
+			Optional<FieldTemplateEntity> original = fieldTemplateRepository
+					.findByFileTypeAndTransactionTypeAndFieldName(fileType, transactionType, fieldName);
+
+			if (original.isEmpty()) {
+				throw new IllegalArgumentException("Original field template not found: " + fieldName);
+			}
+
+			// Create duplicate
+			FieldTemplateEntity originalEntity = original.get();
+			FieldTemplate duplicateTemplate = convertToFieldTemplate(originalEntity);
+			duplicateTemplate.setFieldName(newFieldName);
+			duplicateTemplate.setTargetPosition(newPosition);
+			duplicateTemplate.setCreatedBy(createdBy);
+
+			return createFieldTemplate(duplicateTemplate);
+		} catch (Exception e) {
+			log.error("Error duplicating field template: {} to {}", fieldName, newFieldName, e);
+			throw new RuntimeException("Failed to duplicate field template", e);
+		}
 	}
 
 	@Override
 	@Transactional
 	public List<FieldTemplate> bulkUpdateFieldTemplates(String fileType, List<FieldTemplate> fields) {
-	    try {
-	        List<FieldTemplate> results = new ArrayList<>();
-	        
-	        for (FieldTemplate field : fields) {
-	            field.setFileType(fileType);
-	            
-	            // Check if field exists
-	            Optional<FieldTemplateEntity> existing = fieldTemplateRepository
-	                .findByFileTypeAndTransactionTypeAndFieldName(
-	                    fileType, field.getTransactionType(), field.getFieldName());
-	            
-	            if (existing.isPresent()) {
-	                // Update existing
-	                results.add(updateFieldTemplate(field));
-	            } else {
-	                // Create new
-	                results.add(createFieldTemplate(field));
-	            }
-	        }
-	        
-	        log.info("Bulk updated {} field templates for fileType: {}", fields.size(), fileType);
-	        return results;
-	    } catch (Exception e) {
-	        log.error("Error bulk updating field templates for fileType: {}", fileType, e);
-	        throw new RuntimeException("Failed to bulk update field templates", e);
-	    }
+		try {
+			List<FieldTemplate> results = new ArrayList<>();
+
+			for (FieldTemplate field : fields) {
+				field.setFileType(fileType);
+
+				// Check if field exists
+				Optional<FieldTemplateEntity> existing = fieldTemplateRepository
+						.findByFileTypeAndTransactionTypeAndFieldName(
+								fileType, field.getTransactionType(), field.getFieldName());
+
+				if (existing.isPresent()) {
+					// Update existing
+					results.add(updateFieldTemplate(field));
+				} else {
+					// Create new
+					results.add(createFieldTemplate(field));
+				}
+			}
+
+			log.info("Bulk updated {} field templates for fileType: {}", fields.size(), fileType);
+			return results;
+		} catch (Exception e) {
+			log.error("Error bulk updating field templates for fileType: {}", fileType, e);
+			throw new RuntimeException("Failed to bulk update field templates", e);
+		}
 	}
 
 	@Override
 	@Transactional
-	public List<FieldTemplate> reorderFieldTemplates(String fileType, List<Map<String, Object>> fieldOrders, String modifiedBy) {
-	    try {
-	        List<FieldTemplate> results = new ArrayList<>();
-	        
-	        for (Map<String, Object> order : fieldOrders) {
-	            String fieldName = (String) order.get("fieldName");
-	            Integer newPosition = (Integer) order.get("newPosition");
-	            String transactionType = (String) order.getOrDefault("transactionType", "default");
-	            
-	            Optional<FieldTemplateEntity> existing = fieldTemplateRepository
-	                .findByFileTypeAndTransactionTypeAndFieldName(fileType, transactionType, fieldName);
-	            
-	            if (existing.isPresent()) {
-	                FieldTemplateEntity entity = existing.get();
-	                entity.setTargetPosition(newPosition);
-	                entity.setModifiedBy(modifiedBy);
-	                entity.setModifiedDate(LocalDateTime.now());
-	                entity.setVersion(entity.getVersion() + 1);
-	                
-	                FieldTemplateEntity saved = fieldTemplateRepository.save(entity);
-	                results.add(convertToFieldTemplate(saved));
-	            }
-	        }
-	        
-	        log.info("Reordered {} field templates for fileType: {}", fieldOrders.size(), fileType);
-	        return results;
-	    } catch (Exception e) {
-	        log.error("Error reordering field templates for fileType: {}", fileType, e);
-	        throw new RuntimeException("Failed to reorder field templates", e);
-	    }
+	public List<FieldTemplate> reorderFieldTemplates(String fileType, List<Map<String, Object>> fieldOrders,
+			String modifiedBy) {
+		try {
+			List<FieldTemplate> results = new ArrayList<>();
+
+			for (Map<String, Object> order : fieldOrders) {
+				String fieldName = (String) order.get("fieldName");
+				Integer newPosition = (Integer) order.get("newPosition");
+				String transactionType = (String) order.getOrDefault("transactionType", "default");
+
+				Optional<FieldTemplateEntity> existing = fieldTemplateRepository
+						.findByFileTypeAndTransactionTypeAndFieldName(fileType, transactionType, fieldName);
+
+				if (existing.isPresent()) {
+					FieldTemplateEntity entity = existing.get();
+					entity.setTargetPosition(newPosition);
+					entity.setModifiedBy(modifiedBy);
+					entity.setModifiedDate(LocalDateTime.now());
+					entity.setVersion(entity.getVersion() + 1);
+
+					FieldTemplateEntity saved = fieldTemplateRepository.save(entity);
+					results.add(convertToFieldTemplate(saved));
+				}
+			}
+
+			log.info("Reordered {} field templates for fileType: {}", fieldOrders.size(), fileType);
+			return results;
+		} catch (Exception e) {
+			log.error("Error reordering field templates for fileType: {}", fileType, e);
+			throw new RuntimeException("Failed to reorder field templates", e);
+		}
 	}
 
 	@Override
 	public ValidationResult validateFieldTemplate(FieldTemplate fieldTemplate) {
-	    ValidationResult result = new ValidationResult();
-	    result.setValid(true);
-	    
-	    List<String> errors = new ArrayList<>();
-	    List<String> warnings = new ArrayList<>();
-	    
-	    // Required field validation
-	    if (fieldTemplate.getFieldName() == null || fieldTemplate.getFieldName().trim().isEmpty()) {
-	        errors.add("Field name is required");
-	    }
-	    
-	    if (fieldTemplate.getFileType() == null || fieldTemplate.getFileType().trim().isEmpty()) {
-	        errors.add("File type is required");
-	    }
-	    
-	    if (fieldTemplate.getTransactionType() == null || fieldTemplate.getTransactionType().trim().isEmpty()) {
-	        errors.add("Transaction type is required");
-	    }
-	    
-	    if (fieldTemplate.getTargetPosition() == null || fieldTemplate.getTargetPosition() <= 0) {
-	        errors.add("Target position must be greater than 0");
-	    }
-	    
-	    if (fieldTemplate.getLength() == null || fieldTemplate.getLength() <= 0) {
-	        errors.add("Length must be greater than 0");
-	    }
-	    
-	    if (fieldTemplate.getDataType() == null || fieldTemplate.getDataType().trim().isEmpty()) {
-	        errors.add("Data type is required");
-	    }
-	    
-	    // Business logic validation
-	    if (fieldTemplate.getFieldName() != null && fieldTemplate.getFieldName().length() > 50) {
-	        errors.add("Field name cannot exceed 50 characters");
-	    }
-	    
-	    if (fieldTemplate.getTargetPosition() != null && fieldTemplate.getTargetPosition() > 10000) {
-	        warnings.add("Position seems unusually high: " + fieldTemplate.getTargetPosition());
-	    }
-	    
-	    if (fieldTemplate.getLength() != null && fieldTemplate.getLength() > 1000) {
-	        warnings.add("Field length seems unusually large: " + fieldTemplate.getLength());
-	    }
-	    
-	    result.setErrors(errors);
-	    result.setWarnings(warnings);
-	    result.setValid(errors.isEmpty());
-	    
-	    return result;
+		ValidationResult result = new ValidationResult();
+		result.setValid(true);
+
+		List<String> errors = new ArrayList<>();
+		List<String> warnings = new ArrayList<>();
+
+		// Required field validation
+		if (fieldTemplate.getFieldName() == null || fieldTemplate.getFieldName().trim().isEmpty()) {
+			errors.add("Field name is required");
+		}
+
+		if (fieldTemplate.getFileType() == null || fieldTemplate.getFileType().trim().isEmpty()) {
+			errors.add("File type is required");
+		}
+
+		if (fieldTemplate.getTransactionType() == null || fieldTemplate.getTransactionType().trim().isEmpty()) {
+			errors.add("Transaction type is required");
+		}
+
+		if (fieldTemplate.getTargetPosition() == null || fieldTemplate.getTargetPosition() <= 0) {
+			errors.add("Target position must be greater than 0");
+		}
+
+		if (fieldTemplate.getLength() == null || fieldTemplate.getLength() <= 0) {
+			errors.add("Length must be greater than 0");
+		}
+
+		if (fieldTemplate.getDataType() == null || fieldTemplate.getDataType().trim().isEmpty()) {
+			errors.add("Data type is required");
+		}
+
+		// Business logic validation
+		if (fieldTemplate.getFieldName() != null && fieldTemplate.getFieldName().length() > 50) {
+			errors.add("Field name cannot exceed 50 characters");
+		}
+
+		if (fieldTemplate.getTargetPosition() != null && fieldTemplate.getTargetPosition() > 10000) {
+			warnings.add("Position seems unusually high: " + fieldTemplate.getTargetPosition());
+		}
+
+		if (fieldTemplate.getLength() != null && fieldTemplate.getLength() > 1000) {
+			warnings.add("Field length seems unusually large: " + fieldTemplate.getLength());
+		}
+
+		result.setErrors(errors);
+		result.setWarnings(warnings);
+		result.setValid(errors.isEmpty());
+
+		return result;
 	}
 
 	@Override
 	public ValidationResult validateFieldTemplates(String fileType, List<FieldTemplate> fields) {
-	    ValidationResult result = new ValidationResult();
-	    result.setValid(true);
-	    
-	    List<String> errors = new ArrayList<>();
-	    List<String> warnings = new ArrayList<>();
-	    
-	    // Individual field validation
-	    for (FieldTemplate field : fields) {
-	        ValidationResult fieldResult = validateFieldTemplate(field);
-	        if (!fieldResult.isValid()) {
-	            errors.addAll(fieldResult.getErrors().stream()
-	                .map(error -> field.getFieldName() + ": " + error)
-	                .toList());
-	        }
-	        warnings.addAll(fieldResult.getWarnings().stream()
-	            .map(warning -> field.getFieldName() + ": " + warning)
-	            .toList());
-	    }
-	    
-	    // Cross-field validation
-	    Set<String> fieldNames = new HashSet<>();
-	    Set<Integer> positions = new HashSet<>();
-	    
-	    for (FieldTemplate field : fields) {
-	        // Check for duplicate field names
-	        if (!fieldNames.add(field.getFieldName())) {
-	            errors.add("Duplicate field name: " + field.getFieldName());
-	        }
-	        
-	        // Check for duplicate positions within same transaction type
-	        String positionKey = field.getTransactionType() + "-" + field.getTargetPosition();
-	        if (!positions.add(field.getTargetPosition())) {
-	            errors.add("Duplicate position " + field.getTargetPosition() + 
-	                      " in transaction type " + field.getTransactionType());
-	        }
-	    }
-	    
-	    result.setErrors(errors);
-	    result.setWarnings(warnings);
-	    result.setValid(errors.isEmpty());
-	    
-	    return result;
+		ValidationResult result = new ValidationResult();
+		result.setValid(true);
+
+		List<String> errors = new ArrayList<>();
+		List<String> warnings = new ArrayList<>();
+
+		// Individual field validation
+		for (FieldTemplate field : fields) {
+			ValidationResult fieldResult = validateFieldTemplate(field);
+			if (!fieldResult.isValid()) {
+				errors.addAll(fieldResult.getErrors().stream()
+						.map(error -> field.getFieldName() + ": " + error)
+						.toList());
+			}
+			warnings.addAll(fieldResult.getWarnings().stream()
+					.map(warning -> field.getFieldName() + ": " + warning)
+					.toList());
+		}
+
+		// Cross-field validation
+		Set<String> fieldNames = new HashSet<>();
+		Set<Integer> positions = new HashSet<>();
+
+		for (FieldTemplate field : fields) {
+			// Check for duplicate field names
+			if (!fieldNames.add(field.getFieldName())) {
+				errors.add("Duplicate field name: " + field.getFieldName());
+			}
+
+			// Check for duplicate positions within same transaction type
+			String positionKey = field.getTransactionType() + "-" + field.getTargetPosition();
+			if (!positions.add(field.getTargetPosition())) {
+				errors.add("Duplicate position " + field.getTargetPosition() +
+						" in transaction type " + field.getTransactionType());
+			}
+		}
+
+		result.setErrors(errors);
+		result.setWarnings(warnings);
+		result.setValid(errors.isEmpty());
+
+		return result;
 	}
 
 	/**
 	 * Helper method to convert FieldTemplate to FieldTemplateEntity
 	 */
 	private FieldTemplateEntity convertToFieldTemplateEntity(FieldTemplate fieldTemplate) {
-	    FieldTemplateEntity entity = new FieldTemplateEntity();
-	    entity.setFileType(fieldTemplate.getFileType());
-	    entity.setTransactionType(fieldTemplate.getTransactionType());
-	    entity.setFieldName(fieldTemplate.getFieldName());
-	    entity.setTargetPosition(fieldTemplate.getTargetPosition());
-	    entity.setLength(fieldTemplate.getLength());
-	    entity.setDataType(fieldTemplate.getDataType());
-	    entity.setFormat(fieldTemplate.getFormat());
-	    entity.setRequired(fieldTemplate.getRequired());
-	    entity.setDescription(fieldTemplate.getDescription());
-	    entity.setEnabled(fieldTemplate.getEnabled() != null ? fieldTemplate.getEnabled() : "Y");
-	    entity.setCreatedBy(fieldTemplate.getCreatedBy());
-	    entity.setModifiedBy(fieldTemplate.getModifiedBy());
-	    entity.setVersion(1);
-	    return entity;
+		FieldTemplateEntity entity = new FieldTemplateEntity();
+		entity.setFileType(fieldTemplate.getFileType());
+		entity.setTransactionType(fieldTemplate.getTransactionType());
+		entity.setFieldName(fieldTemplate.getFieldName());
+		entity.setTargetPosition(fieldTemplate.getTargetPosition());
+		entity.setLength(fieldTemplate.getLength());
+		entity.setDataType(fieldTemplate.getDataType());
+		entity.setFormat(fieldTemplate.getFormat());
+		entity.setRequired(fieldTemplate.getRequired());
+		entity.setDescription(fieldTemplate.getDescription());
+		entity.setEnabled(fieldTemplate.getEnabled() != null ? fieldTemplate.getEnabled() : "Y");
+		entity.setCreatedBy(fieldTemplate.getCreatedBy());
+		entity.setModifiedBy(fieldTemplate.getModifiedBy());
+		entity.setVersion(1);
+		return entity;
 	}
-	
+
 	/**
 	 * Determine the transformation type for a field template.
 	 * 
@@ -1551,48 +1674,50 @@ public class TemplateServiceImpl implements TemplateService {
 	 * @return the transformation type to use
 	 */
 	private String determineTransformationType(FieldTemplate template) {
-	    // 1. HIGHEST PRIORITY: Use frontend-provided transformation type if available
-	    // This ensures user selections from the UI are NEVER overridden
-	    if (template.getTransformationType() != null && !template.getTransformationType().trim().isEmpty()) {
-	        String frontendType = template.getTransformationType().trim();
-	        log.debug("✅ Using frontend-provided transformation type '{}' for field '{}' - USER SELECTION RESPECTED", 
-	                 frontendType, template.getFieldName());
-	        return frontendType;
-	    }
-	    
-	    // 2. DEFAULT: Use "source" as default when no transformation type is provided
-	    // This is a simple, predictable default that doesn't make assumptions
-	    log.debug("Using default transformation type 'source' for field '{}' (no transformation type provided)", 
-	             template.getFieldName());
-	    return "source";
+		// 1. HIGHEST PRIORITY: Use frontend-provided transformation type if available
+		// This ensures user selections from the UI are NEVER overridden
+		if (template.getTransformationType() != null && !template.getTransformationType().trim().isEmpty()) {
+			String frontendType = template.getTransformationType().trim();
+			log.debug("✅ Using frontend-provided transformation type '{}' for field '{}' - USER SELECTION RESPECTED",
+					frontendType, template.getFieldName());
+			return frontendType;
+		}
+
+		// 2. DEFAULT: Use "source" as default when no transformation type is provided
+		// This is a simple, predictable default that doesn't make assumptions
+		log.debug("Using default transformation type 'source' for field '{}' (no transformation type provided)",
+				template.getFieldName());
+		return "source";
 	}
-	
+
 	/**
 	 * Determine appropriate constant value for constant fields
-	 * This provides intelligent defaults when the database doesn't store default values
+	 * This provides intelligent defaults when the database doesn't store default
+	 * values
 	 * IMPORTANT: User-provided values always take precedence over system defaults
 	 */
 	private String determineConstantValue(FieldTemplate template, String transactionType) {
-	    return determineConstantValue(template, transactionType, null);
+		return determineConstantValue(template, transactionType, null);
 	}
-	
+
 	/**
 	 * Extract user-provided constant values from job parameters JSON
 	 * 
 	 * @param jobParametersJson JSON string containing job parameters
-	 * @return map of field names to constant values for fields with constant transformation type
+	 * @return map of field names to constant values for fields with constant
+	 *         transformation type
 	 */
 	public Map<String, String> extractUserProvidedConstants(String jobParametersJson) {
 		Map<String, String> constants = new HashMap<>();
-		
+
 		if (jobParametersJson == null || jobParametersJson.trim().isEmpty()) {
 			return constants;
 		}
-		
+
 		try {
 			com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
 			com.fasterxml.jackson.databind.JsonNode rootNode = mapper.readTree(jobParametersJson);
-			
+
 			// Look for fieldMappings array
 			com.fasterxml.jackson.databind.JsonNode fieldMappingsNode = rootNode.get("fieldMappings");
 			if (fieldMappingsNode != null && fieldMappingsNode.isArray()) {
@@ -1608,15 +1733,15 @@ public class TemplateServiceImpl implements TemplateService {
 					}
 				}
 			}
-			
+
 		} catch (Exception e) {
 			log.warn("Failed to extract user constants from job parameters JSON: {}", e.getMessage());
 		}
-		
+
 		log.info("Extracted {} user-provided constants from job parameters", constants.size());
 		return constants;
 	}
-	
+
 	/**
 	 * Helper method to safely get string value from JSON node
 	 */
@@ -1626,37 +1751,44 @@ public class TemplateServiceImpl implements TemplateService {
 	}
 
 	/**
-	 * Determine appropriate constant value for constant fields with user-provided value support
-	 * CRITICAL: Respects frontend values - does not override user-provided constant values
+	 * Determine appropriate constant value for constant fields with user-provided
+	 * value support
+	 * CRITICAL: Respects frontend values - does not override user-provided constant
+	 * values
 	 * 
-	 * @param template the field template
-	 * @param transactionType the transaction type
-	 * @param userProvidedValue the value provided by the user (takes precedence if not null/empty)
+	 * @param template          the field template
+	 * @param transactionType   the transaction type
+	 * @param userProvidedValue the value provided by the user (takes precedence if
+	 *                          not null/empty)
 	 * @return the constant value to use
 	 */
 	private String determineConstantValue(FieldTemplate template, String transactionType, String userProvidedValue) {
-	    String fieldName = template.getFieldName();
-	    String defaultValue = template.getDefaultValue();
-	    
-	    // 1. HIGHEST PRIORITY: Return frontend-provided constant value if available
-	    // This ensures user selections from the UI are NEVER overridden
-	    if (userProvidedValue != null && !userProvidedValue.trim().isEmpty()) {
-	        log.debug("✅ Using frontend-provided constant value '{}' for field '{}' - USER INPUT RESPECTED", 
-	                userProvidedValue.trim(), fieldName);
-	        return userProvidedValue.trim();
-	    }
-	    
-	    // 2. SECOND PRIORITY: Use template default value if available (only if no user input)
-	    if (defaultValue != null && !defaultValue.trim().isEmpty()) {
-	        log.debug("Using template default value '{}' for field '{}' (no user input provided)", 
-	                defaultValue.trim(), fieldName);
-	        return defaultValue.trim();
-	    }
-	    
-	    // 3. LOWEST PRIORITY: Return empty string if no frontend value and no template default
-	    // Simple, predictable behavior - no complex field name-based logic
-	    log.debug("No constant value provided from frontend or template default for field '{}' - returning empty string", fieldName);
-	    return "";
+		String fieldName = template.getFieldName();
+		String defaultValue = template.getDefaultValue();
+
+		// 1. HIGHEST PRIORITY: Return frontend-provided constant value if available
+		// This ensures user selections from the UI are NEVER overridden
+		if (userProvidedValue != null && !userProvidedValue.trim().isEmpty()) {
+			log.debug("✅ Using frontend-provided constant value '{}' for field '{}' - USER INPUT RESPECTED",
+					userProvidedValue.trim(), fieldName);
+			return userProvidedValue.trim();
+		}
+
+		// 2. SECOND PRIORITY: Use template default value if available (only if no user
+		// input)
+		if (defaultValue != null && !defaultValue.trim().isEmpty()) {
+			log.debug("Using template default value '{}' for field '{}' (no user input provided)",
+					defaultValue.trim(), fieldName);
+			return defaultValue.trim();
+		}
+
+		// 3. LOWEST PRIORITY: Return empty string if no frontend value and no template
+		// default
+		// Simple, predictable behavior - no complex field name-based logic
+		log.debug(
+				"No constant value provided from frontend or template default for field '{}' - returning empty string",
+				fieldName);
+		return "";
 	}
 
 }

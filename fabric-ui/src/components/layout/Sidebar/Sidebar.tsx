@@ -62,20 +62,20 @@ export const Sidebar: React.FC<SidebarProps> = ({ open, onClose, drawerWidth }) 
     );
   };
 
- const handleSystemSelect = async (systemId: string) => {
-  try {
-    console.log('Selecting system:', systemId);
-    await selectSourceSystem(systemId);
-    
-    // Load jobs from API when expanding
-    if (!expandedSystems.includes(systemId)) {
-      toggleSystemExpanded(systemId);
-      await loadJobsForSystem(systemId); // Use API call
+  const handleSystemSelect = async (systemId: string) => {
+    try {
+      console.log('Selecting system:', systemId);
+      await selectSourceSystem(systemId);
+
+      // Load jobs from API when expanding
+      if (!expandedSystems.includes(systemId)) {
+        toggleSystemExpanded(systemId);
+        await loadJobsForSystem(systemId); // Use API call
+      }
+    } catch (error) {
+      console.error('Failed to select system:', error);
     }
-  } catch (error) {
-    console.error('Failed to select system:', error);
-  }
-};
+  };
 
   const handleJobSelect = async (systemId: string, jobName: string) => {
     try {
@@ -87,8 +87,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ open, onClose, drawerWidth }) 
   };
 
   const handleJobClick = (systemId: string, jobName: string) => {
-  navigate(`/configuration/${systemId}/${jobName}`);
-};
+    navigate(`/configuration/${systemId}/${jobName}`);
+  };
 
   const handleTemplateJobSelect = async (systemId: string, jobName: string) => {
     try {
@@ -105,6 +105,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ open, onClose, drawerWidth }) 
     { path: '/manual-job-config', label: 'Manual Job Configuration', icon: <Build /> },
     { path: '/configuration', label: 'Legacy Configuration', icon: <Settings /> },
     { path: '/template-configuration', label: 'Template Configuration', icon: <DynamicForm /> },
+    { path: '/template-studio', label: 'Template Studio', icon: <Code /> },
     { path: '/admin/templates', label: 'Template Admin', icon: <AdminPanelSettings /> },
     { path: '/yaml-preview', label: 'YAML Preview', icon: <Code /> },
     { path: '/testing', label: 'Testing', icon: <PlayArrow /> }
@@ -121,7 +122,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ open, onClose, drawerWidth }) 
           <Close />
         </IconButton>
       </Box>
-      
+
       <Divider />
 
       {/* Main Navigation */}
@@ -139,7 +140,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ open, onClose, drawerWidth }) 
           </ListItemButton>
         ))}
         {/* test button */}
-  {/* <ListItemButton onClick={() => navigate('/configuration/hr/p327')}>
+        {/* <ListItemButton onClick={() => navigate('/configuration/hr/p327')}>
     <ListItemIcon>
       <Settings />
     </ListItemIcon>
@@ -209,7 +210,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ open, onClose, drawerWidth }) 
                         onClick={() => handleJobSelect(system.id, job.name || job.jobName)}
                       >
                         <ListItemIcon sx={{ minWidth: 32 }}>
-                            
+
                           <Settings fontSize="small" />
                         </ListItemIcon>
                         <ListItemText
@@ -261,51 +262,51 @@ export const Sidebar: React.FC<SidebarProps> = ({ open, onClose, drawerWidth }) 
   );
 
   return (
-  <Box
-    component="nav"
-    sx={{ width: { sm: drawerWidth }, flexShrink: { sm: 0 } }}
-    aria-label="navigation"
-  >
-    {/* Mobile drawer */}
-    <Drawer
-      variant="temporary"
-      open={open}
-      onClose={onClose}
-      ModalProps={{
-        keepMounted: true,
-      }}
-      sx={{
-        display: { xs: 'block', sm: 'none' },
-        '& .MuiDrawer-paper': { 
-          boxSizing: 'border-box', 
-          width: drawerWidth,
-          marginTop: '64px',
-          height: 'calc(100vh - 64px)'
-        },
-      }}
+    <Box
+      component="nav"
+      sx={{ width: { sm: drawerWidth }, flexShrink: { sm: 0 } }}
+      aria-label="navigation"
     >
-      {drawer}
-    </Drawer>
+      {/* Mobile drawer */}
+      <Drawer
+        variant="temporary"
+        open={open}
+        onClose={onClose}
+        ModalProps={{
+          keepMounted: true,
+        }}
+        sx={{
+          display: { xs: 'block', sm: 'none' },
+          '& .MuiDrawer-paper': {
+            boxSizing: 'border-box',
+            width: drawerWidth,
+            marginTop: '64px',
+            height: 'calc(100vh - 64px)'
+          },
+        }}
+      >
+        {drawer}
+      </Drawer>
 
-    {/* Desktop permanent drawer */}
-    <Drawer
-      variant="permanent"
-      sx={{
-        display: { xs: 'none', sm: 'block' },
-        '& .MuiDrawer-paper': { 
-          boxSizing: 'border-box', 
-          width: drawerWidth,
-          marginTop: '64px',
-          height: 'calc(100vh - 64px)',
-          position: 'relative'
-        },
-      }}
-      open
-    >
-      {drawer}
-    </Drawer>
-  </Box>
-);
+      {/* Desktop permanent drawer */}
+      <Drawer
+        variant="permanent"
+        sx={{
+          display: { xs: 'none', sm: 'block' },
+          '& .MuiDrawer-paper': {
+            boxSizing: 'border-box',
+            width: drawerWidth,
+            marginTop: '64px',
+            height: 'calc(100vh - 64px)',
+            position: 'relative'
+          },
+        }}
+        open
+      >
+        {drawer}
+      </Drawer>
+    </Box>
+  );
 }
 
 

@@ -29,6 +29,8 @@ public class FieldTemplate {
     private Integer version;
     private String transformationType;
     private String transformationConfig;
+    private String value;
+    private String sourceField;
 
     // Default constructor
     public FieldTemplate() {
@@ -201,6 +203,22 @@ public class FieldTemplate {
 
     public void setTransformationConfig(String transformationConfig) {
         this.transformationConfig = transformationConfig;
+    }
+
+    public String getValue() {
+        return value;
+    }
+
+    public void setValue(String value) {
+        this.value = value;
+    }
+
+    public String getSourceField() {
+        return sourceField;
+    }
+
+    public void setSourceField(String sourceField) {
+        this.sourceField = sourceField;
     }
 
     @Override
