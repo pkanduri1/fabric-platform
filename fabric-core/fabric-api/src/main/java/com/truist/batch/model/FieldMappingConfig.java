@@ -76,12 +76,17 @@ public class FieldMappingConfig {
      * When this configuration was created.
      */
     private LocalDateTime createdDate;
-    
+
+    /**
+     * Who created this configuration.
+     */
+    private String createdBy;
+
     /**
      * When this configuration was last modified.
      */
     private LocalDateTime lastModified;
-    
+
     /**
      * Who last modified this configuration.
      */

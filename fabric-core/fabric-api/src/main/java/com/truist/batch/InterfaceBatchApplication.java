@@ -31,7 +31,8 @@ import java.util.List;
         "com.truist.batch.adapter",
         "com.truist.batch.model",
         "com.truist.batch.listener",
-        "com.truist.batch.tasklet"
+        "com.truist.batch.tasklet",
+        "com.truist.batch.util"
 }, includeFilters = {
         @ComponentScan.Filter(type = FilterType.REGEX, pattern = "com\\.truist\\.batch\\.controller\\.ManualJobConfigController"),
         @ComponentScan.Filter(type = FilterType.REGEX, pattern = "com\\.truist\\.batch\\.service\\.ManualJobConfigService"),
