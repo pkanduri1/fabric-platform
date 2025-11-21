@@ -13,7 +13,8 @@ import {
   UpdateFieldRequest,
   CreateFileTypeRequest,
   TemplateMetadata,
-  TemplateConfigDto
+  TemplateConfigDto,
+  QueryPreviewResponse
 } from '../../types/template';
 
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080';
@@ -396,6 +397,26 @@ export const templateApiService = {
     } catch (error) {
       console.error('Template API health check failed:', error);
       throw new Error('Template API is unavailable');
+    }
+  },
+
+  // Query preview
+  async previewQuery(sql: string, maxRows: number = 10): Promise<QueryPreviewResponse> {
+    try {
+      const response = await axios.post<QueryPreviewResponse>(
+        `${API_BASE_URL}/api/v2/template/preview-query`,
+        { sql, maxRows },
+        {
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          timeout: 30000
+        }
+      );
+      return response.data;
+    } catch (error) {
+      console.error('Query preview failed:', error);
+      throw new Error('Failed to execute query preview');
     }
   }
 };

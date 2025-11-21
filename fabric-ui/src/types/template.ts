@@ -182,6 +182,15 @@ export interface TemplateConfigDto {
   createdBy?: string;
 }
 
+export interface QueryPreviewResponse {
+  success: boolean;
+  columns: string[];
+  rows: string[][];
+  rowCount: number;
+  executionTimeMs: number;
+  message: string;
+}
+
 // Statistics and analytics
 export interface TemplateStatistics {
   totalFields: number;
@@ -379,6 +388,16 @@ export const isFileType = (obj: any): obj is FileType => {
     typeof obj.description === 'string' &&
     ['Y', 'N'].includes(obj.enabled);
 };
+
+// Query preview types for Template Studio
+export interface QueryPreviewResponse {
+  success: boolean;
+  columns: string[];
+  rows: string[][];
+  rowCount: number;
+  executionTimeMs: number;
+  message: string;
+}
 
 // Utility types
 export type TemplateField = keyof FieldTemplate;
