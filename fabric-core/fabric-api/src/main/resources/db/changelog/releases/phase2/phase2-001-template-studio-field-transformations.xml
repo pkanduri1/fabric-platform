@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.9.xsd">
+
+    <!--
+        Phase 2: Template Studio Field Transformation Enhancements
+        Adds columns to FIELD_TEMPLATES table to support transformation configuration
+    -->
+
+    <changeSet id="phase2-001-add-transformation-columns" author="claude">
+        <comment>Add transformation-related columns to FIELD_TEMPLATES table for Template Studio Phase 2</comment>
+
+        <!-- Add SOURCE_FIELD column for source field mapping -->
+        <addColumn tableName="FIELD_TEMPLATES" schemaName="CM3INT">
+            <column name="SOURCE_FIELD" type="VARCHAR2(255)">
+                <constraints nullable="true"/>
+            </column>
+        </addColumn>
+
+        <!-- Add TRANSFORMATION_TYPE column (source, constant, composite, conditional) -->
+        <addColumn tableName="FIELD_TEMPLATES" schemaName="CM3INT">
+            <column name="TRANSFORMATION_TYPE" type="VARCHAR2(50)">
+                <constraints nullable="true"/>
+            </column>
+        </addColumn>
+
+        <!-- Add VALUE column for constant values -->
+        <addColumn tableName="FIELD_TEMPLATES" schemaName="CM3INT">
+            <column name="VALUE" type="VARCHAR2(1000)">
+                <constraints nullable="true"/>
+            </column>
+        </addColumn>
+
+        <!-- Add TRANSFORMATION_CONFIG column for complex transformation logic (JSON/CLOB) -->
+        <addColumn tableName="FIELD_TEMPLATES" schemaName="CM3INT">
+            <column name="TRANSFORMATION_CONFIG" type="CLOB">
+                <constraints nullable="true"/>
+            </column>
+        </addColumn>
+
+        <rollback>
+            <dropColumn tableName="FIELD_TEMPLATES" schemaName="CM3INT" columnName="SOURCE_FIELD"/>
+            <dropColumn tableName="FIELD_TEMPLATES" schemaName="CM3INT" columnName="TRANSFORMATION_TYPE"/>
+            <dropColumn tableName="FIELD_TEMPLATES" schemaName="CM3INT" columnName="VALUE"/>
+            <dropColumn tableName="FIELD_TEMPLATES" schemaName="CM3INT" columnName="TRANSFORMATION_CONFIG"/>
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>

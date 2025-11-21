@@ -9,11 +9,12 @@ import java.util.List;
 public class TemplateConfigDto {
     private String sourceSystem;
     private String jobName;
+    private String fileType;
     private String transactionType;
     private String description;
     private String createdBy;
-    private List<FieldTemplate> fieldMappings;
-    private MasterQueryConfig masterQuery;
+    private List<FieldTemplate> fields;
+    private String masterQuery;
 
     public static class MasterQueryConfig {
         private String querySql;
@@ -86,19 +87,27 @@ public class TemplateConfigDto {
         this.createdBy = createdBy;
     }
 
-    public List<FieldTemplate> getFieldMappings() {
-        return fieldMappings;
+    public String getFileType() {
+        return fileType;
     }
 
-    public void setFieldMappings(List<FieldTemplate> fieldMappings) {
-        this.fieldMappings = fieldMappings;
+    public void setFileType(String fileType) {
+        this.fileType = fileType;
     }
 
-    public MasterQueryConfig getMasterQuery() {
+    public List<FieldTemplate> getFields() {
+        return fields;
+    }
+
+    public void setFields(List<FieldTemplate> fields) {
+        this.fields = fields;
+    }
+
+    public String getMasterQuery() {
         return masterQuery;
     }
 
-    public void setMasterQuery(MasterQueryConfig masterQuery) {
+    public void setMasterQuery(String masterQuery) {
         this.masterQuery = masterQuery;
     }
 }

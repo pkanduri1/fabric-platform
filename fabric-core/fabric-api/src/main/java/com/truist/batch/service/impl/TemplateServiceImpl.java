@@ -71,69 +71,128 @@ public class TemplateServiceImpl implements TemplateService {
 	@Override
 	@Transactional
 	public String saveTemplateConfiguration(TemplateConfigDto config) {
-		log.info("Saving template configuration for job: {}", config.getJobName());
+		log.info("💾 Saving template configuration for fileType: {}, transactionType: {}",
+			config.getFileType(), config.getTransactionType());
 
-		// 1. Save Job Configuration
-		FieldMappingConfig jobConfig = new FieldMappingConfig();
-		jobConfig.setSourceSystem(config.getSourceSystem());
-		jobConfig.setJobName(config.getJobName());
-		jobConfig.setTransactionType(config.getTransactionType());
-		jobConfig.setDescription(config.getDescription());
-		jobConfig.setCreatedBy(config.getCreatedBy());
-		jobConfig.setVersion(1);
+		try {
+			// Convert TemplateConfigDto to FieldMappingConfig
+			FieldMappingConfig fieldMappingConfig = convertToFieldMappingConfig(config);
 
-		// Convert FieldTemplates to FieldMappings for Job Config
-		List<FieldMapping> fieldMappings = config.getFieldMappings().stream()
-				.map(ft -> {
-					FieldMapping fm = new FieldMapping();
-					fm.setFieldName(ft.getFieldName());
-					fm.setSourceField(ft.getSourceField());
-					fm.setTargetField(ft.getFieldName()); // Usually same
-					fm.setTargetPosition(ft.getTargetPosition());
-					fm.setLength(ft.getLength());
-					fm.setDataType(ft.getDataType());
-					fm.setTransformationType(ft.getTransformationType());
-					// fm.setTransactionType(ft.getTransactionType()); // FieldMapping does not have
-					// transactionType
-					fm.setValue(ft.getValue());
-					fm.setDefaultValue(ft.getDefaultValue());
-					fm.setFormat(ft.getFormat());
-					return fm;
-				})
-				.collect(Collectors.toList());
+			// Call ConfigurationService to save to BATCH_CONFIGURATIONS table
+			// This will also save to TEMPLATE_SOURCE_MAPPINGS, TEMPLATE_MASTER_QUERY_MAPPING,
+			// generate YAML files, and create audit entries
+			String result = configurationService.saveConfiguration(fieldMappingConfig);
 
-		jobConfig.setFieldMappings(fieldMappings);
-		String configId = configurationService.saveConfiguration(jobConfig);
+			log.info("✅ Template configuration saved successfully for {}/{}",
+				config.getFileType(), config.getTransactionType());
 
-		// 2. Save Field Templates (Metadata)
-		// We iterate and save each field template to ensure the metadata table is
-		// updated
-		for (FieldTemplate ft : config.getFieldMappings()) {
-			// Ensure file type is set (derived from job name or passed explicitly if we
-			// added it to DTO)
-			// For now, we might need to infer or assume it's part of the DTO.
-			// Let's assume we update existing or create new if ID is missing.
-			if (ft.getFileType() == null) {
-				// Fallback or error? For now, log warning.
-				log.warn("Field template missing file type: {}", ft.getFieldName());
+			return result;
+
+		} catch (Exception e) {
+			log.error("❌ Failed to save template configuration for {}/{}: {}",
+				config.getFileType(), config.getTransactionType(), e.getMessage(), e);
+			throw new RuntimeException("Failed to save template configuration: " + e.getMessage(), e);
+		}
+	}
+
+	/**
+	 * Convert TemplateConfigDto (from Template Studio) to FieldMappingConfig (for ConfigurationService).
+	 */
+	private FieldMappingConfig convertToFieldMappingConfig(TemplateConfigDto dto) {
+		FieldMappingConfig config = new FieldMappingConfig();
+
+		// Map basic properties
+		config.setSourceSystem(dto.getSourceSystem());
+		config.setJobName(dto.getFileType()); // fileType becomes jobName
+		config.setTransactionType(dto.getTransactionType());
+		config.setDescription(dto.getDescription());
+		config.setCreatedBy(dto.getCreatedBy());
+		config.setActive(true);
+		config.setVersion(1);
+		config.setCreatedDate(LocalDateTime.now());
+		config.setLastModified(LocalDateTime.now());
+
+		// Parse master query ID if provided
+		if (dto.getMasterQuery() != null && !dto.getMasterQuery().trim().isEmpty()) {
+			try {
+				config.setMasterQueryId(Long.parseLong(dto.getMasterQuery()));
+			} catch (NumberFormatException e) {
+				log.warn("⚠️ Invalid master query ID format: {}", dto.getMasterQuery());
 			}
-			createFieldTemplate(ft, config.getCreatedBy());
 		}
 
-		// 3. Save Master Query Mapping
-		if (config.getMasterQuery() != null && config.getMasterQuery().getQuerySql() != null) {
-			TemplateMasterQueryMappingEntity queryMapping = new TemplateMasterQueryMappingEntity();
-			queryMapping.setConfigId(configId);
-			queryMapping.setQueryName(config.getMasterQuery().getQueryName());
-			queryMapping.setQuerySql(config.getMasterQuery().getQuerySql());
-			queryMapping.setQueryDescription(config.getMasterQuery().getQueryDescription());
-			queryMapping.setCreatedBy(config.getCreatedBy());
-			queryMapping.setStatus("ACTIVE");
+		// Convert field templates to field mappings
+		List<FieldMapping> fieldMappings = new ArrayList<>();
+		if (dto.getFields() != null) {
+			for (FieldTemplate template : dto.getFields()) {
+				FieldMapping mapping = convertToFieldMapping(template);
+				fieldMappings.add(mapping);
+			}
+		}
+		config.setFieldMappings(fieldMappings);
 
-			masterQueryMappingRepository.save(queryMapping);
+		log.debug("📋 Converted TemplateConfigDto to FieldMappingConfig: {} fields", fieldMappings.size());
+		return config;
+	}
+
+	/**
+	 * Convert FieldTemplate to FieldMapping.
+	 */
+	private FieldMapping convertToFieldMapping(FieldTemplate template) {
+		FieldMapping mapping = new FieldMapping();
+
+		// Basic field properties
+		mapping.setFieldName(template.getFieldName());
+		mapping.setTargetField(template.getFieldName()); // targetField is same as fieldName
+		mapping.setSourceField(template.getSourceField());
+		mapping.setTargetPosition(template.getTargetPosition() != null ? template.getTargetPosition() : 0);
+		mapping.setLength(template.getLength() != null ? template.getLength() : 0);
+		mapping.setDataType(template.getDataType());
+		mapping.setFormat(template.getFormat());
+
+		// Transformation properties
+		mapping.setTransformationType(template.getTransformationType());
+		mapping.setValue(template.getValue());
+		mapping.setDefaultValue(template.getDefaultValue());
+
+		// Parse transformation config if it's a JSON string
+		if (template.getTransformationConfig() != null && !template.getTransformationConfig().trim().isEmpty()) {
+			try {
+				// Try to parse as JSON and extract relevant properties
+				com.fasterxml.jackson.databind.ObjectMapper objectMapper = new com.fasterxml.jackson.databind.ObjectMapper();
+				Map<String, Object> configMap = objectMapper.readValue(
+					template.getTransformationConfig(),
+					new com.fasterxml.jackson.core.type.TypeReference<Map<String, Object>>() {}
+				);
+
+				// Extract composite field properties
+				if (configMap.containsKey("sources")) {
+					@SuppressWarnings("unchecked")
+					List<String> sources = (List<String>) configMap.get("sources");
+					mapping.setSources(sources);
+					mapping.setComposite(true);
+				}
+				if (configMap.containsKey("delimiter")) {
+					mapping.setDelimiter((String) configMap.get("delimiter"));
+				}
+
+				// Extract conditional logic
+				if (configMap.containsKey("conditions")) {
+					@SuppressWarnings("unchecked")
+					List<Map<String, Object>> conditionsList = (List<Map<String, Object>>) configMap.get("conditions");
+					// Convert to Condition objects if needed
+					// For now, we'll store the raw transformation config
+				}
+
+				log.debug("📝 Parsed transformation config for field: {}", template.getFieldName());
+
+			} catch (Exception e) {
+				log.warn("⚠️ Could not parse transformation config for field {}: {}",
+					template.getFieldName(), e.getMessage());
+			}
 		}
 
-		return configId;
+		return mapping;
 	}
 
 	@Autowired
