@@ -1,0 +1,140 @@
+# Local development with H2 database
+# Combines test profile H2 database with local development settings
+# Custom port: 8084
+
+spring:
+  # Allow bean definition overriding for local development
+  main:
+    allow-bean-definition-overriding: true
+    allow-circular-references: true
+
+  # Disable AWS, Redis, Security, MongoDB for local development
+  autoconfigure:
+    exclude:
+      - io.awspring.cloud.autoconfigure.config.parameterstore.ParameterStoreConfigDataLocationResolver
+      - io.awspring.cloud.autoconfigure.config.parameterstore.ParameterStorePropertySourceLocator
+      - org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
+      - org.springframework.cloud.aws.autoconfigure.context.ContextStackAutoConfiguration
+      - org.springframework.cloud.aws.autoconfigure.context.ContextRegionProviderAutoConfiguration
+      - org.springframework.cloud.aws.autoconfigure.context.ContextResourceLoaderAutoConfiguration
+      - org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration
+      - org.springframework.boot.autoconfigure.ldap.LdapAutoConfiguration
+      - org.springframework.boot.actuate.autoconfigure.security.servlet.ManagementWebSecurityAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.mongo.MongoAutoConfiguration
+      - org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration
+
+  # Override config import to skip AWS
+  config:
+    import: []
+
+  # H2 In-Memory Database Configuration
+  datasource:
+    url: jdbc:h2:mem:fabricdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE;MODE=Oracle
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+
+    # HikariCP connection pool settings
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 5
+      connection-timeout: 20000
+      idle-timeout: 300000
+      max-lifetime: 1200000
+      auto-commit: false
+      connection-test-query: SELECT 1
+      validation-timeout: 5000
+      pool-name: H2HikariPool
+
+  # JPA settings for H2 with Oracle compatibility mode
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: create-drop
+      use-new-id-generator-mappings: true
+    show-sql: true
+    properties:
+      hibernate:
+        connection:
+          autocommit: false
+          provider_disables_autocommit: false
+        current_session_context_class: org.springframework.orm.hibernate5.SpringSessionContext
+        jdbc:
+          batch_size: 25
+          order_inserts: true
+          order_updates: true
+        use_sql_comments: true
+        format_sql: true
+
+  # H2 Console for debugging
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+      settings:
+        web-allow-others: true
+
+  # Transaction Configuration
+  transaction:
+    default-timeout: 30
+    rollback-on-commit-failure: true
+    management:
+      enabled: true
+
+  # Disable Redis for local development
+  data:
+    redis:
+      repositories:
+        enabled: false
+
+  # CORS Configuration for local development
+  web:
+    cors:
+      allowed-origins:
+        - "http://localhost:3002"
+        - "https://localhost:3002"
+        - "http://localhost:3000"
+        - "https://localhost:3000"
+      allowed-methods:
+        - GET
+        - POST
+        - PUT
+        - DELETE
+        - OPTIONS
+        - PATCH
+      allowed-headers: "*"
+      allow-credentials: true
+      max-age: 3600
+
+# Server Configuration - Port 8084
+server:
+  port: 8084
+  servlet:
+    context-path: /api
+
+# Swagger/OpenAPI Configuration
+springdoc:
+  api-docs:
+    enabled: true
+    path: /v3/api-docs
+  swagger-ui:
+    enabled: true
+    path: /swagger-ui.html
+    operations-sorter: alpha
+    tags-sorter: alpha
+    doc-expansion: none
+    filter: true
+    display-request-duration: true
+  show-actuator: true
+
+# Logging for debugging
+logging:
+  level:
+    com.truist.batch: DEBUG
+    org.springframework.security: DEBUG
+    org.springframework.web: DEBUG
+    org.springframework.transaction: DEBUG
+    org.springframework.orm.jpa: DEBUG
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+    com.zaxxer.hikari: DEBUG
