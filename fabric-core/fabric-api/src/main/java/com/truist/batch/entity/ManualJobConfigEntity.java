@@ -71,6 +71,14 @@ public class ManualJobConfigEntity {
     private String masterQueryId;
 
     /**
+     * Batch configuration identifier for linking to batch processing configuration.
+     * Links this API configuration to the corresponding batch configuration in
+     * the BATCH_CONFIGURATIONS table. This supports the architectural separation
+     * between API and batch modules (Phase 2).
+     */
+    private String batchConfigId;
+
+    /**
      * JSON-formatted job parameters configuration.
      * Contains all job-specific configuration including:
      * - Data source connections

@@ -1,22 +1,37 @@
 package com.truist.batch.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.truist.batch.dto.JobExecutionRequest;
+import com.truist.batch.dto.MasterQueryConfigDTO;
+import com.truist.batch.dto.MasterQueryResponse;
 import com.truist.batch.entity.ManualJobConfigEntity;
 import com.truist.batch.entity.ManualJobExecutionEntity;
+import com.truist.batch.mapping.YamlMappingService;
+import com.truist.batch.model.FieldMapping;
+import com.truist.batch.model.YamlMapping;
 import com.truist.batch.repository.ManualJobConfigRepository;
 import com.truist.batch.repository.ManualJobExecutionRepository;
+import com.truist.batch.repository.MasterQueryRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.math.BigDecimal;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.Map;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.stream.Collectors;
 
 /**
@@ -57,6 +72,14 @@ public class JobExecutionService {
 
     private final ManualJobConfigRepository configRepository;
     private final ManualJobExecutionRepository executionRepository;
+    private final MasterQueryRepository masterQueryRepository;
+
+    // Batch module service for actual execution (Phase 2 architectural separation)
+    private final ManualBatchExecutionService batchExecutionService;
+
+    private static final int MAX_RECORDS_PER_EXECUTION = 10000;
+    private static final String OUTPUT_DIRECTORY = "/tmp/";
+    private static final DateTimeFormatter FILE_TIMESTAMP_FORMAT = DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss");
 
     /**
      * Execute a manual job configuration with comprehensive monitoring and audit trail.
@@ -402,60 +425,151 @@ public class JobExecutionService {
         return result;
     }
 
+    /**
+     * Delegates batch execution to fabric-batch module (Phase 2 architectural separation).
+     * API module now only handles request tracking, while batch module handles processing.
+     */
     private JobExecutionResult performActualExecution(
-            ManualJobConfigEntity config, 
-            JobExecutionRequest request, 
+            ManualJobConfigEntity config,
+            JobExecutionRequest request,
             JobExecutionResult result) {
-        
-        log.info("Starting actual job execution for: {}", result.getExecutionId());
-        
+
+        log.info("Delegating to batch module for execution: {} [config: {}, correlationId: {}]",
+                result.getExecutionId(), config.getConfigId(), result.getCorrelationId());
+
         try {
             // Update execution to RUNNING status
             updateExecutionStatus(result.getExecutionId(), "RUNNING");
-            
-            // TODO: Implement actual job execution logic
-            // This would integrate with the batch processing framework
-            // For now, simulate successful execution
-            
-            Thread.sleep(1000); // Simulate processing time
-            
-            // Update execution with completion results
+
+            // Get batch config ID from database column (Phase 2 architectural link)
+            String batchConfigId = config.getBatchConfigId();
+            if (batchConfigId == null || batchConfigId.isBlank()) {
+                throw new RuntimeException("No batch configuration linked for API config: " + config.getConfigId() +
+                        ". BATCH_CONFIG_ID column is not set.");
+            }
+            log.info("Using batch config from database: {} (API config: {})", batchConfigId, config.getConfigId());
+
+            // Get master query SQL
+            String masterQuerySql;
+            try {
+                Long masterQueryIdLong = Long.parseLong(config.getMasterQueryId());
+                MasterQueryConfigDTO masterQuery = masterQueryRepository.getMasterQueryById(
+                        masterQueryIdLong,
+                        result.getCorrelationId()
+                );
+                if (masterQuery == null) {
+                    throw new RuntimeException("Master query not found: " + config.getMasterQueryId());
+                }
+                masterQuerySql = masterQuery.getQuerySql();
+            } catch (NumberFormatException e) {
+                throw new RuntimeException("Invalid master query ID format: " + config.getMasterQueryId() + " (expected numeric ID)");
+            }
+
+            // Prepare execution parameters (merge config params with request params)
+            Map<String, Object> executionParameters = request.getExecutionParameters() != null ?
+                    new HashMap<>(request.getExecutionParameters()) : new HashMap<>();
+
+            // DELEGATE TO BATCH MODULE (fabric-batch)
+            log.info("Calling ManualBatchExecutionService.executeBatchJob() [execution: {}]", result.getExecutionId());
+            ManualBatchExecutionService.BatchExecutionResult batchResult =
+                    batchExecutionService.executeBatchJob(
+                            batchConfigId,
+                            masterQuerySql,
+                            executionParameters,
+                            result.getExecutionId()
+                    );
+
+            log.info("Batch module returned status: {} [execution: {}]",
+                    batchResult.getStatus(), result.getExecutionId());
+
+            // Update execution tracking with batch results
             Optional<ManualJobExecutionEntity> executionOpt = executionRepository.findById(result.getExecutionId());
             if (executionOpt.isPresent()) {
                 ManualJobExecutionEntity execution = executionOpt.get();
-                execution.markCompleted(1000L, 1000L, 0L);
+
+                if ("COMPLETED".equals(batchResult.getStatus())) {
+                    execution.markCompleted(
+                            (long) batchResult.getRecordsProcessed(),
+                            (long) batchResult.getRecordsSuccess(),
+                            (long) batchResult.getRecordsError()
+                    );
+                    execution.setOutputFilePath(batchResult.getOutputFilePath());
+                    execution.setOutputFileSize(batchResult.getOutputFileSize());
+                } else {
+                    execution.markFailed(batchResult.getErrorMessage(), null);
+                }
+
                 executionRepository.save(execution);
-                
-                // Update result object
+
+                // Map to API result object
                 result.setStatus(execution.getStatus());
                 result.setEndTime(execution.getEndTime());
-                result.setDurationSeconds(execution.getDurationSeconds() != null ? execution.getDurationSeconds().doubleValue() : null);
+                result.setDurationSeconds(execution.getDurationSeconds() != null ?
+                        execution.getDurationSeconds().doubleValue() : null);
                 result.setRecordsProcessed(execution.getRecordsProcessed());
                 result.setRecordsSuccess(execution.getRecordsSuccess());
                 result.setRecordsError(execution.getRecordsError());
+
+                // Add execution details
+                if ("COMPLETED".equals(batchResult.getStatus())) {
+                    Map<String, Object> executionDetails = new HashMap<>();
+                    executionDetails.put("outputFilePath", batchResult.getOutputFilePath());
+                    executionDetails.put("outputFileSize", batchResult.getOutputFileSize());
+                    executionDetails.put("batchExecutionDurationSeconds", batchResult.getDurationSeconds());
+                    result.setExecutionDetails(executionDetails);
+                }
             }
-            
-            log.info("Job execution completed successfully: {}", result.getExecutionId());
-            
+
+            log.info("Batch execution delegation completed: {} [status: {}, records: {}]",
+                    result.getExecutionId(), result.getStatus(), result.getRecordsProcessed());
+
         } catch (Exception e) {
+            log.error("Batch execution delegation failed [execution: {}, error: {}]",
+                    result.getExecutionId(), e.getMessage(), e);
+
             // Update execution with failure
             Optional<ManualJobExecutionEntity> executionOpt = executionRepository.findById(result.getExecutionId());
             if (executionOpt.isPresent()) {
                 ManualJobExecutionEntity execution = executionOpt.get();
                 execution.markFailed(e.getMessage(), getStackTrace(e));
                 executionRepository.save(execution);
-                
+
                 // Update result object
                 result.setStatus(execution.getStatus());
                 result.setEndTime(execution.getEndTime());
                 result.setErrorMessage(execution.getErrorMessage());
-                result.setDurationSeconds(execution.getDurationSeconds() != null ? execution.getDurationSeconds().doubleValue() : null);
+                result.setDurationSeconds(execution.getDurationSeconds() != null ?
+                        execution.getDurationSeconds().doubleValue() : null);
             }
-            
-            log.error("Job execution failed: {}", result.getExecutionId(), e);
         }
-        
+
         return result;
+    }
+
+    /**
+     * Maps API configuration ID to batch configuration ID using naming convention.
+     * Example: cfg_phase2_test_20251122025354 -> batch_phase2_test_20251122
+     */
+    private String mapToBatchConfigId(String apiConfigId) {
+        if (apiConfigId.startsWith("cfg_")) {
+            // Extract the meaningful part and reconstruct batch ID
+            // cfg_phase2_test_20251122025354 -> phase2_test_20251122025354
+            String withoutPrefix = apiConfigId.substring(4);
+
+            // Try to extract timestamp pattern and trim to match batch config naming
+            // batch_phase2_test_20251122 (batch configs use date only, not full timestamp)
+            String batchConfigId = "batch_" + withoutPrefix;
+
+            // Trim to reasonable length if needed
+            if (batchConfigId.length() > 50) {
+                batchConfigId = batchConfigId.substring(0, 50);
+            }
+
+            return batchConfigId;
+        }
+
+        // Fallback: just prepend batch_
+        return "batch_" + apiConfigId;
     }
 
     private void updateExecutionStatus(String executionId, String status) {
@@ -552,6 +666,139 @@ public class JobExecutionService {
         } catch (Exception e) {
             log.warn("Failed to convert parameters to JSON: {}", e.getMessage());
             return "{}";
+        }
+    }
+
+
+    /**
+     * Convert a map to a FieldMapping object.
+     */
+    private FieldMapping convertToFieldMapping(Map<String, Object> map) {
+        return FieldMapping.builder()
+                .fieldName((String) map.get("fieldName"))
+                .targetField((String) map.get("targetField"))
+                .sourceField((String) map.get("sourceField"))
+                .from((String) map.get("from"))
+                .targetPosition(map.get("targetPosition") != null ? ((Number) map.get("targetPosition")).intValue() : 0)
+                .length(map.get("length") != null ? ((Number) map.get("length")).intValue() : 0)
+                .dataType((String) map.get("dataType"))
+                .format((String) map.get("format"))
+                .transformationType((String) map.get("transformationType"))
+                .value((String) map.get("value"))
+                .defaultValue((String) map.get("defaultValue"))
+                .pad((String) map.get("pad"))
+                .padChar((String) map.get("padChar"))
+                .build();
+    }
+
+    /**
+     * Execute master query with merged parameters.
+     */
+    private MasterQueryResponse executeMasterQuery(
+            String masterQueryId,
+            Map<String, Object> configQueryParams,
+            Map<String, Object> runtimeParams,
+            String correlationId) {
+
+        try {
+            // Merge query parameters (runtime overrides config)
+            Map<String, Object> mergedParams = new HashMap<>();
+            if (configQueryParams != null) {
+                mergedParams.putAll(configQueryParams);
+            }
+            if (runtimeParams != null) {
+                mergedParams.putAll(runtimeParams);
+            }
+
+            log.debug("Executing master query with merged parameters: {}", mergedParams);
+
+            // For now, we'll execute a simple query since MasterQueryRepository doesn't have a method
+            // that takes masterQueryId directly. We need to fetch the query SQL first.
+            // This is a simplified implementation - in production, you'd have a proper method
+            // to execute by masterQueryId
+
+            // Execute the query (assuming the repository has the executeQuery method)
+            return masterQueryRepository.executeQuery(
+                    masterQueryId,
+                    "SELECT * FROM ENCORE_TEST_DATA WHERE BATCH_DATE = :batchDate", // Placeholder
+                    mergedParams,
+                    "JOB_EXECUTOR",
+                    correlationId);
+
+        } catch (Exception e) {
+            log.error("Failed to execute master query [ID: {}, correlationId: {}]: {}",
+                    masterQueryId, correlationId, e.getMessage(), e);
+            throw new RuntimeException("Master query execution failed: " + e.getMessage(), e);
+        }
+    }
+
+
+
+    /**
+     * Apply padding to a value based on field mapping configuration.
+     */
+    private String applyPadding(String value, FieldMapping mapping) {
+        if (value == null) {
+            value = "";
+        }
+
+        if (mapping.getLength() > 0) {
+            String padChar = mapping.getPadChar() != null ? mapping.getPadChar() : " ";
+            String padDirection = mapping.getPad();
+
+            if ("right".equalsIgnoreCase(padDirection)) {
+                // Pad on the right (left-align)
+                value = String.format("%-" + mapping.getLength() + "s", value)
+                        .replace(' ', padChar.charAt(0));
+            } else if ("left".equalsIgnoreCase(padDirection)) {
+                // Pad on the left (right-align)
+                value = String.format("%" + mapping.getLength() + "s", value)
+                        .replace(' ', padChar.charAt(0));
+            }
+
+            // Truncate if too long
+            if (value.length() > mapping.getLength()) {
+                value = value.substring(0, mapping.getLength());
+            }
+        }
+
+        return value;
+    }
+
+    /**
+     * Get file size in bytes.
+     */
+    private Long getFileSize(String filePath) {
+        try {
+            if (filePath == null) {
+                return null;
+            }
+            Path path = Paths.get(filePath);
+            return Files.size(path);
+        } catch (Exception e) {
+            log.warn("Failed to get file size for {}: {}", filePath, e.getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * Internal class to hold parsed job parameters.
+     */
+    private static class JobParameters {
+        private final List<FieldMapping> fieldMappings;
+        private final Map<String, Object> queryParameters;
+
+        public JobParameters(List<FieldMapping> fieldMappings, Map<String, Object> queryParameters) {
+            this.fieldMappings = fieldMappings;
+            this.queryParameters = queryParameters;
+        }
+
+        public List<FieldMapping> getFieldMappings() {
+            return fieldMappings;
+        }
+
+        public Map<String, Object> getQueryParameters() {
+            return queryParameters;
         }
     }
 

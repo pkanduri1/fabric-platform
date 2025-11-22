@@ -1,10 +1,10 @@
 package com.truist.batch.service;
 
 import com.truist.batch.adapter.JsonMappingAdapter;
-import com.truist.batch.entity.ManualJobConfigEntity;
+import com.truist.batch.entity.BatchConfigurationEntity;
 import com.truist.batch.model.FieldMapping;
 import com.truist.batch.model.YamlMapping;
-import com.truist.batch.repository.ManualJobConfigRepository;
+import com.truist.batch.repository.BatchConfigurationRepository;
 import com.truist.batch.mapping.YamlMappingService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -19,65 +19,74 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 /**
- * Service for managing JSON-based field mappings stored in database.
+ * Service for managing JSON-based field mappings stored in BATCH_CONFIGURATIONS table.
  * Provides caching and transformation capabilities using existing YamlMappingService logic.
- * 
- * @author Senior Full Stack Developer Agent
- * @since Phase 3 - Batch Execution Enhancement
+ *
+ * ARCHITECTURAL NOTE:
+ * This service reads from BATCH_CONFIGURATIONS table (batch processing layer)
+ * instead of MANUAL_JOB_CONFIG table (API/UI layer) to ensure proper module separation.
+ *
+ * @author Claude Code
+ * @since Phase 2 - Batch Module Separation
  */
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class JsonMappingService {
-    
-    private final ManualJobConfigRepository configRepository;
+
+    private final BatchConfigurationRepository batchConfigRepository;
     private final JsonMappingAdapter adapter;
     private final YamlMappingService yamlMappingService;
-    
+
     // In-memory cache for converted mappings
     private final Map<String, YamlMapping> mappingCache = new ConcurrentHashMap<>();
-    
+
     /**
-     * Load field mappings from JSON configuration stored in database
-     * 
-     * @param configId Configuration ID from MANUAL_JOB_CONFIG table
+     * Load field mappings from JSON configuration stored in BATCH_CONFIGURATIONS table
+     *
+     * @param configId Configuration ID from BATCH_CONFIGURATIONS table
      * @return List of field mappings sorted by target position
      */
     public List<Map.Entry<String, FieldMapping>> loadFieldMappings(String configId) {
         YamlMapping mapping = getYamlMappingFromJson(configId, null);
-        
+
         return mapping.getFields().entrySet().stream()
                 .sorted(Comparator.comparingInt(e -> e.getValue().getTargetPosition()))
                 .collect(Collectors.toList());
     }
-    
+
     /**
      * Get YamlMapping object from JSON configuration with caching
-     * 
-     * @param configId Configuration ID
+     *
+     * @param configId Configuration ID from BATCH_CONFIGURATIONS table
      * @param transactionType Optional transaction type override
      * @return YamlMapping object
      */
     @Cacheable(value = "jsonMappings", key = "#configId + '_' + #transactionType")
     public YamlMapping getYamlMappingFromJson(String configId, String transactionType) {
         String cacheKey = configId + "_" + (transactionType != null ? transactionType : "default");
-        
+
         return mappingCache.computeIfAbsent(cacheKey, key -> {
-            log.info("Loading JSON configuration for configId: {}", configId);
-            
-            Optional<ManualJobConfigEntity> configOpt = configRepository.findByConfigId(configId);
-            
+            log.info("Loading batch configuration from BATCH_CONFIGURATIONS table for ID: {}", configId);
+
+            Optional<BatchConfigurationEntity> configOpt = batchConfigRepository.findById(configId);
+
             if (configOpt.isEmpty()) {
-                throw new RuntimeException("Configuration not found: " + configId);
+                throw new RuntimeException("Batch configuration not found: " + configId);
             }
-            
-            ManualJobConfigEntity config = configOpt.get();
-            String jsonConfig = config.getJobParameters();
-            
+
+            BatchConfigurationEntity config = configOpt.get();
+
+            if (!config.isEnabled()) {
+                throw new RuntimeException("Batch configuration is disabled: " + configId);
+            }
+
+            String jsonConfig = config.getConfigurationJson();
+
             if (jsonConfig == null || jsonConfig.isEmpty()) {
-                throw new RuntimeException("No job parameters found for configuration: " + configId);
+                throw new RuntimeException("No configuration JSON found for: " + configId);
             }
-            
+
             log.debug("Converting JSON configuration to YamlMapping for configId: {}", configId);
             return adapter.convertJsonToYamlMapping(jsonConfig, transactionType);
         });

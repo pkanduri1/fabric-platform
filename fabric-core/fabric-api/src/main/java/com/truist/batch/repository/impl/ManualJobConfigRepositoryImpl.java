@@ -217,6 +217,7 @@ public class ManualJobConfigRepositoryImpl implements ManualJobConfigRepository 
             entity.setSourceSystem(rs.getString("SOURCE_SYSTEM"));
             entity.setTargetSystem(rs.getString("TARGET_SYSTEM"));
             entity.setMasterQueryId(rs.getString("MASTER_QUERY_ID"));
+            entity.setBatchConfigId(rs.getString("BATCH_CONFIG_ID"));
             entity.setJobParameters(rs.getString("JOB_PARAMETERS"));
             entity.setStatus(rs.getString("STATUS"));
             entity.setCreatedBy(rs.getString("CREATED_BY"));

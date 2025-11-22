@@ -107,11 +107,25 @@ public class ManualJobExecutionRepositoryImpl implements ManualJobExecutionRepos
                 MONITORING_ALERTS_SENT, EXECUTED_BY, EXECUTION_HOST, EXECUTION_ENVIRONMENT, CREATED_DATE
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """;
-        
+
         LocalDateTime now = LocalDateTime.now();
         entity.setCreatedDate(now);
         entity.setRetryCount(entity.getRetryCount() != null ? entity.getRetryCount() : 0);
-        
+
+        // Provide default values for NOT NULL columns
+        if (entity.getMonitoringAlertsSent() == null) {
+            entity.setMonitoringAlertsSent('N');
+        }
+        if (entity.getRecordsProcessed() == null) {
+            entity.setRecordsProcessed(0L);
+        }
+        if (entity.getRecordsSuccess() == null) {
+            entity.setRecordsSuccess(0L);
+        }
+        if (entity.getRecordsError() == null) {
+            entity.setRecordsError(0L);
+        }
+
         jdbcTemplate.update(sql,
             entity.getExecutionId(),
             entity.getConfigId(),
@@ -139,7 +153,7 @@ public class ManualJobExecutionRepositoryImpl implements ManualJobExecutionRepos
             entity.getExecutionEnvironment(),
             Timestamp.valueOf(now)
         );
-        
+
         return entity;
     }
 

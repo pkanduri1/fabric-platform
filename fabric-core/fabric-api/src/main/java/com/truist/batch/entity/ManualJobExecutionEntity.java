@@ -152,6 +152,18 @@ public class ManualJobExecutionEntity {
     private String outputLocation;
 
     /**
+     * Path to the generated output file.
+     * Full file system path to the generated output file.
+     */
+    private String outputFilePath;
+
+    /**
+     * Size of the generated output file in bytes.
+     * File size metric for monitoring and validation.
+     */
+    private Long outputFileSize;
+
+    /**
      * Correlation ID for distributed tracing and monitoring.
      * Links execution across multiple systems and services.
      */
