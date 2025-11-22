@@ -61,7 +61,13 @@ public class FieldMappingConfig {
      * Links to MASTER_QUERY_CONFIG.ID for dynamic query execution.
      */
     private Long masterQueryId;
-    
+
+    /**
+     * The actual SQL query text associated with this configuration.
+     * Stores the SQL query entered by users in Template Studio.
+     */
+    private String masterQuery;
+
     /**
      * Whether this configuration is active.
      */

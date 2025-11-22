@@ -112,13 +112,10 @@ public class TemplateServiceImpl implements TemplateService {
 		config.setCreatedDate(LocalDateTime.now());
 		config.setLastModified(LocalDateTime.now());
 
-		// Parse master query ID if provided
+		// Save master query SQL text directly
 		if (dto.getMasterQuery() != null && !dto.getMasterQuery().trim().isEmpty()) {
-			try {
-				config.setMasterQueryId(Long.parseLong(dto.getMasterQuery()));
-			} catch (NumberFormatException e) {
-				log.warn("⚠️ Invalid master query ID format: {}", dto.getMasterQuery());
-			}
+			config.setMasterQuery(dto.getMasterQuery().trim());
+			log.info("📝 Saved master query SQL text ({} characters)", dto.getMasterQuery().trim().length());
 		}
 
 		// Convert field templates to field mappings
