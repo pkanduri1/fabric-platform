@@ -362,6 +362,7 @@ public class FieldMappingConfig {
     private String description;
     private String templateId;
     private Long masterQueryId;
+    private String masterQuery;  // Added: Stores actual SQL query text from Template Studio
     private boolean active = true;
     private int version;
     private LocalDateTime createdDate;
@@ -372,6 +373,8 @@ public class FieldMappingConfig {
 ```
 
 **Usage**: Used to save field mappings and configuration details to BATCH_CONFIGURATIONS table as JSON.
+
+**Bug Fix (Nov 22, 2025)**: Added `masterQuery` String field to properly store SQL query text entered in Template Studio. Previously, the query was being dropped due to an attempt to parse SQL text as Long ID.
 
 ### FieldMapping
 **Location**: `/Users/pavankanduri/claude-ws/fabric-platform-new/fabric-core/fabric-api/src/main/java/com/truist/batch/model/FieldMapping.java`
