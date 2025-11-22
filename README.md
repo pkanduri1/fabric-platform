@@ -129,12 +129,17 @@ The Fabric Platform is an enterprise-grade batch processing and job configuratio
 ### Advanced Features
 
 - **Multi-Source Processing** - Oracle staging tables, CSV, pipe-delimited, Excel
-- **Dynamic Transformation** - 4 transformation types with conditional logic  
+- **Dynamic Transformation** - 4 transformation types with conditional logic
 - **Parallel Processing** - Configurable partitioning by transaction type
 - **Fixed-Width Output** - 6 standardized output file formats per source
 - **Comprehensive Auditing** - Step and job-level metrics with reconciliation
 - **Event-Driven Architecture** - Real-time notifications and monitoring
 - **High Availability** - Multi-instance deployment with auto-failover
+- **Template Studio** - Visual template configuration interface with pagination support for large field mappings (252+ fields)
+  - Material-UI DataGrid with pagination (25, 50, 100 rows per page)
+  - Real-time field transformation preview
+  - Supports large template configurations (p327, p437, etc.)
+  - Optimized rendering with virtualization for performance
 
 ## Technology Stack
 
@@ -710,6 +715,18 @@ tail -f logs/application.log
 - **Connection Pooling** - Tune HikariCP settings for your environment
 - **JVM Tuning** - Configure heap size and garbage collection for production
 - **Frontend Optimization** - Implement code splitting and lazy loading
+
+#### Template Studio Rendering Issues
+
+If Template Studio field mappings appear blank when loading large templates (e.g., p327 with 252+ fields):
+
+1. **Symptom**: DataGrid shows "252 rows" in console but page appears blank
+2. **Root Cause**: Parent Grid container has no explicit height, causing DataGrid to render with 0 visible height
+3. **Fix Applied** (November 22, 2025): Added `height: 'calc(100vh - 120px)'` to parent Grid container in TemplateStudioPage.tsx:526
+4. **Verification**: Hard refresh browser (Cmd+Shift+R on Mac, Ctrl+Shift+R on Windows) to clear webpack cache
+5. **Prevention**: Always set explicit heights on DataGrid parent containers when using Material-UI DataGrid
+
+This issue was resolved by ensuring the DataGrid parent container has a defined height for proper rendering of large datasets.
 
 ### Debug Mode
 

@@ -177,7 +177,9 @@ const TemplateStudioPageContent: React.FC = () => {
     const fetchTemplateFields = async (fileType: string, transactionType: string) => {
         setLoading(true);
         try {
+            console.log('📥 Fetching template fields:', fileType, transactionType);
             const data = await templateApiService.getTemplateFields(fileType, transactionType);
+            console.log('📊 Received data:', data?.length, 'fields');
 
             if (!data || !Array.isArray(data)) {
                 console.warn('No fields data returned or invalid format:', data);
@@ -191,12 +193,16 @@ const TemplateStudioPageContent: React.FC = () => {
                 id: f.fieldName || `field_${index}`, // Fallback ID
                 transformationType: (f.transformationType?.toLowerCase() || 'source') as any
             }));
+            console.log('✅ Processed fields with IDs:', fieldsWithIds.length);
+            console.log('🔍 First 3 fields:', fieldsWithIds.slice(0, 3));
             setTemplateFields(fieldsWithIds);
+            console.log('💾 State updated with', fieldsWithIds.length, 'fields');
         } catch (err) {
-            console.error('Failed to load template fields:', err);
+            console.error('❌ Failed to load template fields:', err);
             showNotification('Failed to load template fields', 'error');
         } finally {
             setLoading(false);
+            console.log('🏁 Loading complete');
         }
     };
 
@@ -517,7 +523,7 @@ const TemplateStudioPageContent: React.FC = () => {
             <Grid container sx={{ flexGrow: 1, overflow: 'hidden' }}>
 
                 {/* Left Pane: Query & Grid */}
-                <Grid item xs={12} md={8} sx={{ display: 'flex', flexDirection: 'column', borderRight: 1, borderColor: 'divider' }}>
+                <Grid item xs={12} md={8} sx={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 120px)', borderRight: 1, borderColor: 'divider' }}>
 
                     {/* Query Editor */}
                     <Box sx={{ height: '30%', borderBottom: 1, borderColor: 'divider', display: 'flex', flexDirection: 'column' }}>
@@ -604,21 +610,44 @@ const TemplateStudioPageContent: React.FC = () => {
                                 Add Field
                             </Button>
                         </Box>
-                        <Box sx={{ flexGrow: 1, width: '100%', overflow: 'hidden' }}>
-                            <DataGrid
-                                rows={templateFields}
-                                columns={columns}
-                                onRowClick={(params) => setSelectedFieldId(params.row.id)}
-                                sx={{
-                                    bgcolor: 'background.paper',
-                                    color: 'text.primary',
-                                    border: 'none',
-                                    '& .MuiDataGrid-cell': { borderBottom: 1, borderColor: 'divider' },
-                                    '& .MuiDataGrid-columnHeaders': { borderBottom: 1, borderColor: 'divider', bgcolor: 'background.default' },
-                                    '& .MuiDataGrid-row:hover': { bgcolor: 'action.hover' },
-                                }}
-                                getRowId={(row) => row.id}
-                            />
+                        <Box sx={{ flexGrow: 1, width: '100%', height: '100%', minHeight: 400, overflow: 'hidden' }}>
+                            {loading && templateFields.length === 0 ? (
+                                <>
+                                    {console.log('🔄 Showing loading spinner')}
+                                    <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
+                                        <CircularProgress />
+                                    </Box>
+                                </>
+                            ) : (
+                                <>
+                                    {console.log('📊 Rendering DataGrid with', templateFields.length, 'rows, loading:', loading)}
+                                    <DataGrid
+                                        rows={templateFields}
+                                        columns={columns}
+                                        onRowClick={(params) => setSelectedFieldId(params.row.id)}
+                                        loading={loading}
+                                        pagination
+                                        pageSizeOptions={[25, 50, 100]}
+                                        initialState={{
+                                            pagination: { paginationModel: { pageSize: 50 } }
+                                        }}
+                                        disableRowSelectionOnClick
+                                        density="compact"
+                                        sx={{
+                                            bgcolor: 'background.paper',
+                                            color: 'text.primary',
+                                            border: 'none',
+                                            height: '100%',
+                                            '& .MuiDataGrid-cell': { borderBottom: 1, borderColor: 'divider' },
+                                            '& .MuiDataGrid-columnHeaders': { borderBottom: 1, borderColor: 'divider', bgcolor: 'background.default' },
+                                            '& .MuiDataGrid-row:hover': { bgcolor: 'action.hover' },
+                                            '& .MuiDataGrid-virtualScroller': { minHeight: '300px' },
+                                        }}
+                                        getRowId={(row) => row.id}
+                                        rowHeight={52}
+                                    />
+                                </>
+                            )}
                         </Box>
                     </Box>
                 </Grid>
