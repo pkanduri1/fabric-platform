@@ -102,11 +102,26 @@
     <!-- US001 Phase 3: Batch Execution Enhancement - APPROVED FOR IMPLEMENTATION -->
     <include file="releases/us001/us001-008-batch-execution-tables.xml" relativeToChangelogFile="true"/>
 
+    <!-- US001 Spring Batch Metadata Tables - APPROVED FOR IMPLEMENTATION -->
+    <include file="releases/us001/us001-009-spring-batch-metadata-tables.xml" relativeToChangelogFile="true"/>
+
     <!-- US001 Phase 4: Master Query Integration - APPROVED FOR IMPLEMENTATION -->
     <include file="releases/us001/us001-010-master-query-tables.xml" relativeToChangelogFile="true"/>
 
+    <!-- US001 Batch Step Audit Table - APPROVED FOR IMPLEMENTATION -->
+    <include file="releases/us001/us001-011-batch-step-audit-table.xml" relativeToChangelogFile="true"/>
+
     <!-- Phase 2: Template Studio Field Transformation Enhancements - APPROVED FOR IMPLEMENTATION -->
     <include file="releases/phase2/phase2-001-template-studio-field-transformations.xml" relativeToChangelogFile="true"/>
+
+    <!-- Phase 2: Database-Driven Source Configuration System - APPROVED FOR IMPLEMENTATION -->
+    <include file="releases/phase2/phase2-002-source-config-table.xml" relativeToChangelogFile="true"/>
+
+    <!-- Phase 2: Fix Source Config Base Paths - APPROVED FOR IMPLEMENTATION -->
+    <include file="releases/phase2/phase2-003-fix-source-config-paths.xml" relativeToChangelogFile="true"/>
+
+    <!-- Phase 2: Temporary Local Dev Paths for /tmp Directory - LOCAL DEVELOPMENT ONLY -->
+    <include file="releases/phase2/phase2-004-temp-local-dev-paths.xml" relativeToChangelogFile="true"/>
 
     <!-- Database Tagging for Release Management - Phase 2 Implementation -->
     <changeSet id="tag-us001-phase2-release-2.0" author="Senior Full Stack Developer Agent" context="development,test,staging,production">

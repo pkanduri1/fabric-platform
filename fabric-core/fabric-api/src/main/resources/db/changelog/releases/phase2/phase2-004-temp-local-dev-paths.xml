@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.9.xsd">
+
+    <!--
+    =========================================================================
+    PHASE 2: TEMPORARY LOCAL DEV PATHS FOR /tmp DIRECTORY
+    =========================================================================
+
+    Document Control:
+    - Changeset: phase2-004-temp-local-dev-paths
+    - Author: Senior Full Stack Developer Agent
+    - Date: 2025-11-23
+    - Classification: LOCAL DEVELOPMENT ONLY
+
+    Purpose:
+    - Update SOURCE_CONFIG paths to use /tmp/data for local macOS development
+    - macOS has /data as read-only, so batch jobs fail trying to create directories
+    - This is a temporary local development fix
+    - Production/test environments should use /data paths
+
+    Rationale:
+    - Allows batch job testing on macOS without permission issues
+    - /tmp/data is writable on all systems
+    - Can be easily rolled back for production deployment
+
+    =========================================================================
+    -->
+
+    <!-- Update HR configuration to use /tmp/data paths -->
+    <changeSet id="phase2-004-hr-temp-local-dev-paths" author="Senior Full Stack Developer Agent" context="development">
+        <comment>Update HR configuration to use /tmp/data paths for local macOS development</comment>
+
+        <update tableName="SOURCE_CONFIG" schemaName="CM3INT">
+            <column name="CONFIG_VALUE" value="/tmp/data/output"/>
+            <column name="MODIFIED_DATE" valueComputed="CURRENT_TIMESTAMP"/>
+            <column name="MODIFIED_BY" value="system"/>
+            <where>SOURCE_CODE = 'HR' AND CONFIG_KEY = 'batch.defaults.outputBasePath'</where>
+        </update>
+
+        <update tableName="SOURCE_CONFIG" schemaName="CM3INT">
+            <column name="CONFIG_VALUE" value="/tmp/data/input"/>
+            <column name="MODIFIED_DATE" valueComputed="CURRENT_TIMESTAMP"/>
+            <column name="MODIFIED_BY" value="system"/>
+            <where>SOURCE_CODE = 'HR' AND CONFIG_KEY = 'batch.defaults.inputBasePath'</where>
+        </update>
+
+        <update tableName="SOURCE_CONFIG" schemaName="CM3INT">
+            <column name="CONFIG_VALUE" value="/tmp/data/archive"/>
+            <column name="MODIFIED_DATE" valueComputed="CURRENT_TIMESTAMP"/>
+            <column name="MODIFIED_BY" value="system"/>
+            <where>SOURCE_CODE = 'HR' AND CONFIG_KEY = 'batch.defaults.archivePath'</where>
+        </update>
+
+        <rollback>
+            <update tableName="SOURCE_CONFIG" schemaName="CM3INT">
+                <column name="CONFIG_VALUE" value="/data/output"/>
+                <where>SOURCE_CODE = 'HR' AND CONFIG_KEY = 'batch.defaults.outputBasePath'</where>
+            </update>
+            <update tableName="SOURCE_CONFIG" schemaName="CM3INT">
+                <column name="CONFIG_VALUE" value="/data/input"/>
+                <where>SOURCE_CODE = 'HR' AND CONFIG_KEY = 'batch.defaults.inputBasePath'</where>
+            </update>
+            <update tableName="SOURCE_CONFIG" schemaName="CM3INT">
+                <column name="CONFIG_VALUE" value="/data/archive"/>
+                <where>SOURCE_CODE = 'HR' AND CONFIG_KEY = 'batch.defaults.archivePath'</where>
+            </update>
+        </rollback>
+    </changeSet>
+
+    <!-- Database Tagging for Release Management -->
+    <changeSet id="tag-phase2-004-temp-local-dev-paths" author="Senior Full Stack Developer Agent" context="development">
+        <comment>Release tag for Phase 2-004 Temporary Local Dev Paths - /tmp/data for macOS development</comment>
+        <sql>SELECT 'Phase 2-004 Temp Local Dev Paths Applied' AS release_tag FROM DUAL</sql>
+    </changeSet>
+
+</databaseChangeLog>
