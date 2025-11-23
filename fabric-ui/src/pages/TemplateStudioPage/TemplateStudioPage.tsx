@@ -160,12 +160,8 @@ const TemplateStudioPageContent: React.FC = () => {
         }
     }, [selectedFileType, selectedTransactionType]);
 
-    // 1. Sync local state with context
-    useEffect(() => {
-        if (selectedSourceSystem) {
-            setLocalSelectedSourceSystem(selectedSourceSystem);
-        }
-    }, [selectedSourceSystem]);
+    // DO NOT auto-sync from context - user must explicitly select source system
+    // Template Studio should always start with no source system selected
 
     // 2. Fetch File Types when Source System selected
     useEffect(() => {
@@ -306,7 +302,7 @@ const TemplateStudioPageContent: React.FC = () => {
     };
 
     const handleSave = async () => {
-        if (!selectedSourceSystem || !jobName || !selectedFileType || !selectedTransactionType) {
+        if (!localSelectedSourceSystem || !jobName || !selectedFileType || !selectedTransactionType) {
             showNotification('Please complete all selection fields', 'error');
             return;
         }
@@ -315,7 +311,7 @@ const TemplateStudioPageContent: React.FC = () => {
         try {
             const config: TemplateConfigDto = {
                 jobName,
-                sourceSystem: selectedSourceSystem.name,
+                sourceSystem: localSelectedSourceSystem.name,
                 fileType: selectedFileType,
                 transactionType: selectedTransactionType,
                 masterQuery: masterQuerySql,
@@ -447,11 +443,23 @@ const TemplateStudioPageContent: React.FC = () => {
                 <Grid container spacing={2} alignItems="center">
                     <Grid item xs={12} md={3}>
                         <FormControl fullWidth size="small">
-                            <InputLabel sx={{ color: 'text.secondary' }}>Source System</InputLabel>
                             <Select
-                                value={selectedSourceSystem?.id || ''}
-                                label="Source System"
-                                onChange={(e) => selectSourceSystem(e.target.value)}
+                                value={localSelectedSourceSystem?.id || ''}
+                                onChange={(e) => {
+                                    const selectedId = e.target.value;
+                                    const selected = sourceSystems.find(sys => sys.id === selectedId);
+                                    setLocalSelectedSourceSystem(selected || null);
+                                    if (selectedId) {
+                                        selectSourceSystem(selectedId);
+                                    }
+                                }}
+                                renderValue={(value) => {
+                                    if (!value) {
+                                        return <span style={{ color: '#999' }}>Select Source System</span>;
+                                    }
+                                    const selected = sourceSystems.find(sys => sys.id === value);
+                                    return selected?.name || '';
+                                }}
                                 sx={{ color: 'text.primary', '.MuiOutlinedInput-notchedOutline': { borderColor: 'divider' } }}
                                 displayEmpty
                             >
