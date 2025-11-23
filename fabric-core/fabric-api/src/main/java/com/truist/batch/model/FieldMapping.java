@@ -146,10 +146,52 @@ public class FieldMapping {
      */
     @JsonProperty("expression")
     private String expression;
-    
+
+    /**
+     * Encryption level for this field (e.g., NONE, AES256).
+     */
+    @JsonProperty("encryptionLevel")
+    private String encryptionLevel;
+
+    /**
+     * PII classification level (e.g., NONE, SENSITIVE, HIGH).
+     */
+    @JsonProperty("piiClassification")
+    private String piiClassification;
+
+    /**
+     * Whether validation is required for this field.
+     */
+    @JsonProperty("validationRequired")
+    private boolean validationRequired;
+
+    /**
+     * Compliance level for this field (e.g., STANDARD, HIGH, CRITICAL).
+     */
+    @JsonProperty("complianceLevel")
+    private String complianceLevel;
+
+    /**
+     * Business context or description for this field.
+     */
+    @JsonProperty("businessContext")
+    private String businessContext;
+
+    /**
+     * Business rule identifier associated with this field.
+     */
+    @JsonProperty("businessRuleId")
+    private String businessRuleId;
+
+    /**
+     * Whether this field requires high compliance monitoring.
+     */
+    @JsonProperty("highCompliance")
+    private boolean highCompliance;
+
     /**
      * Checks if this field mapping has a DSL expression.
-     * 
+     *
      * @return true if expression is not null and not empty
      */
     public boolean hasDSLExpression() {

@@ -37,7 +37,7 @@ public class GenericStepListener implements StepExecutionListener {
         stepExecution.getSkipCount(),
         stepExecution.getCommitCount());
     // Insert audit record into BATCH_STEP_AUDIT
-    String sql = "INSERT INTO BATCH_STEP_AUDIT (JOB_NAME, STEP_NAME, PARTITION_KEY, READ_COUNT, WRITE_COUNT, SKIP_COUNT, COMMIT_COUNT, START_TIME, END_TIME) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+    String sql = "INSERT INTO BATCH_STEP_AUDIT (AUDIT_ID, JOB_NAME, STEP_NAME, PARTITION_KEY, READ_COUNT, WRITE_COUNT, SKIP_COUNT, COMMIT_COUNT, START_TIME, END_TIME) VALUES (BATCH_STEP_AUDIT_SEQ.NEXTVAL, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
     String jobName = stepExecution.getJobExecution().getJobInstance().getJobName();
     String stepName = stepExecution.getStepName();
     String partitionKey = stepExecution.getExecutionContext().getString("transactionType", "default");

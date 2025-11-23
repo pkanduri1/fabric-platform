@@ -35,4 +35,24 @@ public class YamlMapping {
      * Value: FieldMapping configuration
      */
     private Map<String, FieldMapping> fields;
+
+    /**
+     * Template reference for this mapping (optional).
+     */
+    private String template;
+
+    /**
+     * Overall compliance level for this mapping (optional).
+     */
+    private String complianceLevel;
+
+    /**
+     * Version of this mapping configuration (optional).
+     */
+    private String version;
+
+    /**
+     * Last modified timestamp for this mapping (optional).
+     */
+    private String lastModified;
 }
