@@ -154,11 +154,14 @@ const TemplateStudioPageContent: React.FC = () => {
     useEffect(() => {
         if (selectedFileType && selectedTransactionType) {
             fetchTemplateFields(selectedFileType, selectedTransactionType);
-            if (!jobName) {
+            // Auto-generate job name whenever source system, file type, or transaction type changes
+            if (localSelectedSourceSystem) {
+                setJobName(`${localSelectedSourceSystem.id}-${selectedFileType}-${selectedTransactionType}`);
+            } else {
                 setJobName(`${selectedFileType}-${selectedTransactionType}`);
             }
         }
-    }, [selectedFileType, selectedTransactionType]);
+    }, [selectedFileType, selectedTransactionType, localSelectedSourceSystem]);
 
     // DO NOT auto-sync from context - user must explicitly select source system
     // Template Studio should always start with no source system selected
