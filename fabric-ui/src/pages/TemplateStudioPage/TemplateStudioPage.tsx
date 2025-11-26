@@ -1015,360 +1015,273 @@ const TemplateStudioPageContent: React.FC = () => {
                     {getSelectedField() ? (
                         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, overflow: 'auto', p: 2, pt: 1, flexGrow: 1 }}>
 
-                            {/* 1. BASIC INFORMATION CARD - Always visible, not collapsible */}
-                            <Card variant="outlined" sx={{ bgcolor: 'background.paper', flexShrink: 0 }}>
-                                <CardContent>
-                                    <Typography variant="subtitle2" color="primary" gutterBottom fontWeight="bold">
-                                        Basic Information
-                                    </Typography>
-                                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                                        <TextField
-                                            label="Field Name"
-                                            fullWidth
-                                            value={getSelectedField()?.fieldName || ''}
-                                            onChange={(e) => handlePropertyChange('fieldName', e.target.value)}
-                                            InputLabelProps={{ shrink: true }}
-                                            sx={{ bgcolor: 'background.paper', input: { color: 'text.primary' }, label: { color: 'text.secondary' } }}
-                                        />
+                            {/* TRANSFORMATION CONFIGURATION - Only show for complex transformations */}
+                            {(getSelectedField()?.transformationType === 'composite' || getSelectedField()?.transformationType === 'conditional') && (
+                                <Accordion defaultExpanded sx={{ bgcolor: 'background.paper' }}>
+                                    <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, width: '100%' }}>
+                                            <Typography variant="subtitle2" fontWeight="bold">
+                                                {getSelectedField()?.transformationType === 'composite' ? 'Composite Configuration' : 'Conditional Logic'}
+                                            </Typography>
+                                            <Chip
+                                                label={getSelectedField()?.transformationType?.toUpperCase()}
+                                                size="small"
+                                                color="primary"
+                                            />
+                                        </Box>
+                                    </AccordionSummary>
+                                    <AccordionDetails>
+                                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                                            {getSelectedField()?.transformationType === 'composite' && (
+                                                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                                                    <Autocomplete
+                                                        multiple
+                                                        fullWidth
+                                                        options={availableSourceFields.map(f => f.name)}
+                                                        value={getSelectedField()?.sources?.map(s => s.field) || []}
+                                                        onChange={(event, newValue) => {
+                                                            handlePropertyChange('sources', newValue.map(field => ({ field })));
+                                                        }}
+                                                        renderTags={(value, getTagProps) =>
+                                                            value.map((option, index) => (
+                                                                <Chip
+                                                                    label={option}
+                                                                    {...getTagProps({ index })}
+                                                                    size="small"
+                                                                    color="primary"
+                                                                />
+                                                            ))
+                                                        }
+                                                        renderInput={(params) => (
+                                                            <TextField
+                                                                {...params}
+                                                                label="Source Fields to Combine"
+                                                                placeholder="Select fields..."
+                                                                helperText="Select fields in the order they should be combined"
+                                                                sx={{ bgcolor: 'background.paper', input: { color: 'text.primary' }, label: { color: 'text.secondary' } }}
+                                                            />
+                                                        )}
+                                                    />
 
-                                        <FormControl fullWidth>
-                                            <InputLabel sx={{ color: 'text.secondary' }}>Data Type</InputLabel>
-                                            <Select
-                                                value={getSelectedField()?.dataType || 'String'}
-                                                label="Data Type"
-                                                onChange={(e) => handlePropertyChange('dataType', e.target.value)}
-                                                sx={{ color: 'text.primary', bgcolor: 'background.paper', '.MuiOutlinedInput-notchedOutline': { borderColor: 'divider' } }}
-                                            >
-                                                <MenuItem value="String">String</MenuItem>
-                                                <MenuItem value="Number">Number (Integer)</MenuItem>
-                                                <MenuItem value="Decimal">Number (Decimal)</MenuItem>
-                                                <MenuItem value="Date">Date</MenuItem>
-                                                <MenuItem value="Boolean">Boolean</MenuItem>
-                                            </Select>
-                                        </FormControl>
-
-                                        <FormControlLabel
-                                            control={
-                                                <Switch
-                                                    checked={getSelectedField()?.required === 'Y'}
-                                                    onChange={(e) => handlePropertyChange('required', e.target.checked ? 'Y' : 'N')}
-                                                    color="primary"
-                                                />
-                                            }
-                                            label="Required Field"
-                                            sx={{ color: 'text.primary' }}
-                                        />
-                                    </Box>
-                                </CardContent>
-                            </Card>
-
-                            {/* 2. TRANSFORMATION ACCORDION */}
-                            <Accordion defaultExpanded sx={{ bgcolor: 'background.paper' }}>
-                                <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, width: '100%' }}>
-                                        <Typography variant="subtitle2" fontWeight="bold">Transformation Configuration</Typography>
-                                        <Chip
-                                            label={getSelectedField()?.transformationType?.toUpperCase() || 'SOURCE'}
-                                            size="small"
-                                            color="primary"
-                                        />
-                                    </Box>
-                                </AccordionSummary>
-                                <AccordionDetails>
-                                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                                        <FormControl fullWidth>
-                                            <InputLabel sx={{ color: 'text.secondary' }}>Transformation Type</InputLabel>
-                                            <Select
-                                                value={getSelectedField()?.transformationType || 'source'}
-                                                label="Transformation Type"
-                                                onChange={(e) => handlePropertyChange('transformationType', e.target.value)}
-                                                sx={{ color: 'text.primary', bgcolor: 'background.paper', '.MuiOutlinedInput-notchedOutline': { borderColor: 'divider' } }}
-                                            >
-                                                <MenuItem value="source">Source Column</MenuItem>
-                                                <MenuItem value="constant">Constant Value</MenuItem>
-                                                <MenuItem value="composite">Composite (Join Fields)</MenuItem>
-                                                <MenuItem value="conditional">Conditional Logic</MenuItem>
-                                            </Select>
-                                        </FormControl>
-
-                                        {getSelectedField()?.transformationType === 'source' && (
-                                            <Autocomplete
-                                                fullWidth
-                                                freeSolo
-                                                options={availableSourceFields.map(f => f.name)}
-                                                value={getSelectedField()?.sourceField || ''}
-                                                onChange={(event, newValue) => handlePropertyChange('sourceField', newValue || '')}
-                                                onInputChange={(event, newValue) => handlePropertyChange('sourceField', newValue)}
-                                                renderInput={(params) => (
                                                     <TextField
-                                                        {...params}
-                                                        label="Source Column"
-                                                        helperText="Select or type column name from SQL query"
+                                                        label="Delimiter"
+                                                        fullWidth
+                                                        value={getSelectedField()?.delimiter || ''}
+                                                        onChange={(e) => handlePropertyChange('delimiter', e.target.value)}
+                                                        placeholder="e.g., | or , or (space)"
+                                                        helperText="Character(s) to join fields with"
                                                         sx={{ bgcolor: 'background.paper', input: { color: 'text.primary' }, label: { color: 'text.secondary' } }}
                                                     />
-                                                )}
-                                            />
-                                        )}
 
-                                        {getSelectedField()?.transformationType === 'constant' && (
-                                            <TextField
-                                                label="Constant Value"
-                                                fullWidth
-                                                value={getSelectedField()?.value || ''}
-                                                onChange={(e) => handlePropertyChange('value', e.target.value)}
-                                                sx={{ bgcolor: 'background.paper', input: { color: 'text.primary' }, label: { color: 'text.secondary' } }}
-                                            />
-                                        )}
-
-                                        {getSelectedField()?.transformationType === 'composite' && (
-                                            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                                                <Autocomplete
-                                                    multiple
-                                                    fullWidth
-                                                    options={availableSourceFields.map(f => f.name)}
-                                                    value={getSelectedField()?.sources?.map(s => s.field) || []}
-                                                    onChange={(event, newValue) => {
-                                                        handlePropertyChange('sources', newValue.map(field => ({ field })));
-                                                    }}
-                                                    renderTags={(value, getTagProps) =>
-                                                        value.map((option, index) => (
-                                                            <Chip
-                                                                label={option}
-                                                                {...getTagProps({ index })}
-                                                                size="small"
-                                                                color="primary"
-                                                            />
-                                                        ))
-                                                    }
-                                                    renderInput={(params) => (
-                                                        <TextField
-                                                            {...params}
-                                                            label="Source Fields to Combine"
-                                                            placeholder="Select fields..."
-                                                            helperText="Select fields in the order they should be combined"
-                                                            sx={{ bgcolor: 'background.paper', input: { color: 'text.primary' }, label: { color: 'text.secondary' } }}
-                                                        />
+                                                    {getSelectedField()?.sources && getSelectedField()!.sources!.length > 0 && (
+                                                        <Alert severity="info" sx={{ bgcolor: 'info.lighter' }}>
+                                                            <Typography variant="caption" sx={{ fontWeight: 'bold' }}>Preview:</Typography>
+                                                            <Typography variant="body2" sx={{ mt: 0.5, fontFamily: 'monospace' }}>
+                                                                {getSelectedField()!.sources!.map(s => s.field).join(getSelectedField()?.delimiter || '')}
+                                                            </Typography>
+                                                        </Alert>
                                                     )}
-                                                />
-
-                                                <TextField
-                                                    label="Delimiter"
-                                                    fullWidth
-                                                    value={getSelectedField()?.delimiter || ''}
-                                                    onChange={(e) => handlePropertyChange('delimiter', e.target.value)}
-                                                    placeholder="e.g., | or , or (space)"
-                                                    helperText="Character(s) to join fields with"
-                                                    sx={{ bgcolor: 'background.paper', input: { color: 'text.primary' }, label: { color: 'text.secondary' } }}
-                                                />
-
-                                                {getSelectedField()?.sources && getSelectedField()!.sources!.length > 0 && (
-                                                    <Alert severity="info" sx={{ bgcolor: 'info.lighter' }}>
-                                                        <Typography variant="caption" sx={{ fontWeight: 'bold' }}>Preview:</Typography>
-                                                        <Typography variant="body2" sx={{ mt: 0.5, fontFamily: 'monospace' }}>
-                                                            {getSelectedField()!.sources!.map(s => s.field).join(getSelectedField()?.delimiter || '')}
-                                                        </Typography>
-                                                    </Alert>
-                                                )}
-                                            </Box>
-                                        )}
-
-                                        {getSelectedField()?.transformationType === 'conditional' && (
-                                            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                                                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                                    <Typography variant="subtitle2" sx={{ color: 'text.secondary' }}>
-                                                        Conditional Logic Builder
-                                                    </Typography>
-                                                    <Button
-                                                        size="small"
-                                                        startIcon={<AddIcon />}
-                                                        onClick={() => {
-                                                            const currentConditions = getSelectedField()?.conditions || [];
-                                                            handlePropertyChange('conditions', [
-                                                                ...currentConditions,
-                                                                { ifExpr: '', then: '', elseExpr: '', elseIfExprs: [] }
-                                                            ]);
-                                                        }}
-                                                    >
-                                                        Add Condition
-                                                    </Button>
                                                 </Box>
+                                            )}
 
-                                                {(!getSelectedField()?.conditions || getSelectedField()!.conditions!.length === 0) && (
-                                                    <Alert severity="info" sx={{ bgcolor: 'info.lighter' }}>
-                                                        Click "Add Condition" to create IF-THEN-ELSE logic
-                                                    </Alert>
-                                                )}
+                                            {getSelectedField()?.transformationType === 'conditional' && (
+                                                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                                                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                                        <Typography variant="subtitle2" sx={{ color: 'text.secondary' }}>
+                                                            IF-THEN-ELSE Logic Builder
+                                                        </Typography>
+                                                        <Button
+                                                            size="small"
+                                                            startIcon={<AddIcon />}
+                                                            onClick={() => {
+                                                                const currentConditions = getSelectedField()?.conditions || [];
+                                                                handlePropertyChange('conditions', [
+                                                                    ...currentConditions,
+                                                                    { ifExpr: '', then: '', elseExpr: '', elseIfExprs: [] }
+                                                                ]);
+                                                            }}
+                                                        >
+                                                            Add Condition
+                                                        </Button>
+                                                    </Box>
 
-                                                {getSelectedField()?.conditions?.map((condition, condIndex) => (
-                                                    <Card key={condIndex} sx={{ bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider' }}>
-                                                        <CardContent>
-                                                            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-                                                                <Typography variant="subtitle2" sx={{ color: 'primary.main', fontWeight: 'bold' }}>
-                                                                    Condition {condIndex + 1}
-                                                                </Typography>
-                                                                <IconButton
-                                                                    size="small"
-                                                                    onClick={() => {
-                                                                        const newConditions = [...(getSelectedField()?.conditions || [])];
-                                                                        newConditions.splice(condIndex, 1);
-                                                                        handlePropertyChange('conditions', newConditions);
-                                                                    }}
-                                                                >
-                                                                    <DeleteIcon fontSize="small" />
-                                                                </IconButton>
-                                                            </Box>
+                                                    {(!getSelectedField()?.conditions || getSelectedField()!.conditions!.length === 0) && (
+                                                        <Alert severity="info" sx={{ bgcolor: 'info.lighter' }}>
+                                                            Click "Add Condition" to create IF-THEN-ELSE logic
+                                                        </Alert>
+                                                    )}
 
-                                                            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                                                                {/* IF Expression */}
-                                                                <TextField
-                                                                    label="IF Condition"
-                                                                    fullWidth
-                                                                    value={condition.ifExpr}
-                                                                    onChange={(e) => {
-                                                                        const newConditions = [...(getSelectedField()?.conditions || [])];
-                                                                        newConditions[condIndex] = { ...newConditions[condIndex], ifExpr: e.target.value };
-                                                                        handlePropertyChange('conditions', newConditions);
-                                                                    }}
-                                                                    placeholder="e.g., STATUS = 'A' or AMOUNT > 1000"
-                                                                    helperText="Enter the condition expression"
-                                                                    sx={{ bgcolor: 'background.default', input: { color: 'text.primary' }, label: { color: 'text.secondary' } }}
-                                                                />
+                                                    {getSelectedField()?.conditions?.map((condition, condIndex) => (
+                                                        <Card key={condIndex} sx={{ bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider' }}>
+                                                            <CardContent>
+                                                                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
+                                                                    <Typography variant="subtitle2" sx={{ color: 'primary.main', fontWeight: 'bold' }}>
+                                                                        Condition {condIndex + 1}
+                                                                    </Typography>
+                                                                    <IconButton
+                                                                        size="small"
+                                                                        onClick={() => {
+                                                                            const newConditions = [...(getSelectedField()?.conditions || [])];
+                                                                            newConditions.splice(condIndex, 1);
+                                                                            handlePropertyChange('conditions', newConditions);
+                                                                        }}
+                                                                    >
+                                                                        <DeleteIcon fontSize="small" />
+                                                                    </IconButton>
+                                                                </Box>
 
-                                                                {/* THEN Value */}
-                                                                <TextField
-                                                                    label="THEN Value"
-                                                                    fullWidth
-                                                                    value={condition.then}
-                                                                    onChange={(e) => {
-                                                                        const newConditions = [...(getSelectedField()?.conditions || [])];
-                                                                        newConditions[condIndex] = { ...newConditions[condIndex], then: e.target.value };
-                                                                        handlePropertyChange('conditions', newConditions);
-                                                                    }}
-                                                                    placeholder="Value when condition is true"
-                                                                    helperText="Value to use when the IF condition is true"
-                                                                    sx={{ bgcolor: 'background.default', input: { color: 'text.primary' }, label: { color: 'text.secondary' } }}
-                                                                />
+                                                                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                                                                    {/* IF Expression */}
+                                                                    <TextField
+                                                                        label="IF Condition"
+                                                                        fullWidth
+                                                                        value={condition.ifExpr}
+                                                                        onChange={(e) => {
+                                                                            const newConditions = [...(getSelectedField()?.conditions || [])];
+                                                                            newConditions[condIndex] = { ...newConditions[condIndex], ifExpr: e.target.value };
+                                                                            handlePropertyChange('conditions', newConditions);
+                                                                        }}
+                                                                        placeholder="e.g., STATUS = 'A' or AMOUNT > 1000"
+                                                                        helperText="Enter the condition expression"
+                                                                        sx={{ bgcolor: 'background.default', input: { color: 'text.primary' }, label: { color: 'text.secondary' } }}
+                                                                    />
 
-                                                                {/* ELSE-IF Expressions */}
-                                                                {condition.elseIfExprs && condition.elseIfExprs.length > 0 && (
-                                                                    <Box sx={{ pl: 2, borderLeft: '2px solid', borderColor: 'warning.main' }}>
-                                                                        <Typography variant="caption" sx={{ color: 'warning.main', fontWeight: 'bold', mb: 1, display: 'block' }}>
-                                                                            ELSE-IF Conditions
+                                                                    {/* THEN Value */}
+                                                                    <TextField
+                                                                        label="THEN Value"
+                                                                        fullWidth
+                                                                        value={condition.then}
+                                                                        onChange={(e) => {
+                                                                            const newConditions = [...(getSelectedField()?.conditions || [])];
+                                                                            newConditions[condIndex] = { ...newConditions[condIndex], then: e.target.value };
+                                                                            handlePropertyChange('conditions', newConditions);
+                                                                        }}
+                                                                        placeholder="Value when condition is true"
+                                                                        helperText="Value to use when the IF condition is true"
+                                                                        sx={{ bgcolor: 'background.default', input: { color: 'text.primary' }, label: { color: 'text.secondary' } }}
+                                                                    />
+
+                                                                    {/* ELSE-IF Expressions */}
+                                                                    {condition.elseIfExprs && condition.elseIfExprs.length > 0 && (
+                                                                        <Box sx={{ pl: 2, borderLeft: '2px solid', borderColor: 'warning.main' }}>
+                                                                            <Typography variant="caption" sx={{ color: 'warning.main', fontWeight: 'bold', mb: 1, display: 'block' }}>
+                                                                                ELSE-IF Conditions
+                                                                            </Typography>
+                                                                            {condition.elseIfExprs.map((elseIf, elseIfIndex) => (
+                                                                                <Box key={elseIfIndex} sx={{ display: 'flex', gap: 1, mb: 1, alignItems: 'flex-start' }}>
+                                                                                    <TextField
+                                                                                        label={`ELSE-IF ${elseIfIndex + 1} Condition`}
+                                                                                        size="small"
+                                                                                        sx={{ flex: 1, bgcolor: 'background.default' }}
+                                                                                        value={elseIf.condition}
+                                                                                        onChange={(e) => {
+                                                                                            const newConditions = [...(getSelectedField()?.conditions || [])];
+                                                                                            const newElseIfs = [...(newConditions[condIndex].elseIfExprs || [])];
+                                                                                            newElseIfs[elseIfIndex] = { ...newElseIfs[elseIfIndex], condition: e.target.value };
+                                                                                            newConditions[condIndex] = { ...newConditions[condIndex], elseIfExprs: newElseIfs };
+                                                                                            handlePropertyChange('conditions', newConditions);
+                                                                                        }}
+                                                                                    />
+                                                                                    <TextField
+                                                                                        label="Value"
+                                                                                        size="small"
+                                                                                        sx={{ flex: 1, bgcolor: 'background.default' }}
+                                                                                        value={elseIf.value}
+                                                                                        onChange={(e) => {
+                                                                                            const newConditions = [...(getSelectedField()?.conditions || [])];
+                                                                                            const newElseIfs = [...(newConditions[condIndex].elseIfExprs || [])];
+                                                                                            newElseIfs[elseIfIndex] = { ...newElseIfs[elseIfIndex], value: e.target.value };
+                                                                                            newConditions[condIndex] = { ...newConditions[condIndex], elseIfExprs: newElseIfs };
+                                                                                            handlePropertyChange('conditions', newConditions);
+                                                                                        }}
+                                                                                    />
+                                                                                    <IconButton
+                                                                                        size="small"
+                                                                                        onClick={() => {
+                                                                                            const newConditions = [...(getSelectedField()?.conditions || [])];
+                                                                                            const newElseIfs = [...(newConditions[condIndex].elseIfExprs || [])];
+                                                                                            newElseIfs.splice(elseIfIndex, 1);
+                                                                                            newConditions[condIndex] = { ...newConditions[condIndex], elseIfExprs: newElseIfs };
+                                                                                            handlePropertyChange('conditions', newConditions);
+                                                                                        }}
+                                                                                    >
+                                                                                        <DeleteIcon fontSize="small" />
+                                                                                    </IconButton>
+                                                                                </Box>
+                                                                            ))}
+                                                                        </Box>
+                                                                    )}
+
+                                                                    {/* Add ELSE-IF Button */}
+                                                                    <Button
+                                                                        size="small"
+                                                                        startIcon={<AddIcon />}
+                                                                        onClick={() => {
+                                                                            const newConditions = [...(getSelectedField()?.conditions || [])];
+                                                                            const currentElseIfs = newConditions[condIndex].elseIfExprs || [];
+                                                                            newConditions[condIndex] = {
+                                                                                ...newConditions[condIndex],
+                                                                                elseIfExprs: [...currentElseIfs, { condition: '', value: '' }]
+                                                                            };
+                                                                            handlePropertyChange('conditions', newConditions);
+                                                                        }}
+                                                                        sx={{ alignSelf: 'flex-start' }}
+                                                                    >
+                                                                        Add ELSE-IF
+                                                                    </Button>
+
+                                                                    {/* ELSE Value */}
+                                                                    <TextField
+                                                                        label="ELSE Value (Default)"
+                                                                        fullWidth
+                                                                        value={condition.elseExpr || ''}
+                                                                        onChange={(e) => {
+                                                                            const newConditions = [...(getSelectedField()?.conditions || [])];
+                                                                            newConditions[condIndex] = { ...newConditions[condIndex], elseExpr: e.target.value };
+                                                                            handlePropertyChange('conditions', newConditions);
+                                                                        }}
+                                                                        placeholder="Default value when all conditions are false"
+                                                                        helperText="Value to use when all conditions are false"
+                                                                        sx={{ bgcolor: 'background.default', input: { color: 'text.primary' }, label: { color: 'text.secondary' } }}
+                                                                    />
+                                                                </Box>
+
+                                                                {/* Preview */}
+                                                                {condition.ifExpr && condition.then && (
+                                                                    <Alert severity="success" sx={{ mt: 2, bgcolor: 'success.lighter' }}>
+                                                                        <Typography variant="caption" sx={{ fontWeight: 'bold', display: 'block', mb: 0.5 }}>
+                                                                            Logic Preview:
                                                                         </Typography>
-                                                                        {condition.elseIfExprs.map((elseIf, elseIfIndex) => (
-                                                                            <Box key={elseIfIndex} sx={{ display: 'flex', gap: 1, mb: 1, alignItems: 'flex-start' }}>
-                                                                                <TextField
-                                                                                    label={`ELSE-IF ${elseIfIndex + 1} Condition`}
-                                                                                    size="small"
-                                                                                    sx={{ flex: 1, bgcolor: 'background.default' }}
-                                                                                    value={elseIf.condition}
-                                                                                    onChange={(e) => {
-                                                                                        const newConditions = [...(getSelectedField()?.conditions || [])];
-                                                                                        const newElseIfs = [...(newConditions[condIndex].elseIfExprs || [])];
-                                                                                        newElseIfs[elseIfIndex] = { ...newElseIfs[elseIfIndex], condition: e.target.value };
-                                                                                        newConditions[condIndex] = { ...newConditions[condIndex], elseIfExprs: newElseIfs };
-                                                                                        handlePropertyChange('conditions', newConditions);
-                                                                                    }}
-                                                                                />
-                                                                                <TextField
-                                                                                    label="Value"
-                                                                                    size="small"
-                                                                                    sx={{ flex: 1, bgcolor: 'background.default' }}
-                                                                                    value={elseIf.value}
-                                                                                    onChange={(e) => {
-                                                                                        const newConditions = [...(getSelectedField()?.conditions || [])];
-                                                                                        const newElseIfs = [...(newConditions[condIndex].elseIfExprs || [])];
-                                                                                        newElseIfs[elseIfIndex] = { ...newElseIfs[elseIfIndex], value: e.target.value };
-                                                                                        newConditions[condIndex] = { ...newConditions[condIndex], elseIfExprs: newElseIfs };
-                                                                                        handlePropertyChange('conditions', newConditions);
-                                                                                    }}
-                                                                                />
-                                                                                <IconButton
-                                                                                    size="small"
-                                                                                    onClick={() => {
-                                                                                        const newConditions = [...(getSelectedField()?.conditions || [])];
-                                                                                        const newElseIfs = [...(newConditions[condIndex].elseIfExprs || [])];
-                                                                                        newElseIfs.splice(elseIfIndex, 1);
-                                                                                        newConditions[condIndex] = { ...newConditions[condIndex], elseIfExprs: newElseIfs };
-                                                                                        handlePropertyChange('conditions', newConditions);
-                                                                                    }}
-                                                                                >
-                                                                                    <DeleteIcon fontSize="small" />
-                                                                                </IconButton>
-                                                                            </Box>
-                                                                        ))}
-                                                                    </Box>
+                                                                        <Typography variant="body2" sx={{ fontFamily: 'monospace', fontSize: '0.75rem' }}>
+                                                                            IF ({condition.ifExpr}) THEN "{condition.then}"
+                                                                            {condition.elseIfExprs && condition.elseIfExprs.length > 0 && (
+                                                                                <>
+                                                                                    {condition.elseIfExprs.map((elseIf, idx) => (
+                                                                                        <span key={idx}>
+                                                                                            <br />ELSE IF ({elseIf.condition}) THEN "{elseIf.value}"
+                                                                                        </span>
+                                                                                    ))}
+                                                                                </>
+                                                                            )}
+                                                                            {condition.elseExpr && (
+                                                                                <>
+                                                                                    <br />ELSE "{condition.elseExpr}"
+                                                                                </>
+                                                                            )}
+                                                                        </Typography>
+                                                                    </Alert>
                                                                 )}
+                                                            </CardContent>
+                                                        </Card>
+                                                    ))}
+                                                </Box>
+                                            )}
+                                        </Box>
+                                    </AccordionDetails>
+                                </Accordion>
+                            )}
 
-                                                                {/* Add ELSE-IF Button */}
-                                                                <Button
-                                                                    size="small"
-                                                                    startIcon={<AddIcon />}
-                                                                    onClick={() => {
-                                                                        const newConditions = [...(getSelectedField()?.conditions || [])];
-                                                                        const currentElseIfs = newConditions[condIndex].elseIfExprs || [];
-                                                                        newConditions[condIndex] = {
-                                                                            ...newConditions[condIndex],
-                                                                            elseIfExprs: [...currentElseIfs, { condition: '', value: '' }]
-                                                                        };
-                                                                        handlePropertyChange('conditions', newConditions);
-                                                                    }}
-                                                                    sx={{ alignSelf: 'flex-start' }}
-                                                                >
-                                                                    Add ELSE-IF
-                                                                </Button>
-
-                                                                {/* ELSE Value */}
-                                                                <TextField
-                                                                    label="ELSE Value (Default)"
-                                                                    fullWidth
-                                                                    value={condition.elseExpr || ''}
-                                                                    onChange={(e) => {
-                                                                        const newConditions = [...(getSelectedField()?.conditions || [])];
-                                                                        newConditions[condIndex] = { ...newConditions[condIndex], elseExpr: e.target.value };
-                                                                        handlePropertyChange('conditions', newConditions);
-                                                                    }}
-                                                                    placeholder="Default value when all conditions are false"
-                                                                    helperText="Value to use when all conditions are false"
-                                                                    sx={{ bgcolor: 'background.default', input: { color: 'text.primary' }, label: { color: 'text.secondary' } }}
-                                                                />
-                                                            </Box>
-
-                                                            {/* Preview */}
-                                                            {condition.ifExpr && condition.then && (
-                                                                <Alert severity="success" sx={{ mt: 2, bgcolor: 'success.lighter' }}>
-                                                                    <Typography variant="caption" sx={{ fontWeight: 'bold', display: 'block', mb: 0.5 }}>
-                                                                        Logic Preview:
-                                                                    </Typography>
-                                                                    <Typography variant="body2" sx={{ fontFamily: 'monospace', fontSize: '0.75rem' }}>
-                                                                        IF ({condition.ifExpr}) THEN "{condition.then}"
-                                                                        {condition.elseIfExprs && condition.elseIfExprs.length > 0 && (
-                                                                            <>
-                                                                                {condition.elseIfExprs.map((elseIf, idx) => (
-                                                                                    <span key={idx}>
-                                                                                        <br />ELSE IF ({elseIf.condition}) THEN "{elseIf.value}"
-                                                                                    </span>
-                                                                                ))}
-                                                                            </>
-                                                                        )}
-                                                                        {condition.elseExpr && (
-                                                                            <>
-                                                                                <br />ELSE "{condition.elseExpr}"
-                                                                            </>
-                                                                        )}
-                                                                    </Typography>
-                                                                </Alert>
-                                                            )}
-                                                        </CardContent>
-                                                    </Card>
-                                                ))}
-                                            </Box>
-                                        )}
-                                    </Box>
-                                </AccordionDetails>
-                            </Accordion>
-
-                            {/* 3. TRANSFORMATION SUMMARY CARD */}
+                            {/* TRANSFORMATION SUMMARY CARD */}
                             {getSelectedField()?.transformationType && (
                                 <Card variant="outlined" sx={{ bgcolor: 'primary.lighter', borderColor: 'primary.main' }}>
                                     <CardContent sx={{ p: 2, '&:last-child': { pb: 2 } }}>
