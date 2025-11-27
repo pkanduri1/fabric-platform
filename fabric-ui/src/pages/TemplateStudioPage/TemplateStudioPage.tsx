@@ -40,6 +40,10 @@ import SearchIcon from '@mui/icons-material/Search';
 import DownloadIcon from '@mui/icons-material/Download';
 import UploadIcon from '@mui/icons-material/Upload';
 import ScienceIcon from '@mui/icons-material/Science';
+import ErrorIcon from '@mui/icons-material/Error';
+import WarningIcon from '@mui/icons-material/Warning';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import CloseIcon from '@mui/icons-material/Close';
 import { useSourceSystems } from '../../hooks/useSourceSystems';
 import { templateApiService } from '../../services/api/templateApi';
 import { FieldTemplate, FileTypeTemplate, FileType, TemplateConfigDto, QueryPreviewResponse } from '../../types/template';
@@ -54,6 +58,23 @@ import * as XLSX from 'xlsx';
 // Local interface for DataGrid
 interface GridFieldTemplate extends FieldTemplate {
     id: string;
+}
+
+// Validation interfaces
+interface ValidationIssue {
+    fieldId: string;
+    fieldName: string;
+    severity: 'error' | 'warning';
+    category: 'overlap' | 'missing_config' | 'unmapped' | 'invalid_source' | 'empty_required';
+    message: string;
+}
+
+interface ValidationResult {
+    isValid: boolean;
+    errorCount: number;
+    warningCount: number;
+    issues: ValidationIssue[];
+    fieldIssues: Map<string, ValidationIssue[]>; // Map of fieldId to its issues
 }
 
 
@@ -129,6 +150,9 @@ const TemplateStudioPageContent: React.FC = () => {
     const [isTestDialogOpen, setIsTestDialogOpen] = useState(false);
     const [testInputs, setTestInputs] = useState<Record<string, string>>({});
     const [testResult, setTestResult] = useState<string>('');
+
+    // Validation State - only show validation after user attempts to save or field blur
+    const [showValidation, setShowValidation] = useState(false);
 
     // --- Effects ---
 
@@ -320,8 +344,17 @@ const TemplateStudioPageContent: React.FC = () => {
     };
 
     const handleSave = async () => {
+        // Enable validation display when user clicks Save
+        setShowValidation(true);
+
         if (!localSelectedSourceSystem || !jobName || !selectedFileType || !selectedTransactionType) {
             showNotification('Please complete all selection fields', 'error');
+            return;
+        }
+
+        // Check if there are validation errors
+        if (!validationResults.isValid) {
+            showNotification(`Cannot save: ${validationResults.errorCount} validation error(s) found`, 'error');
             return;
         }
 
@@ -350,6 +383,179 @@ const TemplateStudioPageContent: React.FC = () => {
     const showNotification = (message: string, severity: 'success' | 'error') => {
         setNotification({ open: true, message, severity });
     };
+
+    // --- Field Validation Logic ---
+    const validationResults = useMemo((): ValidationResult => {
+        const issues: ValidationIssue[] = [];
+        const fieldIssues = new Map<string, ValidationIssue[]>();
+
+        // Helper to add issue
+        const addIssue = (issue: ValidationIssue) => {
+            issues.push(issue);
+            const existing = fieldIssues.get(issue.fieldId) || [];
+            fieldIssues.set(issue.fieldId, [...existing, issue]);
+        };
+
+        // 1. Check for overlapping field positions
+        // Note: targetPosition appears to be an ordinal (1, 2, 3...) not byte position
+        // We need to calculate actual byte positions by summing up lengths
+        const sortedFields = [...templateFields].sort((a, b) => (a.targetPosition || 0) - (b.targetPosition || 0));
+
+        // Calculate actual byte positions
+        let currentBytePosition = 1; // Fixed-width files typically start at position 1
+        const fieldsWithBytePositions = sortedFields.map(field => {
+            const startPos = currentBytePosition;
+            const endPos = currentBytePosition + (field.length || 0) - 1;
+            currentBytePosition += (field.length || 0);
+            return {
+                ...field,
+                byteStart: startPos,
+                byteEnd: endPos
+            };
+        });
+
+        // Check for overlaps based on calculated byte positions
+        for (let i = 0; i < fieldsWithBytePositions.length - 1; i++) {
+            const current = fieldsWithBytePositions[i];
+            const next = fieldsWithBytePositions[i + 1];
+
+            // Fields should be contiguous, if there's a gap or overlap, flag it
+            if (current.byteEnd >= next.byteStart) {
+                addIssue({
+                    fieldId: current.id,
+                    fieldName: current.fieldName,
+                    severity: 'error',
+                    category: 'overlap',
+                    message: `Field ends at byte ${current.byteEnd} but next field (${next.fieldName}) starts at byte ${next.byteStart}`
+                });
+            }
+        }
+
+        // 2. Check for missing configurations
+        templateFields.forEach(field => {
+            if (field.transformationType === 'conditional') {
+                // Check if conditional has conditions defined
+                if (!field.conditions || (Array.isArray(field.conditions) && field.conditions.length === 0)) {
+                    addIssue({
+                        fieldId: field.id,
+                        fieldName: field.fieldName,
+                        severity: 'warning',
+                        category: 'missing_config',
+                        message: 'Conditional transformation has no conditions defined'
+                    });
+                }
+            } else if (field.transformationType === 'composite') {
+                // Check if composite has source fields
+                if (!field.sources || (Array.isArray(field.sources) && field.sources.length === 0)) {
+                    addIssue({
+                        fieldId: field.id,
+                        fieldName: field.fieldName,
+                        severity: 'warning',
+                        category: 'missing_config',
+                        message: 'Composite transformation has no source fields selected'
+                    });
+                }
+            } else if (field.transformationType === 'source') {
+                // Check if source has a source field mapping
+                if (!field.sourceField || field.sourceField.trim() === '') {
+                    addIssue({
+                        fieldId: field.id,
+                        fieldName: field.fieldName,
+                        severity: 'warning',
+                        category: 'missing_config',
+                        message: 'Source transformation has no source field specified'
+                    });
+                }
+            } else if (field.transformationType === 'constant') {
+                // Check if constant has a value
+                if (!field.value || field.value.trim() === '') {
+                    addIssue({
+                        fieldId: field.id,
+                        fieldName: field.fieldName,
+                        severity: 'warning',
+                        category: 'missing_config',
+                        message: 'Constant transformation has no value specified'
+                    });
+                }
+            }
+        });
+
+        // 3. Check for empty required fields
+        templateFields.forEach(field => {
+            if (field.required === 'Y') {
+                // Required fields should have some transformation configured
+                if (!field.transformationType ||
+                    (field.transformationType === 'source' && !field.sourceField) ||
+                    (field.transformationType === 'constant' && !field.value)) {
+                    addIssue({
+                        fieldId: field.id,
+                        fieldName: field.fieldName,
+                        severity: 'error',
+                        category: 'empty_required',
+                        message: 'Required field has no transformation configured'
+                    });
+                }
+            }
+        });
+
+        // 4. Check for invalid source field references
+        if (availableSourceFields.length > 0) {
+            const sourceFieldNames = new Set(availableSourceFields.map(f => f.name));
+
+            templateFields.forEach(field => {
+                if (field.transformationType === 'source' && field.sourceField) {
+                    if (!sourceFieldNames.has(field.sourceField)) {
+                        addIssue({
+                            fieldId: field.id,
+                            fieldName: field.fieldName,
+                            severity: 'warning',
+                            category: 'invalid_source',
+                            message: `Source field '${field.sourceField}' not found in query results`
+                        });
+                    }
+                }
+
+                // Check composite source fields
+                if (field.transformationType === 'composite' && field.sources) {
+                    field.sources.forEach(source => {
+                        if (!sourceFieldNames.has(source.field)) {
+                            addIssue({
+                                fieldId: field.id,
+                                fieldName: field.fieldName,
+                                severity: 'warning',
+                                category: 'invalid_source',
+                                message: `Composite source field '${source.field}' not found in query results`
+                            });
+                        }
+                    });
+                }
+            });
+        }
+
+        // Calculate summary statistics
+        const errorCount = issues.filter(i => i.severity === 'error').length;
+        const warningCount = issues.filter(i => i.severity === 'warning').length;
+
+        return {
+            isValid: errorCount === 0,
+            errorCount,
+            warningCount,
+            issues,
+            fieldIssues
+        };
+    }, [templateFields, availableSourceFields]);
+
+    // Log validation results for debugging
+    useEffect(() => {
+        if (validationResults.issues.length > 0) {
+            console.log('Validation Results:', {
+                isValid: validationResults.isValid,
+                errors: validationResults.errorCount,
+                warnings: validationResults.warningCount,
+                issues: validationResults.issues
+            });
+        }
+    }, [validationResults]);
 
     const handleRunPreview = async () => {
         if (!masterQuerySql || masterQuerySql.trim() === '' || masterQuerySql.trim().startsWith('--')) {
@@ -605,6 +811,36 @@ const TemplateStudioPageContent: React.FC = () => {
 
     // --- Columns ---
     const columns: GridColDef[] = [
+        {
+            field: 'validation',
+            headerName: '',
+            width: 50,
+            sortable: false,
+            filterable: false,
+            renderCell: (params: GridRenderCellParams) => {
+                // Only show validation icons after user clicks Save or field blur
+                if (!showValidation) return null;
+
+                const fieldIssues = validationResults.fieldIssues.get(params.row.id) || [];
+                if (fieldIssues.length === 0) return null;
+
+                const hasErrors = fieldIssues.some(issue => issue.severity === 'error');
+                const hasWarnings = fieldIssues.some(issue => issue.severity === 'warning');
+
+                return (
+                    <Box
+                        sx={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}
+                        title={fieldIssues.map(issue => issue.message).join('\n')}
+                    >
+                        {hasErrors ? (
+                            <ErrorIcon fontSize="small" color="error" />
+                        ) : hasWarnings ? (
+                            <WarningIcon fontSize="small" color="warning" />
+                        ) : null}
+                    </Box>
+                );
+            }
+        },
         { field: 'targetPosition', headerName: 'Pos', width: 70, type: 'number' },
         { field: 'fieldName', headerName: 'Target Field', width: 200 },
         { field: 'length', headerName: 'Len', width: 70, type: 'number' },
@@ -810,6 +1046,85 @@ const TemplateStudioPageContent: React.FC = () => {
                 </Stack>
             </Box>
 
+            {/* Validation Summary Panel - Only show after user clicks Save or field blur */}
+            {showValidation && validationResults.issues.length > 0 && (
+                <Paper
+                    elevation={0}
+                    sx={{
+                        mx: 2,
+                        mt: 2,
+                        p: 2,
+                        bgcolor: validationResults.errorCount > 0 ? 'error.lighter' : 'warning.lighter',
+                        border: 1,
+                        borderColor: validationResults.errorCount > 0 ? 'error.main' : 'warning.main'
+                    }}
+                >
+                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            {validationResults.errorCount > 0 ? (
+                                <ErrorIcon color="error" />
+                            ) : (
+                                <WarningIcon color="warning" />
+                            )}
+                            <Typography variant="subtitle2" fontWeight="bold">
+                                Validation Issues Detected
+                            </Typography>
+                        </Box>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                            {validationResults.errorCount > 0 && (
+                                <Chip
+                                    label={`${validationResults.errorCount} Error${validationResults.errorCount > 1 ? 's' : ''}`}
+                                    color="error"
+                                    size="small"
+                                />
+                            )}
+                            {validationResults.warningCount > 0 && (
+                                <Chip
+                                    label={`${validationResults.warningCount} Warning${validationResults.warningCount > 1 ? 's' : ''}`}
+                                    color="warning"
+                                    size="small"
+                                />
+                            )}
+                        </Box>
+                    </Box>
+                    <Box sx={{ maxHeight: 150, overflow: 'auto' }}>
+                        {validationResults.issues.slice(0, 10).map((issue, index) => (
+                            <Box
+                                key={index}
+                                sx={{
+                                    display: 'flex',
+                                    alignItems: 'flex-start',
+                                    gap: 1,
+                                    py: 0.5,
+                                    cursor: 'pointer',
+                                    '&:hover': { bgcolor: 'action.hover' }
+                                }}
+                                onClick={() => setSelectedFieldId(issue.fieldId)}
+                            >
+                                {issue.severity === 'error' ? (
+                                    <ErrorIcon fontSize="small" color="error" sx={{ mt: 0.2 }} />
+                                ) : (
+                                    <WarningIcon fontSize="small" color="warning" sx={{ mt: 0.2 }} />
+                                )}
+                                <Box sx={{ flex: 1 }}>
+                                    <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                                        {issue.fieldName}
+                                    </Typography>
+                                    <Typography variant="caption" color="text.secondary">
+                                        {issue.message}
+                                    </Typography>
+                                </Box>
+                            </Box>
+                        ))}
+                        {validationResults.issues.length > 10 && (
+                            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
+                                ... and {validationResults.issues.length - 10} more issues
+                            </Typography>
+                        )}
+                    </Box>
+                </Paper>
+            )}
+
             {/* 3. Main Content Area */}
             <Grid container sx={{ flexGrow: 1, overflow: 'hidden' }}>
 
@@ -962,6 +1277,12 @@ const TemplateStudioPageContent: React.FC = () => {
                                         density="compact"
                                         processRowUpdate={processRowUpdate}
                                         onProcessRowUpdateError={handleProcessRowUpdateError}
+                                        getRowClassName={(params) => {
+                                            const fieldIssues = validationResults.fieldIssues.get(params.row.id) || [];
+                                            if (fieldIssues.length === 0) return '';
+                                            const hasErrors = fieldIssues.some(issue => issue.severity === 'error');
+                                            return hasErrors ? 'validation-row-error' : 'validation-row-warning';
+                                        }}
                                         sx={{
                                             bgcolor: 'background.paper',
                                             color: 'text.primary',
@@ -975,6 +1296,18 @@ const TemplateStudioPageContent: React.FC = () => {
                                                 bgcolor: 'action.hover',
                                                 '&:hover': {
                                                     bgcolor: 'action.selected',
+                                                }
+                                            },
+                                            '& .validation-row-error': {
+                                                bgcolor: 'error.lighter',
+                                                '&:hover': {
+                                                    bgcolor: 'error.light',
+                                                }
+                                            },
+                                            '& .validation-row-warning': {
+                                                bgcolor: 'warning.lighter',
+                                                '&:hover': {
+                                                    bgcolor: 'warning.light',
                                                 }
                                             }
                                         }}
