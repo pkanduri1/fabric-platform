@@ -1,0 +1,26 @@
+* Host localhost:8080 was resolved.
+* IPv6: ::1
+* IPv4: 127.0.0.1
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0*   Trying [::1]:8080...
+* Connected to localhost (::1) port 8080
+> POST /admin/templates/atoctran/900/create-config?sourceSystem=ENCORE&jobName=test_complete_solution HTTP/1.1
+> Host: localhost:8080
+> User-Agent: curl/8.7.1
+> Accept: */*
+> Content-Type: application/json
+> 
+* Request completely sent off
+< HTTP/1.1 200 
+< Vary: Origin
+< Vary: Access-Control-Request-Method
+< Vary: Access-Control-Request-Headers
+< Content-Type: application/json
+< Transfer-Encoding: chunked
+< Date: Fri, 29 Aug 2025 11:59:18 GMT
+< 
+{ [2419 bytes data]
+100  2412    0  2412    0     0   8781      0 --:--:-- --:--:-- --:--:--  8802
+* Connection #0 to host localhost left intact
+{"id":"ENCORE_test_complete_solution_900_1756468758343","sourceSystem":"ENCORE","jobName":"test_complete_solution","transactionType":"900","fieldMappings":[{"fieldName":"location-code","targetField":"location-code","sourceField":null,"from":null,"targetPosition":1,"length":6,"dataType":"string","format":null,"sourceFormat":null,"targetFormat":null,"transformationType":"constant","value":"000001","defaultValue":null,"transform":null,"pad":"right","padChar":null,"conditions":null,"composite":false,"sources":null,"delimiter":null,"expression":null},{"fieldName":"acct-num","targetField":"acct-num","sourceField":"acct_num","from":null,"targetPosition":2,"length":18,"dataType":"string","format":null,"sourceFormat":null,"targetFormat":null,"transformationType":"source","value":null,"defaultValue":null,"transform":null,"pad":"right","padChar":null,"conditions":null,"composite":false,"sources":null,"delimiter":null,"expression":null},{"fieldName":"transaction-type","targetField":"transaction-type","sourceField":null,"from":null,"targetPosition":3,"length":3,"dataType":"string","format":null,"sourceFormat":null,"targetFormat":null,"transformationType":"constant","value":"900","defaultValue":null,"transform":null,"pad":"right","padChar":null,"conditions":null,"composite":false,"sources":null,"delimiter":null,"expression":null},{"fieldName":"transaction-date","targetField":"transaction-date","sourceField":"transaction_date","from":null,"targetPosition":4,"length":8,"dataType":"date","format":"YYYYMMDD","sourceFormat":null,"targetFormat":null,"transformationType":"transformation","value":null,"defaultValue":null,"transform":null,"pad":"right","padChar":null,"conditions":null,"composite":false,"sources":null,"delimiter":null,"expression":null},{"fieldName":"transaction-amt","targetField":"transaction-amt","sourceField":"transaction_amt","from":null,"targetPosition":5,"length":40,"dataType":"number","format":"9(12)v9(6)","sourceFormat":null,"targetFormat":null,"transformationType":"source","value":null,"defaultValue":null,"transform":null,"pad":"right","padChar":null,"conditions":null,"composite":false,"sources":null,"delimiter":null,"expression":null}],"description":"Generated from atoctran/900 template by system","templateId":null,"masterQueryId":null,"active":true,"version":1,"createdDate":"2025-08-29T07:59:18.3431","lastModified":"2025-08-29T07:59:18.343099","modifiedBy":"system"}

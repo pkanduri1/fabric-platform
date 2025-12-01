@@ -1,0 +1,44 @@
+{
+  "fileType": "ATOC_TRAN",
+  "transactionType": "200",
+  "sourceSystemId": "ENCORE",
+  "jobName": "test_transformation_types",
+  "createdBy": "test_user",
+  "fieldMappings": [
+    {
+      "targetFieldName": "TRANSACTION_CODE",
+      "sourceFieldName": "TXN_CODE",
+      "transformationType": "source",
+      "targetPosition": 1,
+      "length": 3,
+      "dataType": "STRING"
+    },
+    {
+      "targetFieldName": "BATCH_DATE",
+      "sourceFieldName": null,
+      "transformationType": "constant",
+      "transformationConfig": "20250827",
+      "targetPosition": 4,
+      "length": 8,
+      "dataType": "STRING"
+    },
+    {
+      "targetFieldName": "SYSTEM_ID",
+      "sourceFieldName": null,
+      "transformationType": "constant",
+      "transformationConfig": "ENCORE",
+      "targetPosition": 12,
+      "length": 10,
+      "dataType": "STRING"
+    },
+    {
+      "targetFieldName": "AMOUNT",
+      "sourceFieldName": "LOAN_AMOUNT",
+      "transformationType": "format",
+      "transformationConfig": "decimal(2)",
+      "targetPosition": 22,
+      "length": 15,
+      "dataType": "DECIMAL"
+    }
+  ]
+}

@@ -1,0 +1,328 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.9.xsd">
+
+    <!--
+    =========================================================================
+    PHASE 2: DATABASE-DRIVEN SOURCE CONFIGURATION SYSTEM
+    =========================================================================
+
+    Document Control:
+    - Changeset: phase2-002-source-config-table
+    - Author: Senior Full Stack Developer Agent
+    - Date: 2025-11-23
+    - Classification: INTERNAL - BANKING CONFIDENTIAL
+
+    Purpose:
+    - Implement database-driven configuration system for source systems
+    - Enable dynamic property resolution based on source context
+    - Support configuration management for multiple source systems (HR, ENCORE, etc.)
+    - Replace hardcoded property values with database-driven configuration
+
+    Enterprise Standards:
+    - SOX Compliance: Audit trail for all configuration changes
+    - Configuration-First Approach: All configurable values externalized
+    - Security: Proper access controls for configuration data
+    - Data Lineage: Track configuration usage and modifications
+
+    Tables Created:
+    - SOURCE_CONFIG: Source system configuration storage
+
+    Sequences Created:
+    - SOURCE_CONFIG_SEQ: Primary key sequence for SOURCE_CONFIG
+
+    =========================================================================
+    -->
+
+    <!-- Create sequence for SOURCE_CONFIG primary keys -->
+    <changeSet id="phase2-002-create-source-config-sequence" author="Senior Full Stack Developer Agent" context="development,test,staging,production">
+        <comment>Create sequence for SOURCE_CONFIG table primary key generation</comment>
+
+        <createSequence
+            sequenceName="SOURCE_CONFIG_SEQ"
+            schemaName="CM3INT"
+            startValue="1"
+            incrementBy="1"
+            minValue="1"
+            maxValue="999999999999999999999999999"
+            cycle="false"
+            cacheSize="20"/>
+
+        <rollback>
+            <dropSequence sequenceName="SOURCE_CONFIG_SEQ" schemaName="CM3INT"/>
+        </rollback>
+    </changeSet>
+
+    <!-- Create SOURCE_CONFIG table -->
+    <changeSet id="phase2-002-create-source-config-table" author="Senior Full Stack Developer Agent" context="development,test,staging,production">
+        <comment>
+            Create SOURCE_CONFIG table for database-driven source system configuration.
+
+            This table stores configuration properties for different source systems (HR, ENCORE, etc.)
+            and enables dynamic property resolution based on source context. Each source system
+            can have its own set of configuration values for properties like output paths, input paths,
+            batch defaults, etc.
+
+            Key Features:
+            - Source-specific configuration values
+            - Property key-value storage
+            - Unique constraint on (SOURCE_CODE, CONFIG_KEY)
+            - Audit trail fields for SOX compliance
+            - Active/inactive flag for configuration lifecycle management
+
+            Security Considerations:
+            - Configuration values may contain sensitive path information
+            - Proper access controls required for configuration management
+            - Audit trail maintained for all configuration changes
+        </comment>
+
+        <createTable tableName="SOURCE_CONFIG" schemaName="CM3INT" remarks="Database-driven source system configuration storage">
+
+            <!-- Primary Key -->
+            <column name="CONFIG_ID" type="VARCHAR2(50)" remarks="Unique configuration identifier (Primary Key)">
+                <constraints primaryKey="true" primaryKeyName="PK_SOURCE_CONFIG" nullable="false"/>
+            </column>
+
+            <!-- Source System Identifier -->
+            <column name="SOURCE_CODE" type="VARCHAR2(50)" remarks="Source system identifier (e.g., HR, ENCORE, PAYROLL)">
+                <constraints nullable="false"/>
+            </column>
+
+            <!-- Configuration Property Key -->
+            <column name="CONFIG_KEY" type="VARCHAR2(200)" remarks="Configuration property key (e.g., batch.defaults.outputBasePath)">
+                <constraints nullable="false"/>
+            </column>
+
+            <!-- Configuration Property Value -->
+            <column name="CONFIG_VALUE" type="VARCHAR2(1000)" remarks="Configuration property value">
+                <constraints nullable="false"/>
+            </column>
+
+            <!-- Description -->
+            <column name="DESCRIPTION" type="VARCHAR2(500)" remarks="Description of the configuration property">
+                <constraints nullable="true"/>
+            </column>
+
+            <!-- Audit Fields - SOX Compliance -->
+            <column name="CREATED_DATE" type="TIMESTAMP" remarks="Timestamp when configuration was created" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="MODIFIED_DATE" type="TIMESTAMP" remarks="Timestamp when configuration was last modified" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="MODIFIED_BY" type="VARCHAR2(100)" remarks="User who last modified the configuration" defaultValue="system">
+                <constraints nullable="false"/>
+            </column>
+
+            <!-- Active Flag -->
+            <column name="ACTIVE" type="CHAR(1)" remarks="Active flag (Y/N)" defaultValue="Y">
+                <constraints nullable="false" checkConstraint="ACTIVE IN ('Y', 'N')"/>
+            </column>
+
+        </createTable>
+
+        <rollback>
+            <dropTable tableName="SOURCE_CONFIG" schemaName="CM3INT" cascadeConstraints="true"/>
+        </rollback>
+    </changeSet>
+
+    <!-- Create unique constraint on SOURCE_CODE and CONFIG_KEY -->
+    <changeSet id="phase2-002-create-source-config-unique-constraint" author="Senior Full Stack Developer Agent" context="development,test,staging,production">
+        <comment>Create unique constraint on (SOURCE_CODE, CONFIG_KEY) to ensure each source system has unique configuration keys</comment>
+
+        <addUniqueConstraint
+            tableName="SOURCE_CONFIG"
+            schemaName="CM3INT"
+            columnNames="SOURCE_CODE, CONFIG_KEY"
+            constraintName="UK_SOURCE_CONFIG_SOURCE_KEY"/>
+
+        <rollback>
+            <dropUniqueConstraint tableName="SOURCE_CONFIG" schemaName="CM3INT" constraintName="UK_SOURCE_CONFIG_SOURCE_KEY"/>
+        </rollback>
+    </changeSet>
+
+    <!-- Create index on SOURCE_CODE for query performance -->
+    <changeSet id="phase2-002-create-source-config-source-index" author="Senior Full Stack Developer Agent" context="development,test,staging,production">
+        <comment>Create index on SOURCE_CODE for improved query performance when loading configurations by source</comment>
+
+        <createIndex
+            indexName="IDX_SOURCE_CONFIG_SOURCE"
+            tableName="SOURCE_CONFIG"
+            schemaName="CM3INT">
+            <column name="SOURCE_CODE"/>
+        </createIndex>
+
+        <rollback>
+            <dropIndex indexName="IDX_SOURCE_CONFIG_SOURCE" tableName="SOURCE_CONFIG" schemaName="CM3INT"/>
+        </rollback>
+    </changeSet>
+
+    <!-- Create index on ACTIVE flag for query performance -->
+    <changeSet id="phase2-002-create-source-config-active-index" author="Senior Full Stack Developer Agent" context="development,test,staging,production">
+        <comment>Create index on ACTIVE flag for improved query performance when loading only active configurations</comment>
+
+        <createIndex
+            indexName="IDX_SOURCE_CONFIG_ACTIVE"
+            tableName="SOURCE_CONFIG"
+            schemaName="CM3INT">
+            <column name="ACTIVE"/>
+        </createIndex>
+
+        <rollback>
+            <dropIndex indexName="IDX_SOURCE_CONFIG_ACTIVE" tableName="SOURCE_CONFIG" schemaName="CM3INT"/>
+        </rollback>
+    </changeSet>
+
+    <!-- Insert sample data for HR source system -->
+    <changeSet id="phase2-002-insert-sample-hr-configs" author="Senior Full Stack Developer Agent" context="development,test,staging,production">
+        <comment>Insert sample configuration data for HR source system</comment>
+
+        <insert tableName="SOURCE_CONFIG" schemaName="CM3INT">
+            <column name="CONFIG_ID" value="cfg_hr_001"/>
+            <column name="SOURCE_CODE" value="HR"/>
+            <column name="CONFIG_KEY" value="batch.defaults.outputBasePath"/>
+            <column name="CONFIG_VALUE" value="/data/output/hr"/>
+            <column name="DESCRIPTION" value="HR system output base path for batch file generation"/>
+            <column name="CREATED_DATE" valueComputed="CURRENT_TIMESTAMP"/>
+            <column name="MODIFIED_DATE" valueComputed="CURRENT_TIMESTAMP"/>
+            <column name="MODIFIED_BY" value="system"/>
+            <column name="ACTIVE" value="Y"/>
+        </insert>
+
+        <insert tableName="SOURCE_CONFIG" schemaName="CM3INT">
+            <column name="CONFIG_ID" value="cfg_hr_002"/>
+            <column name="SOURCE_CODE" value="HR"/>
+            <column name="CONFIG_KEY" value="batch.defaults.inputBasePath"/>
+            <column name="CONFIG_VALUE" value="/data/input/hr"/>
+            <column name="DESCRIPTION" value="HR system input base path for batch file processing"/>
+            <column name="CREATED_DATE" valueComputed="CURRENT_TIMESTAMP"/>
+            <column name="MODIFIED_DATE" valueComputed="CURRENT_TIMESTAMP"/>
+            <column name="MODIFIED_BY" value="system"/>
+            <column name="ACTIVE" value="Y"/>
+        </insert>
+
+        <insert tableName="SOURCE_CONFIG" schemaName="CM3INT">
+            <column name="CONFIG_ID" value="cfg_hr_003"/>
+            <column name="SOURCE_CODE" value="HR"/>
+            <column name="CONFIG_KEY" value="batch.defaults.archivePath"/>
+            <column name="CONFIG_VALUE" value="/data/archive/hr"/>
+            <column name="DESCRIPTION" value="HR system archive path for processed batch files"/>
+            <column name="CREATED_DATE" valueComputed="CURRENT_TIMESTAMP"/>
+            <column name="MODIFIED_DATE" valueComputed="CURRENT_TIMESTAMP"/>
+            <column name="MODIFIED_BY" value="system"/>
+            <column name="ACTIVE" value="Y"/>
+        </insert>
+
+        <rollback>
+            <delete tableName="SOURCE_CONFIG" schemaName="CM3INT">
+                <where>CONFIG_ID IN ('cfg_hr_001', 'cfg_hr_002', 'cfg_hr_003')</where>
+            </delete>
+        </rollback>
+    </changeSet>
+
+    <!-- Insert sample data for ENCORE source system -->
+    <changeSet id="phase2-002-insert-sample-encore-configs" author="Senior Full Stack Developer Agent" context="development,test,staging,production">
+        <comment>Insert sample configuration data for ENCORE source system</comment>
+
+        <insert tableName="SOURCE_CONFIG" schemaName="CM3INT">
+            <column name="CONFIG_ID" value="cfg_encore_001"/>
+            <column name="SOURCE_CODE" value="ENCORE"/>
+            <column name="CONFIG_KEY" value="batch.defaults.outputBasePath"/>
+            <column name="CONFIG_VALUE" value="/data/output/encore"/>
+            <column name="DESCRIPTION" value="ENCORE system output base path for batch file generation"/>
+            <column name="CREATED_DATE" valueComputed="CURRENT_TIMESTAMP"/>
+            <column name="MODIFIED_DATE" valueComputed="CURRENT_TIMESTAMP"/>
+            <column name="MODIFIED_BY" value="system"/>
+            <column name="ACTIVE" value="Y"/>
+        </insert>
+
+        <insert tableName="SOURCE_CONFIG" schemaName="CM3INT">
+            <column name="CONFIG_ID" value="cfg_encore_002"/>
+            <column name="SOURCE_CODE" value="ENCORE"/>
+            <column name="CONFIG_KEY" value="batch.defaults.inputBasePath"/>
+            <column name="CONFIG_VALUE" value="/data/input/encore"/>
+            <column name="DESCRIPTION" value="ENCORE system input base path for batch file processing"/>
+            <column name="CREATED_DATE" valueComputed="CURRENT_TIMESTAMP"/>
+            <column name="MODIFIED_DATE" valueComputed="CURRENT_TIMESTAMP"/>
+            <column name="MODIFIED_BY" value="system"/>
+            <column name="ACTIVE" value="Y"/>
+        </insert>
+
+        <insert tableName="SOURCE_CONFIG" schemaName="CM3INT">
+            <column name="CONFIG_ID" value="cfg_encore_003"/>
+            <column name="SOURCE_CODE" value="ENCORE"/>
+            <column name="CONFIG_KEY" value="batch.defaults.archivePath"/>
+            <column name="CONFIG_VALUE" value="/data/archive/encore"/>
+            <column name="DESCRIPTION" value="ENCORE system archive path for processed batch files"/>
+            <column name="CREATED_DATE" valueComputed="CURRENT_TIMESTAMP"/>
+            <column name="MODIFIED_DATE" valueComputed="CURRENT_TIMESTAMP"/>
+            <column name="MODIFIED_BY" value="system"/>
+            <column name="ACTIVE" value="Y"/>
+        </insert>
+
+        <insert tableName="SOURCE_CONFIG" schemaName="CM3INT">
+            <column name="CONFIG_ID" value="cfg_encore_004"/>
+            <column name="SOURCE_CODE" value="ENCORE"/>
+            <column name="CONFIG_KEY" value="batch.defaults.errorPath"/>
+            <column name="CONFIG_VALUE" value="/data/error/encore"/>
+            <column name="DESCRIPTION" value="ENCORE system error path for failed batch files"/>
+            <column name="CREATED_DATE" valueComputed="CURRENT_TIMESTAMP"/>
+            <column name="MODIFIED_DATE" valueComputed="CURRENT_TIMESTAMP"/>
+            <column name="MODIFIED_BY" value="system"/>
+            <column name="ACTIVE" value="Y"/>
+        </insert>
+
+        <rollback>
+            <delete tableName="SOURCE_CONFIG" schemaName="CM3INT">
+                <where>CONFIG_ID IN ('cfg_encore_001', 'cfg_encore_002', 'cfg_encore_003', 'cfg_encore_004')</where>
+            </delete>
+        </rollback>
+    </changeSet>
+
+    <!-- Insert sample data for PAYROLL source system -->
+    <changeSet id="phase2-002-insert-sample-payroll-configs" author="Senior Full Stack Developer Agent" context="development,test,staging,production">
+        <comment>Insert sample configuration data for PAYROLL source system</comment>
+
+        <insert tableName="SOURCE_CONFIG" schemaName="CM3INT">
+            <column name="CONFIG_ID" value="cfg_payroll_001"/>
+            <column name="SOURCE_CODE" value="PAYROLL"/>
+            <column name="CONFIG_KEY" value="batch.defaults.outputBasePath"/>
+            <column name="CONFIG_VALUE" value="/data/output/payroll"/>
+            <column name="DESCRIPTION" value="PAYROLL system output base path for batch file generation"/>
+            <column name="CREATED_DATE" valueComputed="CURRENT_TIMESTAMP"/>
+            <column name="MODIFIED_DATE" valueComputed="CURRENT_TIMESTAMP"/>
+            <column name="MODIFIED_BY" value="system"/>
+            <column name="ACTIVE" value="Y"/>
+        </insert>
+
+        <insert tableName="SOURCE_CONFIG" schemaName="CM3INT">
+            <column name="CONFIG_ID" value="cfg_payroll_002"/>
+            <column name="SOURCE_CODE" value="PAYROLL"/>
+            <column name="CONFIG_KEY" value="batch.defaults.inputBasePath"/>
+            <column name="CONFIG_VALUE" value="/data/input/payroll"/>
+            <column name="DESCRIPTION" value="PAYROLL system input base path for batch file processing"/>
+            <column name="CREATED_DATE" valueComputed="CURRENT_TIMESTAMP"/>
+            <column name="MODIFIED_DATE" valueComputed="CURRENT_TIMESTAMP"/>
+            <column name="MODIFIED_BY" value="system"/>
+            <column name="ACTIVE" value="Y"/>
+        </insert>
+
+        <rollback>
+            <delete tableName="SOURCE_CONFIG" schemaName="CM3INT">
+                <where>CONFIG_ID IN ('cfg_payroll_001', 'cfg_payroll_002')</where>
+            </delete>
+        </rollback>
+    </changeSet>
+
+    <!-- Database Tagging for Release Management -->
+    <changeSet id="tag-phase2-002-source-config-complete" author="Senior Full Stack Developer Agent" context="development,test,staging,production">
+        <comment>Release tag for Phase 2 Database-Driven Source Configuration System - Complete implementation with SOURCE_CONFIG table and sample data</comment>
+        <sql>SELECT 'Phase 2-002 Source Config Complete' AS release_tag FROM DUAL</sql>
+    </changeSet>
+
+</databaseChangeLog>
