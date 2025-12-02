@@ -1,4 +1,4 @@
-package com.truist.batch.mapping;
+package com.fabric.batch.mapping;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -10,8 +10,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import com.truist.batch.model.Condition;
-import com.truist.batch.model.FieldMapping;
+import com.fabric.batch.model.Condition;
+import com.fabric.batch.model.FieldMapping;
 
 // @ExtendWith(MockitoExtension.class) // Uncomment if using Mockito annotations
 class YamlMappingServiceTest {

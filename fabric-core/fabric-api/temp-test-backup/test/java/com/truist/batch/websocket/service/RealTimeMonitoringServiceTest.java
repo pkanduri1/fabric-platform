@@ -1,7 +1,7 @@
-package com.truist.batch.websocket.service;
+package com.fabric.batch.websocket.service;
 
-import com.truist.batch.config.WebSocketMonitoringProperties;
-import com.truist.batch.websocket.handler.WebSocketSessionInfo;
+import com.fabric.batch.config.WebSocketMonitoringProperties;
+import com.fabric.batch.websocket.handler.WebSocketSessionInfo;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;

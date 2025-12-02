@@ -1,8 +1,8 @@
-package com.truist.batch.controller;
+package com.fabric.batch.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.truist.batch.dto.*;
-import com.truist.batch.service.SqlLoaderConfigService;
+import com.fabric.batch.dto.*;
+import com.fabric.batch.service.SqlLoaderConfigService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

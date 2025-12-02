@@ -1,8 +1,8 @@
-package com.truist.batch.service;
+package com.fabric.batch.service;
 
-import com.truist.batch.entity.ManualJobConfigEntity;
-import com.truist.batch.repository.ManualJobConfigRepository;
-import com.truist.batch.service.ManualJobConfigService.ConfigurationStatistics;
+import com.fabric.batch.entity.ManualJobConfigEntity;
+import com.fabric.batch.repository.ManualJobConfigRepository;
+import com.fabric.batch.service.ManualJobConfigService.ConfigurationStatistics;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;

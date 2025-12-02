@@ -1,4 +1,4 @@
-package com.truist.batch.entity;
+package com.fabric.batch.entity;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

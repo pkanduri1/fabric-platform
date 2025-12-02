@@ -1,4 +1,4 @@
-package com.truist.batch.reader;
+package com.fabric.batch.reader;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -14,8 +14,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.batch.item.ExecutionContext;
 import org.springframework.batch.item.ItemStreamReader;
 
-import com.truist.batch.adapter.DataSourceAdapterRegistry;
-import com.truist.batch.model.FileConfig;
+import com.fabric.batch.adapter.DataSourceAdapterRegistry;
+import com.fabric.batch.model.FileConfig;
 
 @ExtendWith(MockitoExtension.class)
 class GenericReaderTest {

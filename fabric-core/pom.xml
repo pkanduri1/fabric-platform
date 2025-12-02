@@ -11,7 +11,7 @@
 		<relativePath />
 	</parent>
 	
-	<groupId>com.truist</groupId>
+	<groupId>com.fabric</groupId>
 	<artifactId>fabric-core</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<packaging>pom</packaging>
@@ -35,22 +35,22 @@
 		<dependencies>
 			<!-- Internal module dependencies -->
 			<dependency>
-				<groupId>com.truist</groupId>
+				<groupId>com.fabric</groupId>
 				<artifactId>fabric-utils</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 			<dependency>
-				<groupId>com.truist</groupId>
+				<groupId>com.fabric</groupId>
 				<artifactId>fabric-data-loader</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 			<dependency>
-				<groupId>com.truist</groupId>
+				<groupId>com.fabric</groupId>
 				<artifactId>fabric-batch</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 			<dependency>
-				<groupId>com.truist</groupId>
+				<groupId>com.fabric</groupId>
 				<artifactId>fabric-api</artifactId>
 				<version>${project.version}</version>
 			</dependency>

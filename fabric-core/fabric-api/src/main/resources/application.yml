@@ -136,8 +136,8 @@ springdoc:
 # Logging Configuration
 logging:
   level:
-    com.truist.batch: INFO
-    com.truist.batch.masterquery: DEBUG
+    com.fabric.batch: INFO
+    com.fabric.batch.masterquery: DEBUG
     org.springframework.web.socket: DEBUG
     org.springframework.security: INFO
     liquibase: INFO
@@ -186,8 +186,8 @@ spring:
 
 logging:
   level:
-    com.truist.batch: DEBUG
-    com.truist.batch.masterquery: TRACE
+    com.fabric.batch: DEBUG
+    com.fabric.batch.masterquery: TRACE
 
 ---
 # Test Profile  
@@ -228,8 +228,8 @@ spring:
 
 logging:
   level:
-    com.truist.batch: WARN
-    com.truist.batch.masterquery: INFO
+    com.fabric.batch: WARN
+    com.fabric.batch.masterquery: INFO
 
 fabric:
   monitoring:
@@ -281,6 +281,6 @@ spring:
 
 logging:
   level:
-    com.truist.batch: DEBUG
+    com.fabric.batch: DEBUG
     org.springframework.jdbc: DEBUG
     oracle.jdbc: DEBUG

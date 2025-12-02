@@ -1,6 +1,6 @@
-package com.truist.batch.qa.execution;
+package com.fabric.batch.qa.execution;
 
-import com.truist.batch.qa.domain.*;
+import com.fabric.batch.qa.domain.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.JdbcTemplate;

@@ -1,4 +1,4 @@
-package com.truist.batch.processor;
+package com.fabric.batch.processor;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -14,10 +14,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import com.truist.batch.mapping.YamlMappingService;
-import com.truist.batch.model.FieldMapping;
-import com.truist.batch.model.FileConfig;
-import com.truist.batch.model.YamlMapping;
+import com.fabric.batch.mapping.YamlMappingService;
+import com.fabric.batch.model.FieldMapping;
+import com.fabric.batch.model.FileConfig;
+import com.fabric.batch.model.YamlMapping;
 
 // Assume FileConfig, GenericProcessor, and mappingService are available in the test context.
 

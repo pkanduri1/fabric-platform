@@ -1,6 +1,6 @@
-package com.truist.batch.qa.core;
+package com.fabric.batch.qa.core;
 
-import com.truist.batch.qa.domain.*;
+import com.fabric.batch.qa.domain.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 

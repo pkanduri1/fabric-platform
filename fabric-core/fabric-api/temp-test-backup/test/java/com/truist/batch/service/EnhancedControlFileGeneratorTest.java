@@ -1,4 +1,4 @@
-package com.truist.batch.service;
+package com.fabric.batch.service;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

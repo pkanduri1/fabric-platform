@@ -1,4 +1,4 @@
-package com.truist.batch.config;
+package com.fabric.batch.config;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;

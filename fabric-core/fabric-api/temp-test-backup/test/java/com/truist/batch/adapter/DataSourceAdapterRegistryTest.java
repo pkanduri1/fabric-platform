@@ -1,4 +1,4 @@
-package com.truist.batch.adapter;
+package com.fabric.batch.adapter;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -12,7 +12,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import com.truist.batch.model.FileConfig;
+import com.fabric.batch.model.FileConfig;
 
 @ExtendWith(MockitoExtension.class)
 class DataSourceAdapterRegistryTest {

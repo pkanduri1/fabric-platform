@@ -1,4 +1,4 @@
-package com.truist.batch.qa.domain;
+package com.fabric.batch.qa.domain;
 
 import lombok.Builder;
 import lombok.Data;

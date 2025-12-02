@@ -1,10 +1,10 @@
-package com.truist.batch.integration;
+package com.fabric.batch.integration;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.truist.batch.model.FieldMapping;
-import com.truist.batch.model.FieldMappingConfig;
-import com.truist.batch.service.YamlFileService;
-import com.truist.batch.service.ConfigurationService;
+import com.fabric.batch.model.FieldMapping;
+import com.fabric.batch.model.FieldMappingConfig;
+import com.fabric.batch.service.YamlFileService;
+import com.fabric.batch.service.ConfigurationService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
