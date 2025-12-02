@@ -313,9 +313,9 @@ fabric:
 # Logging configuration for master query operations
 logging:
   level:
-    com.truist.batch.controller.MasterQueryController: INFO
-    com.truist.batch.service.MasterQueryService: INFO
-    com.truist.batch.service.MasterQueryValidationService: DEBUG
+    com.fabric.batch.controller.MasterQueryController: INFO
+    com.fabric.batch.service.MasterQueryService: INFO
+    com.fabric.batch.service.MasterQueryValidationService: DEBUG
     AUDIT.MasterQueryManagement: INFO
   
   pattern:

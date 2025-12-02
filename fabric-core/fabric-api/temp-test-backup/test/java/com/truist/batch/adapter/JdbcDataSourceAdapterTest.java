@@ -1,4 +1,4 @@
-package com.truist.batch.adapter;
+package com.fabric.batch.adapter;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -19,7 +19,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.batch.item.ItemReader;
 
-import com.truist.batch.model.FileConfig;
+import com.fabric.batch.model.FileConfig;
 
 @ExtendWith(MockitoExtension.class)
 class JdbcDataSourceAdapterTest {

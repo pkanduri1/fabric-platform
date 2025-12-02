@@ -1,11 +1,11 @@
-package com.truist.batch.integration;
+package com.fabric.batch.integration;
 
-import com.truist.batch.mapping.YamlMappingService;
-import com.truist.batch.model.FieldMapping;
-import com.truist.batch.model.YamlMapping;
-import com.truist.batch.model.FieldMappingConfig;
-import com.truist.batch.model.ValidationResult;
-import com.truist.batch.service.YamlGenerationService;
+import com.fabric.batch.mapping.YamlMappingService;
+import com.fabric.batch.model.FieldMapping;
+import com.fabric.batch.model.YamlMapping;
+import com.fabric.batch.model.FieldMappingConfig;
+import com.fabric.batch.model.ValidationResult;
+import com.fabric.batch.service.YamlGenerationService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import lombok.extern.slf4j.Slf4j;

@@ -1,4 +1,4 @@
-package com.truist.batch.mapping;
+package com.fabric.batch.mapping;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -12,9 +12,9 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
-import com.truist.batch.mapping.YamlMappingService;
-import com.truist.batch.model.FieldMapping;
-import com.truist.batch.model.YamlMapping;
+import com.fabric.batch.mapping.YamlMappingService;
+import com.fabric.batch.model.FieldMapping;
+import com.fabric.batch.model.YamlMapping;
 
 /**
  * Integration test to verify that the real p327.yml mapping file

@@ -1,7 +1,7 @@
-package com.truist.batch.config;
+package com.fabric.batch.config;
 
-import com.truist.batch.security.websocket.SecurityHandshakeInterceptor;
-import com.truist.batch.websocket.handler.EnterpriseWebSocketHandler;
+import com.fabric.batch.security.websocket.SecurityHandshakeInterceptor;
+import com.fabric.batch.websocket.handler.EnterpriseWebSocketHandler;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

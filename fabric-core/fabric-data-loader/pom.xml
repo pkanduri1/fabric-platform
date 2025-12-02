@@ -5,7 +5,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	
 	<parent>
-		<groupId>com.truist</groupId>
+		<groupId>com.fabric</groupId>
 		<artifactId>fabric-core</artifactId>
 		<version>0.0.1-SNAPSHOT</version>
 	</parent>
@@ -17,7 +17,7 @@
 	<dependencies>
 		<!-- Internal dependency -->
 		<dependency>
-			<groupId>com.truist</groupId>
+			<groupId>com.fabric</groupId>
 			<artifactId>fabric-utils</artifactId>
 		</dependency>
 		

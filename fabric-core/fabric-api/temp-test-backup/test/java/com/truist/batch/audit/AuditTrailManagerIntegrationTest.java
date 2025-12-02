@@ -1,4 +1,4 @@
-package com.truist.batch.audit;
+package com.fabric.batch.audit;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;

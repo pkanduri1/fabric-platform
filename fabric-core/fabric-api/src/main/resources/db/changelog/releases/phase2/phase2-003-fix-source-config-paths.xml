@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.9.xsd">
+
+    <!--
+    =========================================================================
+    PHASE 2: FIX SOURCE_CONFIG BASE PATHS
+    =========================================================================
+
+    Document Control:
+    - Changeset: phase2-003-fix-source-config-paths
+    - Author: Senior Full Stack Developer Agent
+    - Date: 2025-11-23
+    - Classification: INTERNAL - BANKING CONFIDENTIAL
+
+    Purpose:
+    - Fix SOURCE_CONFIG paths to use base paths without source suffix
+    - Database should contain base paths (/data/output)
+    - YAML configs append source-specific paths (/hr)
+    - Final resolved path: /data/output/hr
+
+    Rationale:
+    - Original implementation incorrectly used full paths in database
+    - YAML configs were appending source suffix causing duplication
+    - This fix ensures proper path construction
+
+    =========================================================================
+    -->
+
+    <!-- Fix HR configuration paths -->
+    <changeSet id="phase2-003-fix-hr-config-paths" author="Senior Full Stack Developer Agent" context="development,test,staging,production">
+        <comment>Update HR configuration to use base paths without /hr suffix</comment>
+
+        <update tableName="SOURCE_CONFIG" schemaName="CM3INT">
+            <column name="CONFIG_VALUE" value="/data/output"/>
+            <column name="MODIFIED_DATE" valueComputed="CURRENT_TIMESTAMP"/>
+            <column name="MODIFIED_BY" value="system"/>
+            <where>SOURCE_CODE = 'HR' AND CONFIG_KEY = 'batch.defaults.outputBasePath'</where>
+        </update>
+
+        <update tableName="SOURCE_CONFIG" schemaName="CM3INT">
+            <column name="CONFIG_VALUE" value="/data/input"/>
+            <column name="MODIFIED_DATE" valueComputed="CURRENT_TIMESTAMP"/>
+            <column name="MODIFIED_BY" value="system"/>
+            <where>SOURCE_CODE = 'HR' AND CONFIG_KEY = 'batch.defaults.inputBasePath'</where>
+        </update>
+
+        <update tableName="SOURCE_CONFIG" schemaName="CM3INT">
+            <column name="CONFIG_VALUE" value="/data/archive"/>
+            <column name="MODIFIED_DATE" valueComputed="CURRENT_TIMESTAMP"/>
+            <column name="MODIFIED_BY" value="system"/>
+            <where>SOURCE_CODE = 'HR' AND CONFIG_KEY = 'batch.defaults.archivePath'</where>
+        </update>
+
+        <rollback>
+            <update tableName="SOURCE_CONFIG" schemaName="CM3INT">
+                <column name="CONFIG_VALUE" value="/data/output/hr"/>
+                <where>SOURCE_CODE = 'HR' AND CONFIG_KEY = 'batch.defaults.outputBasePath'</where>
+            </update>
+            <update tableName="SOURCE_CONFIG" schemaName="CM3INT">
+                <column name="CONFIG_VALUE" value="/data/input/hr"/>
+                <where>SOURCE_CODE = 'HR' AND CONFIG_KEY = 'batch.defaults.inputBasePath'</where>
+            </update>
+            <update tableName="SOURCE_CONFIG" schemaName="CM3INT">
+                <column name="CONFIG_VALUE" value="/data/archive/hr"/>
+                <where>SOURCE_CODE = 'HR' AND CONFIG_KEY = 'batch.defaults.archivePath'</where>
+            </update>
+        </rollback>
+    </changeSet>
+
+    <!-- Fix ENCORE configuration paths -->
+    <changeSet id="phase2-003-fix-encore-config-paths" author="Senior Full Stack Developer Agent" context="development,test,staging,production">
+        <comment>Update ENCORE configuration to use base paths without /encore suffix</comment>
+
+        <update tableName="SOURCE_CONFIG" schemaName="CM3INT">
+            <column name="CONFIG_VALUE" value="/data/output"/>
+            <column name="MODIFIED_DATE" valueComputed="CURRENT_TIMESTAMP"/>
+            <column name="MODIFIED_BY" value="system"/>
+            <where>SOURCE_CODE = 'ENCORE' AND CONFIG_KEY = 'batch.defaults.outputBasePath'</where>
+        </update>
+
+        <update tableName="SOURCE_CONFIG" schemaName="CM3INT">
+            <column name="CONFIG_VALUE" value="/data/input"/>
+            <column name="MODIFIED_DATE" valueComputed="CURRENT_TIMESTAMP"/>
+            <column name="MODIFIED_BY" value="system"/>
+            <where>SOURCE_CODE = 'ENCORE' AND CONFIG_KEY = 'batch.defaults.inputBasePath'</where>
+        </update>
+
+        <update tableName="SOURCE_CONFIG" schemaName="CM3INT">
+            <column name="CONFIG_VALUE" value="/data/archive"/>
+            <column name="MODIFIED_DATE" valueComputed="CURRENT_TIMESTAMP"/>
+            <column name="MODIFIED_BY" value="system"/>
+            <where>SOURCE_CODE = 'ENCORE' AND CONFIG_KEY = 'batch.defaults.archivePath'</where>
+        </update>
+
+        <update tableName="SOURCE_CONFIG" schemaName="CM3INT">
+            <column name="CONFIG_VALUE" value="/data/error"/>
+            <column name="MODIFIED_DATE" valueComputed="CURRENT_TIMESTAMP"/>
+            <column name="MODIFIED_BY" value="system"/>
+            <where>SOURCE_CODE = 'ENCORE' AND CONFIG_KEY = 'batch.defaults.errorPath'</where>
+        </update>
+
+        <rollback>
+            <update tableName="SOURCE_CONFIG" schemaName="CM3INT">
+                <column name="CONFIG_VALUE" value="/data/output/encore"/>
+                <where>SOURCE_CODE = 'ENCORE' AND CONFIG_KEY = 'batch.defaults.outputBasePath'</where>
+            </update>
+            <update tableName="SOURCE_CONFIG" schemaName="CM3INT">
+                <column name="CONFIG_VALUE" value="/data/input/encore"/>
+                <where>SOURCE_CODE = 'ENCORE' AND CONFIG_KEY = 'batch.defaults.inputBasePath'</where>
+            </update>
+            <update tableName="SOURCE_CONFIG" schemaName="CM3INT">
+                <column name="CONFIG_VALUE" value="/data/archive/encore"/>
+                <where>SOURCE_CODE = 'ENCORE' AND CONFIG_KEY = 'batch.defaults.archivePath'</where>
+            </update>
+            <update tableName="SOURCE_CONFIG" schemaName="CM3INT">
+                <column name="CONFIG_VALUE" value="/data/error/encore"/>
+                <where>SOURCE_CODE = 'ENCORE' AND CONFIG_KEY = 'batch.defaults.errorPath'</where>
+            </update>
+        </rollback>
+    </changeSet>
+
+    <!-- Fix PAYROLL configuration paths -->
+    <changeSet id="phase2-003-fix-payroll-config-paths" author="Senior Full Stack Developer Agent" context="development,test,staging,production">
+        <comment>Update PAYROLL configuration to use base paths without /payroll suffix</comment>
+
+        <update tableName="SOURCE_CONFIG" schemaName="CM3INT">
+            <column name="CONFIG_VALUE" value="/data/output"/>
+            <column name="MODIFIED_DATE" valueComputed="CURRENT_TIMESTAMP"/>
+            <column name="MODIFIED_BY" value="system"/>
+            <where>SOURCE_CODE = 'PAYROLL' AND CONFIG_KEY = 'batch.defaults.outputBasePath'</where>
+        </update>
+
+        <update tableName="SOURCE_CONFIG" schemaName="CM3INT">
+            <column name="CONFIG_VALUE" value="/data/input"/>
+            <column name="MODIFIED_DATE" valueComputed="CURRENT_TIMESTAMP"/>
+            <column name="MODIFIED_BY" value="system"/>
+            <where>SOURCE_CODE = 'PAYROLL' AND CONFIG_KEY = 'batch.defaults.inputBasePath'</where>
+        </update>
+
+        <rollback>
+            <update tableName="SOURCE_CONFIG" schemaName="CM3INT">
+                <column name="CONFIG_VALUE" value="/data/output/payroll"/>
+                <where>SOURCE_CODE = 'PAYROLL' AND CONFIG_KEY = 'batch.defaults.outputBasePath'</where>
+            </update>
+            <update tableName="SOURCE_CONFIG" schemaName="CM3INT">
+                <column name="CONFIG_VALUE" value="/data/input/payroll"/>
+                <where>SOURCE_CODE = 'PAYROLL' AND CONFIG_KEY = 'batch.defaults.inputBasePath'</where>
+            </update>
+        </rollback>
+    </changeSet>
+
+    <!-- Database Tagging for Release Management -->
+    <changeSet id="tag-phase2-003-source-config-paths-fixed" author="Senior Full Stack Developer Agent" context="development,test,staging,production">
+        <comment>Release tag for Phase 2-003 Source Config Path Fix - Base paths without source suffix</comment>
+        <sql>SELECT 'Phase 2-003 Source Config Paths Fixed' AS release_tag FROM DUAL</sql>
+    </changeSet>
+
+</databaseChangeLog>

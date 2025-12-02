@@ -1,4 +1,4 @@
-package com.truist.batch.reader;
+package com.fabric.batch.reader;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -15,8 +15,8 @@ import org.springframework.batch.item.ExecutionContext;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.annotation.DirtiesContext;
 
-import com.truist.batch.model.FileConfig;
-import com.truist.batch.reader.JdbcRecordReader;
+import com.fabric.batch.model.FileConfig;
+import com.fabric.batch.reader.JdbcRecordReader;
 
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 public class JdbcRecordReaderIntegrationTest {

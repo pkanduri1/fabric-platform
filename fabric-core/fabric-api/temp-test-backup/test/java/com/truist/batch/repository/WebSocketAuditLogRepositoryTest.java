@@ -1,6 +1,6 @@
-package com.truist.batch.repository;
+package com.fabric.batch.repository;
 
-import com.truist.batch.entity.WebSocketAuditLogEntity;
+import com.fabric.batch.entity.WebSocketAuditLogEntity;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;

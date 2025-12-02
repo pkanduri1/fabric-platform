@@ -1,4 +1,4 @@
-package com.truist.batch.adapter;
+package com.fabric.batch.adapter;
 
 import org.junit.jupiter.api.Test;
 import java.util.List;

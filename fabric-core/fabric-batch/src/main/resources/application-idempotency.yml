@@ -232,7 +232,7 @@ management:
 # Logging configuration
 logging:
   level:
-    com.truist.batch.idempotency: ${fabric.idempotency.development.log-level:INFO}
+    com.fabric.batch.idempotency: ${fabric.idempotency.development.log-level:INFO}
     org.springframework.batch: WARN
     org.springframework.cache: WARN
   pattern:

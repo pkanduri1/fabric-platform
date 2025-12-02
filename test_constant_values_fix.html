@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Constant Values Bug Fix Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background-color: #f5f5f5; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        .test-section { 
+            background: white; 
+            margin: 20px 0; 
+            padding: 20px; 
+            border-radius: 8px; 
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .test-header { 
+            font-size: 1.5em; 
+            color: #333; 
+            border-bottom: 2px solid #007bff; 
+            padding-bottom: 10px; 
+            margin-bottom: 15px;
+        }
+        .test-step { 
+            margin: 15px 0; 
+            padding: 12px; 
+            border-left: 4px solid #007bff; 
+            background-color: #f8f9fa;
+        }
+        .expected { 
+            background-color: #d4edda; 
+            border-left-color: #28a745;
+            color: #155724;
+        }
+        .critical { 
+            background-color: #f8d7da; 
+            border-left-color: #dc3545;
+            color: #721c24;
+        }
+        .code { 
+            background-color: #e9ecef; 
+            padding: 8px; 
+            border-radius: 4px; 
+            font-family: 'Courier New', monospace;
+            margin: 8px 0;
+        }
+        .status { 
+            padding: 8px 16px; 
+            border-radius: 20px; 
+            font-weight: bold; 
+            display: inline-block; 
+            margin: 5px;
+        }
+        .status.pass { background-color: #d4edda; color: #155724; }
+        .status.fail { background-color: #f8d7da; color: #721c24; }
+        .status.pending { background-color: #fff3cd; color: #856404; }
+        .fix-summary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        .template-test {
+            border: 1px solid #dee2e6;
+            margin: 15px 0;
+            border-radius: 5px;
+        }
+        .template-header {
+            background-color: #f8f9fa;
+            padding: 10px 15px;
+            font-weight: bold;
+            border-bottom: 1px solid #dee2e6;
+        }
+        .field-mapping {
+            padding: 8px 15px;
+            border-bottom: 1px solid #f1f1f1;
+            font-size: 0.9em;
+        }
+        .field-mapping:last-child {
+            border-bottom: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 Constant Values Bug Fix Test Report</h1>
+        <p><strong>Date:</strong> August 25, 2025</p>
+        <p><strong>Issue:</strong> ALL templates with constant values are being saved as "source" transformation type with null values</p>
+        
+        <div class="fix-summary">
+            <h2>🚀 COMPREHENSIVE FIX IMPLEMENTED</h2>
+            <p><strong>Problem:</strong> The generateConfiguration function was not properly handling constant transformation types from the UI form.</p>
+            <p><strong>Root Cause:</strong> Field mapping logic was overriding user-selected transformation types and not preserving constant values.</p>
+            <p><strong>Solution:</strong> Enhanced the UI-to-backend data flow with proper constant value preservation and comprehensive logging.</p>
+        </div>
+
+        <div class="test-section">
+            <div class="test-header">🎯 Critical Bug Fixes Applied</div>
+            
+            <div class="test-step expected">
+                <strong>✅ Fix #1: Enhanced generateConfiguration Function (Lines 681-740)</strong>
+                <div class="code">
+                // CRITICAL FIX: Proper constant value handling
+                if (userTransformationType === 'constant') {
+                    finalValue = userCustomization?.value || userCustomization?.defaultValue || '';
+                    finalSourceField = null; // Backend expects null, not empty string
+                    console.log(`✅ CONSTANT field processing: ${fieldMapping.fieldName}`, {
+                        finalValue, finalSourceField, userValue: userCustomization?.value
+                    });
+                }
+                </div>
+            </div>
+
+            <div class="test-step expected">
+                <strong>✅ Fix #2: Backend Payload Mapping (Lines 760-791)</strong>
+                <div class="code">
+                fieldMappings: finalConfiguration.fields.map((field) => {
+                    const mapping = {
+                        transformationType: field.transformationType, // Preserve 'constant'
+                        value: field.value, // Preserve constant values like "100020", "900"
+                        sourceField: field.sourceField || null // null for constants
+                    };
+                    // Critical validation for constant fields
+                    if (mapping.transformationType === 'constant' && (!mapping.value || mapping.value === '')) {
+                        console.warn(`⚠️ WARNING: Constant field ${field.fieldName} has empty value!`);
+                    }
+                    return mapping;
+                })
+                </div>
+            </div>
+
+            <div class="test-step expected">
+                <strong>✅ Fix #3: UI Constant Value Input (Lines 1703-1725)</strong>
+                <div class="code">
+                {field.transformationType === 'constant' && (
+                    &lt;TextField
+                        placeholder="Enter constant value (e.g., 100020, 900)"
+                        value={field.value || field.defaultValue || ''}
+                        onChange={(e) => {
+                            updated[index].value = e.target.value;
+                            updated[index].defaultValue = e.target.value; // Preserve in both fields
+                            console.log(`🔧 Constant value updated for ${field.fieldName}`);
+                        }}
+                        label="Constant Value"
+                        helperText="Fixed value for all records"
+                    /&gt;
+                )}
+                </div>
+            </div>
+
+            <div class="test-step expected">
+                <strong>✅ Fix #4: Transformation Type Switching (Lines 554-600)</strong>
+                <div class="code">
+                else if (transformationType === 'constant') {
+                    const currentValue = updated[fieldIndex].value || updated[fieldIndex].defaultValue || '';
+                    updated[fieldIndex].value = currentValue;
+                    updated[fieldIndex].defaultValue = currentValue;
+                    updated[fieldIndex].sourceField = ''; // Clear source field
+                    console.log(`🔧 Switched to CONSTANT mode for field: ${updated[fieldIndex].fieldName}`);
+                }
+                </div>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <div class="test-header">🧪 Test Scenarios - All Templates</div>
+            
+            <div class="template-test">
+                <div class="template-header">SHAW atoctran-900 Template</div>
+                <div class="field-mapping">
+                    <strong>location-code:</strong> Should save as 
+                    <span class="code">transformationType="constant", value="100020", sourceField=null</span>
+                    <span class="status pending">NEEDS TEST</span>
+                </div>
+                <div class="field-mapping">
+                    <strong>transaction-type:</strong> Should save as 
+                    <span class="code">transformationType="constant", value="900", sourceField=null</span>
+                    <span class="status pending">NEEDS TEST</span>
+                </div>
+            </div>
+
+            <div class="template-test">
+                <div class="template-header">ENCORE atoctran-900 Template</div>
+                <div class="field-mapping">
+                    <strong>location-code:</strong> Should save as 
+                    <span class="code">transformationType="constant", value="100020", sourceField=null</span>
+                    <span class="status pending">NEEDS TEST</span>
+                </div>
+                <div class="field-mapping">
+                    <strong>transaction-type:</strong> Should save as 
+                    <span class="code">transformationType="constant", value="900", sourceField=null</span>
+                    <span class="status pending">NEEDS TEST</span>
+                </div>
+            </div>
+
+            <div class="template-test">
+                <div class="template-header">MTG atoctran-200 Template</div>
+                <div class="field-mapping">
+                    <strong>location-code:</strong> Should save as 
+                    <span class="code">transformationType="constant", value="100020", sourceField=null</span>
+                    <span class="status pending">NEEDS TEST</span>
+                </div>
+                <div class="field-mapping">
+                    <strong>transaction-type:</strong> Should save as 
+                    <span class="code">transformationType="constant", value="200", sourceField=null</span>
+                    <span class="status pending">NEEDS TEST</span>
+                </div>
+            </div>
+
+            <div class="template-test">
+                <div class="template-header">HR atoctran-200 Template</div>
+                <div class="field-mapping">
+                    <strong>location-code:</strong> Should save as 
+                    <span class="code">transformationType="constant", value="100020", sourceField=null</span>
+                    <span class="status pending">NEEDS TEST</span>
+                </div>
+                <div class="field-mapping">
+                    <strong>transaction-type:</strong> Should save as 
+                    <span class="code">transformationType="constant", value="200", sourceField=null</span>
+                    <span class="status pending">NEEDS TEST</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <div class="test-header">📋 Testing Instructions</div>
+            
+            <div class="test-step">
+                <strong>Step 1: Open Template Configuration</strong>
+                <br>Navigate to <code>http://localhost:3000</code> → Template Configuration
+            </div>
+            
+            <div class="test-step">
+                <strong>Step 2: Select SHAW atoctran-900 Template</strong>
+                <br>File Type: <code>atoctran</code>, Transaction Type: <code>900</code>, Source System: <code>SHAW</code>
+            </div>
+            
+            <div class="test-step">
+                <strong>Step 3: Configure Constant Fields</strong>
+                <br>For <code>location-code</code>:
+                <ul>
+                    <li>Set Transformation Type: <strong>Constant</strong></li>
+                    <li>Set Constant Value: <strong>100020</strong></li>
+                </ul>
+                For <code>transaction-type</code>:
+                <ul>
+                    <li>Set Transformation Type: <strong>Constant</strong></li>
+                    <li>Set Constant Value: <strong>900</strong></li>
+                </ul>
+            </div>
+            
+            <div class="test-step critical">
+                <strong>Step 4: Monitor Browser Console</strong>
+                <br>Look for these log messages:
+                <div class="code">
+                🔧 Constant value updated for location-code: {value: "100020", defaultValue: "100020"}<br>
+                🔧 Constant value updated for transaction-type: {value: "900", defaultValue: "900"}<br>
+                ✅ CONSTANT field processing: location-code {finalValue: "100020", finalSourceField: null}<br>
+                ✅ CONSTANT field processing: transaction-type {finalValue: "900", finalSourceField: null}<br>
+                📤 Backend mapping for location-code: {transformationType: "constant", value: "100020", sourceField: null}
+                </div>
+            </div>
+            
+            <div class="test-step">
+                <strong>Step 5: Save Configuration</strong>
+                <br>Click "Save Field Mappings" and verify success message
+            </div>
+            
+            <div class="test-step expected">
+                <strong>Step 6: Verify Database Save</strong>
+                <br>Expected JSON in FIELD_MAPPINGS table:
+                <div class="code">
+                {
+                  "fieldName": "location-code",
+                  "transformationType": "constant",
+                  "value": "100020",
+                  "sourceField": null
+                },
+                {
+                  "fieldName": "transaction-type", 
+                  "transformationType": "constant",
+                  "value": "900",
+                  "sourceField": null
+                }
+                </div>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <div class="test-header">🚨 Critical Validation Points</div>
+            
+            <div class="test-step critical">
+                <strong>BEFORE FIX (Broken Behavior):</strong>
+                <div class="code">
+                {
+                  "transformationType": "source",
+                  "value": null,
+                  "sourceField": "location_code" // WRONG - should be null for constants
+                }
+                </div>
+            </div>
+            
+            <div class="test-step expected">
+                <strong>AFTER FIX (Expected Behavior):</strong>
+                <div class="code">
+                {
+                  "transformationType": "constant",
+                  "value": "100020", // CORRECT - actual constant value
+                  "sourceField": null // CORRECT - null for constants
+                }
+                </div>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <div class="test-header">🔍 Additional Debugging</div>
+            
+            <div class="test-step">
+                <strong>Console Logging Added:</strong>
+                <ul>
+                    <li><code>🔧 Constant value updated for {fieldName}</code> - UI form updates</li>
+                    <li><code>✅ CONSTANT field processing</code> - generateConfiguration processing</li>
+                    <li><code>📤 Backend mapping for {fieldName}</code> - Data sent to backend</li>
+                    <li><code>⚠️ WARNING: Constant field has empty value</code> - Validation warnings</li>
+                </ul>
+            </div>
+            
+            <div class="test-step">
+                <strong>Backend Logs to Monitor:</strong>
+                <br>Check Spring Boot console for field mapping save operations
+            </div>
+        </div>
+
+        <div class="fix-summary">
+            <h3>🎯 FIX SUMMARY</h3>
+            <p><strong>Files Modified:</strong></p>
+            <ul>
+                <li><code>TemplateConfigurationPage.tsx</code> - Complete data flow fix</li>
+            </ul>
+            <p><strong>Key Changes:</strong></p>
+            <ul>
+                <li>Enhanced constant value preservation in generateConfiguration</li>
+                <li>Fixed backend payload mapping for constant fields</li>
+                <li>Improved UI constant value input handling</li>
+                <li>Added comprehensive logging for debugging</li>
+                <li>Fixed transformation type switching logic</li>
+            </ul>
+            <p><strong>Expected Outcome:</strong> ALL constant values should now save correctly as transformationType="constant" with proper values.</p>
+        </div>
+    </div>
+
+    <script>
+        // Auto-refresh status updates
+        console.log('🧪 Constant Values Bug Fix Test Report loaded');
+        console.log('📋 Follow the testing instructions above to verify the fix');
+        console.log('🔍 Monitor browser console for debug messages during testing');
+        
+        // Add timestamp
+        document.querySelector('h1').innerHTML += ' - ' + new Date().toLocaleString();
+    </script>
+</body>
+</html>

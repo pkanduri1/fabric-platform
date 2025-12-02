@@ -1,4 +1,4 @@
-package com.truist.batch;
+package com.fabric.batch;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;

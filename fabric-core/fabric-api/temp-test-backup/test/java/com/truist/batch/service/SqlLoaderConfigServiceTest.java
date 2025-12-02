@@ -1,7 +1,7 @@
-package com.truist.batch.service;
+package com.fabric.batch.service;
 
-import com.truist.batch.dto.*;
-import com.truist.batch.service.impl.SqlLoaderConfigServiceImpl;
+import com.fabric.batch.dto.*;
+import com.fabric.batch.service.impl.SqlLoaderConfigServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

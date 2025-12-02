@@ -1,4 +1,4 @@
-package com.truist.batch.liquibase;
+package com.fabric.batch.liquibase;
 
 import liquibase.Liquibase;
 import liquibase.database.Database;

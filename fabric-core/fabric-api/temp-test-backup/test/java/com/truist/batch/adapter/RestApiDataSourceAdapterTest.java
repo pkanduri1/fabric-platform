@@ -1,4 +1,4 @@
-package com.truist.batch.adapter;
+package com.fabric.batch.adapter;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -9,7 +9,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.batch.item.ItemReader;
 
-import com.truist.batch.model.FileConfig;
+import com.fabric.batch.model.FileConfig;
 
 class RestApiDataSourceAdapterTest {
 

@@ -1,0 +1,25 @@
+batch:
+  sources:
+    HR:
+      inputBasePath:  ${batch.defaults.inputBasePath}/hr
+      outputBasePath: ${batch.defaults.outputBasePath}/hr
+      stagingSchema:  ${batch.defaults.stagingSchema}
+      destSchema:     ${batch.defaults.destSchema}
+
+      jobs:
+        atoctran:
+          files:
+            # Transaction type 200 - HR Account Contact Transactions
+            - transactionType: 200
+              template:     atoctran-200/HR/atoctran-200.yml
+              target:       cm3int.shaw_master_table
+              params:
+                format:         jdbc
+                batchDateParam: batch_date
+                batchDateValue: ${batch.defaults.batchDateValue}
+                outputPath:     ${batch.defaults.outputBasePath}/hr/HR_atoctran_200.txt
+                fetchSize:      "500"
+                pageSize:       "1000"
+                query: >
+                  SELECT acct_num, batch_date, cci, contact_id
+                  FROM cm3int.shaw_master_table

@@ -1,4 +1,4 @@
-package com.truist.batch.writer;
+package com.fabric.batch.writer;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -18,11 +18,11 @@ import static org.mockito.Mockito.when;
 import org.springframework.batch.item.Chunk;
 import org.springframework.batch.item.ExecutionContext;
 
-import com.truist.batch.mapping.YamlMappingService;
-import com.truist.batch.model.FieldMapping;
-import com.truist.batch.model.FileConfig;
-import com.truist.batch.model.YamlMapping;
-import com.truist.batch.writer.GenericWriter;
+import com.fabric.batch.mapping.YamlMappingService;
+import com.fabric.batch.model.FieldMapping;
+import com.fabric.batch.model.FileConfig;
+import com.fabric.batch.model.YamlMapping;
+import com.fabric.batch.writer.GenericWriter;
 
 class GenericWriterTest {
 

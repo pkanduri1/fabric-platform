@@ -1,4 +1,4 @@
-package com.truist.batch.adapter;
+package com.fabric.batch.adapter;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -16,8 +16,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.batch.item.ExecutionContext;
 import org.springframework.jdbc.core.JdbcTemplate;
 
-import com.truist.batch.model.FileConfig;
-import com.truist.batch.reader.GenericReader;
+import com.fabric.batch.model.FileConfig;
+import com.fabric.batch.reader.GenericReader;
 
 /**
  * Integration test that verifies the complete adapter architecture works end-to-end.

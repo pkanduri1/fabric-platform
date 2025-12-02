@@ -1,0 +1,6 @@
+{
+    "timestamp": "2025-08-29T06:28:08.716+00:00",
+    "status": 500,
+    "error": "Internal Server Error",
+    "path": "/admin/templates/atoctran/900/create-config"
+}

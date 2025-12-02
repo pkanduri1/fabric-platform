@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="
+        http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <!--
+    =========================================================================
+    US001-011: BATCH_STEP_AUDIT TABLE
+    =========================================================================
+
+    Purpose: Create BATCH_STEP_AUDIT table for tracking batch step execution metrics
+    Author: Senior Full Stack Developer Agent
+    Date: 2025-11-22
+    Context: development,test,staging,production
+
+    This table is used by GenericStepListener to record step-level metrics
+    for batch job execution monitoring and audit purposes.
+    =========================================================================
+    -->
+
+    <changeSet id="us001-011-01-batch-step-audit-table" author="Senior Full Stack Developer Agent" context="development,test,staging,production">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="BATCH_STEP_AUDIT"/>
+            </not>
+        </preConditions>
+        <comment>Create BATCH_STEP_AUDIT table for batch step execution metrics</comment>
+        <createTable tableName="BATCH_STEP_AUDIT">
+            <column name="AUDIT_ID" type="NUMBER(19)">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="JOB_NAME" type="VARCHAR2(100)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="STEP_NAME" type="VARCHAR2(100)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="PARTITION_KEY" type="VARCHAR2(100)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="READ_COUNT" type="NUMBER(10)" defaultValue="0">
+                <constraints nullable="true"/>
+            </column>
+            <column name="WRITE_COUNT" type="NUMBER(10)" defaultValue="0">
+                <constraints nullable="true"/>
+            </column>
+            <column name="SKIP_COUNT" type="NUMBER(10)" defaultValue="0">
+                <constraints nullable="true"/>
+            </column>
+            <column name="COMMIT_COUNT" type="NUMBER(10)" defaultValue="0">
+                <constraints nullable="true"/>
+            </column>
+            <column name="START_TIME" type="TIMESTAMP">
+                <constraints nullable="true"/>
+            </column>
+            <column name="END_TIME" type="TIMESTAMP">
+                <constraints nullable="true"/>
+            </column>
+            <column name="CREATED_AT" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="us001-011-02-batch-step-audit-sequence" author="Senior Full Stack Developer Agent" context="development,test,staging,production">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <sequenceExists sequenceName="BATCH_STEP_AUDIT_SEQ"/>
+            </not>
+        </preConditions>
+        <comment>Create sequence for BATCH_STEP_AUDIT primary key</comment>
+        <createSequence sequenceName="BATCH_STEP_AUDIT_SEQ" startValue="1" incrementBy="1"/>
+    </changeSet>
+
+    <changeSet id="us001-011-03-batch-step-audit-indexes" author="Senior Full Stack Developer Agent" context="development,test,staging,production">
+        <comment>Create performance indexes for BATCH_STEP_AUDIT table</comment>
+        <createIndex tableName="BATCH_STEP_AUDIT" indexName="IDX_BATCH_AUDIT_JOB">
+            <column name="JOB_NAME"/>
+        </createIndex>
+        <createIndex tableName="BATCH_STEP_AUDIT" indexName="IDX_BATCH_AUDIT_STEP">
+            <column name="STEP_NAME"/>
+        </createIndex>
+        <createIndex tableName="BATCH_STEP_AUDIT" indexName="IDX_BATCH_AUDIT_CREATED">
+            <column name="CREATED_AT"/>
+        </createIndex>
+    </changeSet>
+
+    <!-- Database Tagging -->
+    <changeSet id="tag-batch-step-audit-v1.0" author="Senior Full Stack Developer Agent" context="development,test,staging,production">
+        <comment>Release tag for BATCH_STEP_AUDIT Table v1.0 - Batch step execution metrics tracking</comment>
+        <sql>SELECT 'BATCH_STEP_AUDIT Table v1.0 Complete' AS release_tag FROM DUAL</sql>
+    </changeSet>
+
+</databaseChangeLog>

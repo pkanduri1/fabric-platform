@@ -1,4 +1,4 @@
-package com.truist.batch.liquibase;
+package com.fabric.batch.liquibase;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

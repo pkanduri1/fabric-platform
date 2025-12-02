@@ -1,4 +1,4 @@
-package com.truist.batch.reader;
+package com.fabric.batch.reader;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -12,7 +12,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.batch.item.ExecutionContext;
 
-import com.truist.batch.model.FileConfig;
+import com.fabric.batch.model.FileConfig;
 
 @ExtendWith(MockitoExtension.class)
 class RestApiReaderTest {
