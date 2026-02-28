@@ -23,6 +23,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
+import java.time.Duration;
 import java.util.*;
 import java.util.regex.Pattern;
 
@@ -67,9 +68,11 @@ public class DataLoadOrchestrator {
         
         String correlationId = null;
         String jobExecutionId = UUID.randomUUID().toString();
+        Map<String, Long> phaseStartMs = new HashMap<>();
         
         try {
             // 1. Load configuration
+            phaseStart(phaseStartMs, "load_configuration", result, correlationId, jobExecutionId);
             log.debug("Step 1: Loading configuration for {}", configId);
             Optional<DataLoadConfigEntity> configOpt = configurationService.getConfiguration(configId);
             if (configOpt.isEmpty()) {
@@ -78,13 +81,16 @@ public class DataLoadOrchestrator {
             
             DataLoadConfigEntity config = configOpt.get();
             result.setConfiguration(config);
+            phaseEnd(phaseStartMs, "load_configuration", result, correlationId, jobExecutionId);
             
             // 2. Initialize audit trail
+            phaseStart(phaseStartMs, "initialize_audit", result, correlationId, jobExecutionId);
             log.debug("Step 2: Initializing audit trail");
             correlationId = auditTrailManager.auditDataLoadStart(
                 configId, jobExecutionId, fileName, 
                 config.getSourceSystem(), config.getTargetTable());
             result.setCorrelationId(correlationId);
+            phaseEnd(phaseStartMs, "initialize_audit", result, correlationId, jobExecutionId);
             
             // 3. Create processing job record
             log.debug("Step 3: Creating processing job record");
@@ -110,10 +116,12 @@ public class DataLoadOrchestrator {
             result.setValidationRulesCount(validationRules.size());
             
             // 6. Process file with validation
+            phaseStart(phaseStartMs, "validation", result, correlationId, jobExecutionId);
             log.debug("Step 6: Processing file with validation");
             FileProcessingResult processingResult = processFileWithValidation(
                 config, validationRules, filePath, correlationId);
             result.setProcessingResult(processingResult);
+            phaseEnd(phaseStartMs, "validation", result, correlationId, jobExecutionId);
             
             // 7. Check error thresholds
             log.debug("Step 7: Checking error thresholds");
@@ -123,9 +131,11 @@ public class DataLoadOrchestrator {
             
             // 8. Execute SQL*Loader if validation passed and threshold not exceeded
             if (!thresholdCheck.isThresholdExceeded() && processingResult.canProceedToLoad()) {
+                phaseStart(phaseStartMs, "loader", result, correlationId, jobExecutionId);
                 log.debug("Step 8: Executing SQL*Loader");
                 SqlLoaderResult loaderResult = executeSqlLoader(config, filePath, correlationId);
                 result.setLoaderResult(loaderResult);
+                phaseEnd(phaseStartMs, "loader", result, correlationId, jobExecutionId);
                 
                 // 9. Post-load validation if configured
                 if ("Y".equals(config.getPostLoadValidation())) {
@@ -144,6 +154,7 @@ public class DataLoadOrchestrator {
             
             result.setSuccess(true);
             result.setEndTime(LocalDateTime.now());
+            writeRunSummary(result, correlationId, jobExecutionId);
             
             log.info("Data load execution completed successfully - Config: {}, Correlation: {}", 
                 configId, correlationId);
@@ -154,6 +165,7 @@ public class DataLoadOrchestrator {
             result.setSuccess(false);
             result.setErrorMessage(e.getMessage());
             result.setEndTime(LocalDateTime.now());
+            writeRunSummary(result, correlationId, jobExecutionId);
             
             // Audit error event
             if (correlationId != null) {
@@ -458,6 +470,53 @@ public class DataLoadOrchestrator {
         return out;
     }
 
+    private void phaseStart(Map<String, Long> phaseStartMs, String phase, DataLoadResult result,
+                            String correlationId, String jobExecutionId) {
+        phaseStartMs.put(phase, System.currentTimeMillis());
+        log.info("batch_phase_start phase={} correlationId={} jobExecutionId={}", phase, correlationId, jobExecutionId);
+    }
+
+    private void phaseEnd(Map<String, Long> phaseStartMs, String phase, DataLoadResult result,
+                          String correlationId, String jobExecutionId) {
+        Long started = phaseStartMs.get(phase);
+        if (started == null) return;
+        long tookMs = System.currentTimeMillis() - started;
+        result.getPhaseTimingsMs().put(phase, tookMs);
+        log.info("batch_phase_end phase={} tookMs={} correlationId={} jobExecutionId={}",
+                phase, tookMs, correlationId, jobExecutionId);
+    }
+
+    private void writeRunSummary(DataLoadResult result, String correlationId, String jobExecutionId) {
+        try {
+            Path outDir = Paths.get(System.getProperty("java.io.tmpdir"), "fabric-batch-run-summaries");
+            Files.createDirectories(outDir);
+            Path out = outDir.resolve(jobExecutionId + ".summary.txt");
+
+            StringBuilder sb = new StringBuilder();
+            sb.append("jobExecutionId=").append(jobExecutionId).append("\n");
+            sb.append("correlationId=").append(correlationId).append("\n");
+            sb.append("configId=").append(result.getConfigId()).append("\n");
+            sb.append("success=").append(result.isSuccess()).append("\n");
+            sb.append("totalRecords=").append(result.getTotalRecords()).append("\n");
+            sb.append("successfulRecords=").append(result.getSuccessfulRecords()).append("\n");
+            sb.append("failedRecords=").append(result.getFailedRecords()).append("\n");
+            sb.append("durationMs=").append(result.getDurationMs()).append("\n");
+            sb.append("phaseTimingsMs=").append(result.getPhaseTimingsMs()).append("\n");
+            if (result.getLoaderResult() != null) {
+                sb.append("loaderReturnCode=").append(result.getLoaderResult().getReturnCode()).append("\n");
+                sb.append("loaderRejectedRecords=").append(result.getLoaderResult().getRejectedRecords()).append("\n");
+                sb.append("loaderExecutionTimeMs=").append(result.getLoaderResult().getExecutionTimeMs()).append("\n");
+            }
+            Files.writeString(out, sb.toString());
+            result.setRunSummaryPath(out.toString());
+
+            log.info("batch_run_summary_written path={} correlationId={} jobExecutionId={}",
+                    out, correlationId, jobExecutionId);
+        } catch (Exception ex) {
+            log.warn("Could not write run summary for job {}: {}", jobExecutionId, ex.getMessage());
+        }
+    }
+
     /**
      * Validate file access.
      */
@@ -509,6 +568,8 @@ public class DataLoadOrchestrator {
         private SqlLoaderResult loaderResult;
         private boolean skippedLoad;
         private String skipReason;
+        private Map<String, Long> phaseTimingsMs = new LinkedHashMap<>();
+        private String runSummaryPath;
         
         public long getDurationMs() {
             if (startTime != null && endTime != null) {
