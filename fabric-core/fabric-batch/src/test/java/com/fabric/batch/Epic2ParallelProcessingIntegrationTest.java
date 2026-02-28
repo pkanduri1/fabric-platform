@@ -307,7 +307,7 @@ public class Epic2ParallelProcessingIntegrationTest {
                         .executionId(TEST_EXECUTION_ID + "_" + i)
                         .success(i % 10 != 0) // 10% failure rate
                         .processingTimeMs(100 + (i % 500)) // Variable processing times
-                        .hasValidationErrors(i % 20 == 0) // 5% validation errors
+                        .validationErrors(i % 20 == 0) // 5% validation errors
                         .transactionType("TEST_TYPE")
                         .build())
                 .toList();
@@ -442,7 +442,7 @@ public class Epic2ParallelProcessingIntegrationTest {
         log.info("   ✨ Success Rate: {:.2f}%", (double) totalProcessed / LOAD_TEST_RECORD_COUNT * 100);
         
         // Performance assertions
-        assertThat(totalProcessed).isGreaterThan(LOAD_TEST_RECORD_COUNT * 0.95); // 95% success rate minimum
+        assertThat(totalProcessed).isGreaterThan((long) (LOAD_TEST_RECORD_COUNT * 0.95)); // 95% success rate minimum
         assertThat(throughputPerSecond).isGreaterThan(100); // Minimum 100 records/second
         assertThat(totalDurationMs).isLessThan(480000); // Maximum 8 minutes
         
@@ -596,17 +596,18 @@ public class Epic2ParallelProcessingIntegrationTest {
                     List<Map<String, Object>> processedRecords = createTestRecords(recordsPerPartition);
                     List<Map<String, Object>> errorRecords = new ArrayList<>();
                     
+                    TransactionResultMerger.PartitionMetrics metrics = new TransactionResultMerger.PartitionMetrics();
+                    metrics.setRecordsProcessed(recordsPerPartition);
+                    metrics.setErrors(0);
+                    metrics.setProcessingTimeMs(1000L);
+                    metrics.setThroughputPerSecond(recordsPerPartition / 1.0);
+
                     return TransactionResultMerger.PartitionResult.builder()
                             .partitionId("partition_" + partitionId)
                             .executionId(TEST_EXECUTION_ID)
                             .processedRecords(processedRecords)
                             .errorRecords(errorRecords)
-                            .metrics(TransactionResultMerger.PartitionMetrics.builder()
-                                    .recordsProcessed(recordsPerPartition)
-                                    .errors(0)
-                                    .processingTimeMs(1000L)
-                                    .throughputPerSecond(recordsPerPartition / 1.0)
-                                    .build())
+                            .metrics(metrics)
                             .build();
                 })
                 .toList();

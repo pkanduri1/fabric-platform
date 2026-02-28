@@ -93,7 +93,7 @@ class IdempotencyServiceTest {
     @Test
     @Order(1)
     @DisplayName("Should create new idempotency record when no existing record")
-    void shouldCreateNewIdempotencyRecord_WhenNoExistingRecord() {
+    void shouldCreateNewIdempotencyRecord_WhenNoExistingRecord() throws Exception {
         // Given
         when(configService.isIdempotencyEnabled(ConfigType.BATCH_JOB, TEST_JOB_NAME)).thenReturn(true);
         when(keyGenerator.generateKey(testRequest)).thenReturn(TEST_IDEMPOTENCY_KEY);
@@ -127,7 +127,7 @@ class IdempotencyServiceTest {
     @Test
     @Order(2)
     @DisplayName("Should return cached result when request already completed")
-    void shouldReturnCachedResult_WhenRequestAlreadyCompleted() {
+    void shouldReturnCachedResult_WhenRequestAlreadyCompleted() throws Exception {
         // Given
         when(configService.isIdempotencyEnabled(ConfigType.BATCH_JOB, TEST_JOB_NAME)).thenReturn(true);
         when(keyGenerator.generateKey(testRequest)).thenReturn(TEST_IDEMPOTENCY_KEY);
@@ -188,7 +188,7 @@ class IdempotencyServiceTest {
     @Test
     @Order(4)
     @DisplayName("Should retry failed request when retry count below max")
-    void shouldRetryFailedRequest_WhenRetryCountBelowMax() {
+    void shouldRetryFailedRequest_WhenRetryCountBelowMax() throws Exception {
         // Given
         when(configService.isIdempotencyEnabled(ConfigType.BATCH_JOB, TEST_JOB_NAME)).thenReturn(true);
         when(keyGenerator.generateKey(testRequest)).thenReturn(TEST_IDEMPOTENCY_KEY);
@@ -280,7 +280,7 @@ class IdempotencyServiceTest {
     @Test
     @Order(7)
     @DisplayName("Should handle optimistic locking failure gracefully")
-    void shouldHandleOptimisticLockingFailure_Gracefully() {
+    void shouldHandleOptimisticLockingFailure_Gracefully() throws Exception {
         // Given
         when(configService.isIdempotencyEnabled(ConfigType.BATCH_JOB, TEST_JOB_NAME)).thenReturn(true);
         when(keyGenerator.generateKey(testRequest)).thenReturn(TEST_IDEMPOTENCY_KEY);
@@ -341,7 +341,7 @@ class IdempotencyServiceTest {
     @Test
     @Order(9)
     @DisplayName("Should complete within performance threshold")
-    void shouldCompleteWithinPerformanceThreshold() {
+    void shouldCompleteWithinPerformanceThreshold() throws Exception {
         // Given
         when(configService.isIdempotencyEnabled(ConfigType.BATCH_JOB, TEST_JOB_NAME)).thenReturn(true);
         when(keyGenerator.generateKey(testRequest)).thenReturn(TEST_IDEMPOTENCY_KEY);
@@ -377,7 +377,7 @@ class IdempotencyServiceTest {
     @Test
     @Order(10)
     @DisplayName("Should handle API endpoint idempotency correctly")
-    void shouldHandleApiEndpointIdempotency_Correctly() {
+    void shouldHandleApiEndpointIdempotency_Correctly() throws Exception {
         // Given
         when(configService.isIdempotencyEnabled(ConfigType.API_ENDPOINT, TEST_JOB_NAME)).thenReturn(true);
         when(keyGenerator.generateKey(testRequest)).thenReturn(TEST_IDEMPOTENCY_KEY);
