@@ -95,6 +95,14 @@ public class DataLoadOrchestrator {
             // 4. Validate file exists and is readable
             log.debug("Step 4: Validating file access");
             validateFileAccess(filePath);
+
+            // 4b. SQL*Loader pre-flight validation (config/table/file shape)
+            log.debug("Step 4b: Running pre-flight validation");
+            PreFlightCheckResult preFlight = runPreFlightChecks(config, filePath);
+            result.setPreFlightCheck(preFlight);
+            if (!preFlight.isPassed()) {
+                throw new IOException("Pre-flight validation failed: " + preFlight.getSummary());
+            }
             
             // 5. Load validation rules
             log.debug("Step 5: Loading validation rules");
@@ -384,6 +392,73 @@ public class DataLoadOrchestrator {
     }
     
     /**
+     * SQL*Loader pre-flight checks (config/table/file shape).
+     */
+    private PreFlightCheckResult runPreFlightChecks(DataLoadConfigEntity config, String filePath) {
+        PreFlightCheckResult out = new PreFlightCheckResult();
+
+        // Config checks
+        if (config.getTargetTable() == null || config.getTargetTable().trim().isEmpty()) {
+            out.addError("Target table is missing in configuration");
+        }
+        if (config.getFieldDelimiter() == null || config.getFieldDelimiter().isEmpty()) {
+            out.addError("Field delimiter is missing in configuration");
+        }
+        if (config.getHeaderRows() != null && config.getHeaderRows() < 0) {
+            out.addError("Header rows cannot be negative");
+        }
+
+        // Table shape sanity (minimal gate; prevents malformed SQL*Loader table targets)
+        if (config.getTargetTable() != null &&
+                !config.getTargetTable().matches("^[A-Za-z][A-Za-z0-9_$.]{0,127}$")) {
+            out.addError("Target table name has invalid format: " + config.getTargetTable());
+        }
+
+        // File shape checks
+        try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
+            int headerRows = config.getHeaderRows() != null ? config.getHeaderRows() : 1;
+            String delimiter = config.getFieldDelimiter() != null ? config.getFieldDelimiter() : "|";
+            String line;
+            int lineNo = 0;
+            int expectedColumns = -1;
+            int checkedRows = 0;
+
+            while ((line = reader.readLine()) != null && checkedRows < 200) {
+                lineNo++;
+                if (lineNo <= headerRows) {
+                    continue;
+                }
+                if (line.trim().isEmpty()) {
+                    continue;
+                }
+
+                int cols = line.split(Pattern.quote(delimiter), -1).length;
+                if (expectedColumns < 0) {
+                    expectedColumns = cols;
+                } else if (cols != expectedColumns) {
+                    out.addError("Inconsistent column count at line " + lineNo +
+                            " (expected " + expectedColumns + ", got " + cols + ")");
+                    break;
+                }
+                checkedRows++;
+            }
+
+            if (checkedRows == 0) {
+                out.addError("No data rows found after header rows");
+            }
+        } catch (Exception e) {
+            out.addError("Pre-flight file shape check failed: " + e.getMessage());
+        }
+
+        if (!out.getErrors().isEmpty()) {
+            out.addRemediation("Verify delimiter/header settings in configuration and source file shape");
+            out.addRemediation("Confirm target table name is valid and mapped for this config");
+        }
+
+        return out;
+    }
+
+    /**
      * Validate file access.
      */
     private void validateFileAccess(String filePath) throws IOException {
@@ -428,6 +503,7 @@ public class DataLoadOrchestrator {
         private String errorMessage;
         private DataLoadConfigEntity configuration;
         private int validationRulesCount;
+        private PreFlightCheckResult preFlightCheck;
         private FileProcessingResult processingResult;
         private ErrorThresholdManager.ThresholdCheckResult thresholdCheck;
         private SqlLoaderResult loaderResult;
@@ -454,6 +530,37 @@ public class DataLoadOrchestrator {
         }
     }
     
+    /**
+     * Pre-flight validation result.
+     */
+    @Data
+    public static class PreFlightCheckResult {
+        private boolean passed = true;
+        private List<String> errors = new ArrayList<>();
+        private List<String> remediationHints = new ArrayList<>();
+
+        public void addError(String err) {
+            if (err != null && !err.isBlank()) {
+                errors.add(err);
+                passed = false;
+            }
+        }
+
+        public void addRemediation(String hint) {
+            if (hint != null && !hint.isBlank()) {
+                remediationHints.add(hint);
+            }
+        }
+
+        public String getSummary() {
+            if (errors.isEmpty()) {
+                return "PASSED";
+            }
+            return String.join("; ", errors) +
+                    (remediationHints.isEmpty() ? "" : " | remediation: " + String.join("; ", remediationHints));
+        }
+    }
+
     /**
      * File processing result.
      */
