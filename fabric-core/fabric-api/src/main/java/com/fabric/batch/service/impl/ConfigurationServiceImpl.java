@@ -11,6 +11,7 @@ import com.fabric.batch.dao.TemplateMasterQueryMappingDao;
 import com.fabric.batch.model.BatchConfiguration;
 import com.fabric.batch.model.ConfigurationAudit;
 import com.fabric.batch.service.ConfigurationService;
+import com.fabric.batch.service.ConfigContractValidator;
 import com.fabric.batch.service.YamlGenerationService;
 import com.fabric.batch.model.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -48,6 +49,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
     private final TemplateSourceMappingRepository templateSourceMappingRepository;
     private final SourceSystemRepository sourceSystemRepository;
     private final YamlGenerationService yamlGenerationService;
+    private final ConfigContractValidator configContractValidator;
     private final ObjectMapper objectMapper;
 
     @Value("${batch.yaml.output.basePath:src/main/resources}")
@@ -179,7 +181,8 @@ public class ConfigurationServiceImpl implements ConfigurationService {
             config.setFieldMappings(new ArrayList<>());
             config.setLastModified(LocalDateTime.now());
             config.setVersion(1);
-            
+            config.setContractVersion(ConfigContractValidator.CURRENT_CONTRACT_VERSION);
+
             return config;
             
         } catch (Exception e) {
@@ -194,6 +197,11 @@ public class ConfigurationServiceImpl implements ConfigurationService {
         log.info("💾 Saving configuration for {}/{}", config.getSourceSystem(), config.getJobName());
 
         try {
+            // Ensure contract version is always explicit for persisted configs
+            if (config.getContractVersion() == null || config.getContractVersion().isBlank()) {
+                config.setContractVersion(ConfigContractValidator.CURRENT_CONTRACT_VERSION);
+            }
+
             // 1. Validate configuration before saving
             ValidationResult validation = validateConfiguration(config);
             if (!validation.isValid()) {
@@ -241,6 +249,9 @@ public class ConfigurationServiceImpl implements ConfigurationService {
 
         // Use YamlGenerationService validation
         ValidationResult yamlValidation = yamlGenerationService.validateForYamlGeneration(config);
+
+        // Config contract validation gate
+        configContractValidator.validateForSave(config, yamlValidation);
 
         // Additional business logic validation
         validateBusinessRules(config, yamlValidation);
