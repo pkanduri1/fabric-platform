@@ -44,6 +44,7 @@ public class GenericJobConfig extends org.springframework.batch.core.configurati
 	// private final PlatformTransactionManager transactionManager; // Removed:
 	// Provided by superclass
 	private final BatchJobProperties config;
+	private final BatchPerformanceProperties perfProps;
 	private final GenericJobListener jobListener;
 	private final GenericStepListener stepListener;
 	private final TaskExecutor taskExecutor;
@@ -108,7 +109,7 @@ public class GenericJobConfig extends org.springframework.batch.core.configurati
 			return new StepBuilder(jobName + "PartitionStep", jobRepository())
 					.partitioner("workerStep", partitioner) // ← String reference
 					.step(createWorkerStep(jobName)) // ← Method call, not bean
-					.gridSize(config.getGridSize())
+					.gridSize(perfProps.getGridSize())
 					.taskExecutor(taskExecutor)
 					.build();
 
@@ -126,7 +127,7 @@ public class GenericJobConfig extends org.springframework.batch.core.configurati
 		String stepName = jobName + "WorkerStep";
 
 		return new StepBuilder(stepName, jobRepository())
-				.<Map<String, Object>, Map<String, Object>>chunk(config.getChunkSize(), getTransactionManager())
+				.<Map<String, Object>, Map<String, Object>>chunk(perfProps.getChunkSize(), getTransactionManager())
 				.reader(genericReader(null)) // These ARE beans and @StepScope
 				.processor(genericProcessor(null)) // These ARE beans and @StepScope
 				.writer(genericWriter(null)) // These ARE beans and @StepScope
