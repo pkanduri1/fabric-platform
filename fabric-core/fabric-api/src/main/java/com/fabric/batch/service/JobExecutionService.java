@@ -73,7 +73,6 @@ public class JobExecutionService {
     private final ManualJobConfigRepository configRepository;
     private final ManualJobExecutionRepository executionRepository;
     private final MasterQueryRepository masterQueryRepository;
-    private final ConfigContractValidator configContractValidator;
 
     // Batch module service for actual execution (Phase 2 architectural separation)
     private final ManualBatchExecutionService batchExecutionService;
@@ -330,10 +329,7 @@ public class JobExecutionService {
         if (!config.isValidConfiguration()) {
             throw new IllegalStateException("Job configuration is invalid: " + config.getConfigId());
         }
-
-        // Contract version compatibility gate
-        configContractValidator.validateForExecution(config.getJobParameters());
-
+        
         // Environment-specific validation
         if ("PRODUCTION".equals(request.getEnvironment()) && "CRITICAL".equals(request.getPriority())) {
             log.warn("High-risk production execution requested for config: {}", config.getConfigId());

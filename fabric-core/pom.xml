@@ -22,8 +22,6 @@
 		<java.version>17</java.version>
 		<resilience4j.version>2.2.0</resilience4j.version>
 		<wiremock.version>3.0.1</wiremock.version>
-		<!-- Required for Mockito/ByteBuddy compatibility on newer JDKs (e.g., JDK 25 hosts) -->
-		<test.jvm.args>-Dnet.bytebuddy.experimental=true</test.jvm.args>
 	</properties>
 	
 	<modules>
@@ -89,13 +87,6 @@
 								<artifactId>lombok</artifactId>
 							</path>
 						</annotationProcessorPaths>
-					</configuration>
-				</plugin>
-				<plugin>
-					<groupId>org.apache.maven.plugins</groupId>
-					<artifactId>maven-surefire-plugin</artifactId>
-					<configuration>
-						<argLine>${test.jvm.args}</argLine>
 					</configuration>
 				</plugin>
 			</plugins>

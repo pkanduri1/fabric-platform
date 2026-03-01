@@ -226,18 +226,6 @@ spring:
   liquibase:
     enabled: false
 
-# Production performance overrides
-batch:
-  performance:
-    chunk-size: 500
-    grid-size: 8
-    thread-pool:
-      core-size: 8
-      max-size: 20
-      queue-capacity: 200
-    sqlldr:
-      parallel-degree: 4
-
 logging:
   level:
     com.fabric.batch: WARN
@@ -290,45 +278,6 @@ spring:
   # Disable Spring Batch auto-configuration
   batch:
     initialize-schema: never
-
-# ── Performance Tuning (Issue #9) ──────────────────────────
-batch:
-  performance:
-    chunk-size: 100
-    grid-size: 4
-    thread-pool:
-      core-size: 4
-      max-size: 10
-      queue-capacity: 100
-      thread-name-prefix: batch-
-      await-termination-seconds: 60
-    sqlldr:
-      parallel-degree: 1
-      bind-size: 256000
-      read-size: 1048576
-      timeout-minutes: 60
-      max-retries: 3
-      retry-delay-seconds: 10
-    profiling:
-      jfr-enabled: false
-      jfr-duration: 300s
-      jfr-output-path: ./data/benchmark/jfr/
-  guardrails:
-    memory-usage:
-      threshold: 85
-      mode: WARN
-    step-duration:
-      threshold: 600000
-      mode: FAIL
-    chunk-throughput:
-      threshold: 50
-      mode: WARN
-    error-rate:
-      threshold: 5
-      mode: FAIL
-    connection-pool-saturation:
-      threshold: 90
-      mode: WARN
 
 logging:
   level:

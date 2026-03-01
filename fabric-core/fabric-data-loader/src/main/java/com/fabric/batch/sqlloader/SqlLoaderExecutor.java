@@ -40,27 +40,10 @@ public class SqlLoaderExecutor {
     
     @Value("${sqlloader.retry.delay.seconds:10}")
     private int retryDelaySeconds;
-
-    @Value("${sqlloader.artifact.root.dir:${java.io.tmpdir}/fabric-sqlloader-artifacts}")
-    private String artifactRootDir;
-
-    @Value("${sqlloader.reject.policy:FAIL_FAST}")
-    private String rejectPolicy;
-
-    @Value("${sqlloader.reject.max.count:0}")
-    private long rejectMaxCount;
-
-    @Value("${sqlloader.reject.max.percent:0.0}")
-    private double rejectMaxPercent;
     
     private static final Pattern RECORD_COUNT_PATTERN = Pattern.compile("Total logical records skipped:\\s*(\\d+)");
     private static final Pattern ERROR_COUNT_PATTERN = Pattern.compile("Total logical records rejected:\\s*(\\d+)");
     private static final Pattern LOAD_COUNT_PATTERN = Pattern.compile("Total logical records read:\\s*(\\d+)");
-
-    private enum RejectPolicy {
-        FAIL_FAST,
-        TOLERATE
-    }
     
     /**
      * Execute data loading with configuration, file name, and file path.
@@ -115,9 +98,6 @@ public class SqlLoaderExecutor {
         result.setStartTime(LocalDateTime.now());
         
         try {
-            // Prepare deterministic artifact paths
-            prepareArtifactPaths(config, result);
-
             // Generate control file
             ControlFileGenerator generator = new ControlFileGenerator();
             Path controlFile = generator.generateControlFile(config);
@@ -153,12 +133,9 @@ public class SqlLoaderExecutor {
             if (result.getLogFilePath() != null) {
                 parseLogFile(result);
             }
-
-            // Enforce reject threshold policy (fail-fast vs tolerate)
-            applyRejectThresholdPolicy(result);
             
             log.info("SQL*Loader execution completed for job: {} - Success: {}, Duration: {}ms", 
-                    config.getJobName(), result.isSuccessful(), result.getDurationMs());
+                    config.getJobName(), success, result.getDurationMs());
             
         } catch (Exception e) {
             log.error("Fatal error during SQL*Loader execution for job: {}", config.getJobName(), e);
@@ -216,11 +193,11 @@ public class SqlLoaderExecutor {
         result.setReturnCode(exitCode);
         result.setExecutionOutput(output.toString());
         
-        // Set file paths based on explicit deterministic paths (fallback to control file base)
+        // Set file paths based on control file location
         String baseFileName = controlFile.toString().replaceAll("\\.ctl$", "");
-        result.setLogFilePath(config.getLogFileName() != null ? config.getLogFileName() : baseFileName + ".log");
-        result.setBadFilePath(config.getBadFileName() != null ? config.getBadFileName() : baseFileName + ".bad");
-        result.setDiscardFilePath(config.getDiscardFileName() != null ? config.getDiscardFileName() : baseFileName + ".dsc");
+        result.setLogFilePath(baseFileName + ".log");
+        result.setBadFilePath(baseFileName + ".bad");
+        result.setDiscardFilePath(baseFileName + ".dsc");
         
         log.info("SQL*Loader completed with exit code: {} for job: {}", exitCode, config.getJobName());
         
@@ -301,32 +278,27 @@ public class SqlLoaderExecutor {
     private boolean analyzeSqlLoaderExitCode(int exitCode, SqlLoaderResult result) {
         switch (exitCode) {
             case 0:
-                result.setExecutionStatus("COMPLETED");
+                result.setExecutionStatus("SUCCESS");
                 return true;
             case 1:
-                result.setExecutionStatus("COMPLETED_WITH_WARNINGS");
+                result.setExecutionStatus("SUCCESS_WITH_WARNINGS");
                 result.addWarning("SQL*Loader completed with warnings");
-                addRemediationHint(result, "Review .log/.bad/.dsc artifacts for rejected rows");
-                return true; // warnings are acceptable before threshold policy evaluation
+                return true; // Consider warnings as success
             case 2:
-                result.setExecutionStatus("FAILED_REJECTED_ROWS");
+                result.setExecutionStatus("FAILED");
                 result.addError("All or some rows rejected");
-                addRemediationHint(result, "Inspect SQL*Loader bad/discard files and field mapping/control file definitions");
                 return false;
             case 3:
-                result.setExecutionStatus("FAILED_FATAL");
+                result.setExecutionStatus("FAILED");
                 result.addError("Fatal error occurred");
-                addRemediationHint(result, "Check SQL*Loader log for ORA-/SQL*Loader-* fatal errors and DB/session connectivity");
                 return false;
             case 4:
-                result.setExecutionStatus("FAILED_RESOURCE");
+                result.setExecutionStatus("FAILED");
                 result.addError("Unable to allocate memory for data structures");
-                addRemediationHint(result, "Reduce bind/read sizes or increase host resources for sqlldr process");
                 return false;
             default:
-                result.setExecutionStatus("FAILED_UNKNOWN");
+                result.setExecutionStatus("FAILED");
                 result.addError("Unknown exit code: " + exitCode);
-                addRemediationHint(result, "Validate sqlldr invocation and environment configuration");
                 return false;
         }
     }
@@ -397,71 +369,6 @@ public class SqlLoaderExecutor {
         }
     }
     
-    private void prepareArtifactPaths(SqlLoaderConfig config, SqlLoaderResult result) throws IOException {
-        String runKey = sanitize((config.getJobName() != null ? config.getJobName() : "job") + "_" +
-                (config.getCorrelationId() != null ? config.getCorrelationId() : String.valueOf(System.currentTimeMillis())));
-        Path runDir = Paths.get(artifactRootDir, runKey);
-        Files.createDirectories(runDir);
-
-        String base = runKey;
-        config.setControlFileName(base + ".ctl");
-        config.setLogFileName(runDir.resolve(base + ".log").toString());
-        config.setBadFileName(runDir.resolve(base + ".bad").toString());
-        config.setDiscardFileName(runDir.resolve(base + ".dsc").toString());
-
-        // ControlFileGenerator reads this system property when composing control path
-        System.setProperty("sqlloader.control.dir", runDir.toString());
-
-        result.setLogFilePath(config.getLogFileName());
-        result.setBadFilePath(config.getBadFileName());
-        result.setDiscardFilePath(config.getDiscardFileName());
-        result.addMetadata("artifactRunDir", runDir.toString());
-    }
-
-    private void applyRejectThresholdPolicy(SqlLoaderResult result) {
-        long rejected = result.getRejectedRecords() != null ? result.getRejectedRecords() : 0L;
-        long total = result.getTotalRecords() != null ? result.getTotalRecords() : 0L;
-        double rejectedPct = total > 0 ? (rejected * 100.0) / total : 0.0;
-
-        boolean exceeded = (rejectMaxCount > 0 && rejected > rejectMaxCount)
-                || (rejectMaxPercent > 0 && rejectedPct > rejectMaxPercent);
-
-        RejectPolicy policy;
-        try {
-            policy = RejectPolicy.valueOf(rejectPolicy == null ? "FAIL_FAST" : rejectPolicy.trim().toUpperCase());
-        } catch (Exception e) {
-            policy = RejectPolicy.FAIL_FAST;
-        }
-
-        if (!exceeded) {
-            return;
-        }
-
-        String thresholdMsg = String.format("Reject threshold exceeded (rejected=%d, total=%d, rejectedPct=%.2f, maxCount=%d, maxPct=%.2f)",
-                rejected, total, rejectedPct, rejectMaxCount, rejectMaxPercent);
-
-        if (policy == RejectPolicy.FAIL_FAST) {
-            result.setSuccessful(false);
-            result.setExecutionStatus("FAILED_REJECT_THRESHOLD");
-            result.addError(thresholdMsg);
-            addRemediationHint(result, "Switch to TOLERATE mode or adjust reject thresholds for partial-load runs");
-        } else {
-            result.setExecutionStatus("COMPLETED_WITH_REJECTIONS");
-            result.addWarning(thresholdMsg);
-            addRemediationHint(result, "Review rejected records and remediation logs before downstream release");
-        }
-    }
-
-    private void addRemediationHint(SqlLoaderResult result, String hint) {
-        if (hint != null && !hint.isBlank()) {
-            result.addWarning("REMEDIATION: " + hint);
-        }
-    }
-
-    private String sanitize(String value) {
-        return value == null ? "run" : value.replaceAll("[^A-Za-z0-9._-]", "_");
-    }
-
     /**
      * Validate SQL*Loader environment and configuration.
      */

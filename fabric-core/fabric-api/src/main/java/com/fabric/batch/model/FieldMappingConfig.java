@@ -74,12 +74,6 @@ public class FieldMappingConfig {
     private boolean active = true;
     
     /**
-     * Configuration contract version used for compatibility checks.
-     * Example: 1.0, 1.1
-     */
-    private String contractVersion;
-
-    /**
      * The version of this configuration.
      */
     private int version;

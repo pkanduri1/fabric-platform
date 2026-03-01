@@ -8,7 +8,6 @@ import com.fabric.batch.repository.BatchConfigurationRepository;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
@@ -18,9 +17,10 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -51,18 +51,6 @@ public class ManualBatchExecutionService {
     private static final int MAX_RECORDS_PER_EXECUTION = 10000;
     private static final String OUTPUT_DIRECTORY = "/tmp/";
 
-    @Value("${batch.execution.retry.maxAttempts:3}")
-    private int maxRetryAttempts;
-
-    @Value("${batch.execution.retry.backoffMs:500}")
-    private long retryBackoffMs;
-
-    @Value("${batch.execution.checkpoint.interval:100}")
-    private int checkpointInterval;
-
-    @Value("${batch.execution.state.dir:/tmp/fabric-batch-state}")
-    private String executionStateDir;
-
     /**
      * Execute a batch job with the given configuration and parameters
      *
@@ -86,17 +74,6 @@ public class ManualBatchExecutionService {
         try {
             log.info("Starting batch execution: {}", executionId);
 
-            // Idempotent rerun guard: if completion marker exists, return existing result
-            if (isAlreadyCompleted(executionId)) {
-                String existingOutput = getOutputPathFromCompletion(executionId);
-                result.setStatus("COMPLETED");
-                result.setOutputFilePath(existingOutput);
-                result.setOutputFileSize(getFileSize(existingOutput));
-                result.setEndTime(LocalDateTime.now());
-                log.info("Execution {} already completed earlier; returning cached completion", executionId);
-                return result;
-            }
-
             // 1. Load batch configuration from BATCH_CONFIGURATIONS table
             BatchConfigurationEntity config = batchConfigRepository.findById(batchConfigId)
                     .orElseThrow(() -> new RuntimeException("Batch configuration not found: " + batchConfigId));
@@ -114,12 +91,8 @@ public class ManualBatchExecutionService {
 
             log.info("Loaded {} field mappings for config: {}", fieldMappings.size(), batchConfigId);
 
-            // 3. Execute master query with retry policy
-            List<Map<String, Object>> sourceData = withRetry(
-                    () -> executeMasterQuery(masterQuerySql, executionParameters),
-                    "master-query",
-                    executionId
-            );
+            // 3. Execute master query with parameters
+            List<Map<String, Object>> sourceData = executeMasterQuery(masterQuerySql, executionParameters);
 
             log.info("Master query returned {} records", sourceData.size());
 
@@ -130,34 +103,27 @@ public class ManualBatchExecutionService {
                 sourceData = sourceData.subList(0, MAX_RECORDS_PER_EXECUTION);
             }
 
-            // 5. Generate output file with retry + checkpoint/restart support
-            final List<Map<String, Object>> executionData = sourceData;
-            OutputGenerationResult output = withRetry(
-                    () -> generateOutputFile(
-                            executionData,
-                            fieldMappings,
-                            config.getJobName(),
-                            executionId
-                    ),
-                    "output-generation",
+            // 5. Generate output file with Phase 2 transformations
+            String outputFilePath = generateOutputFile(
+                    sourceData,
+                    fieldMappings,
+                    config.getJobName(),
                     executionId
             );
 
             // 6. Calculate metrics
-            long fileSize = getFileSize(output.getOutputFilePath());
+            long fileSize = getFileSize(outputFilePath);
 
-            result.setRecordsProcessed(output.getRecordsProcessed());
-            result.setRecordsSuccess(output.getRecordsProcessed() - output.getRecordsError());
-            result.setRecordsError(output.getRecordsError());
-            result.setOutputFilePath(output.getOutputFilePath());
+            result.setRecordsProcessed(sourceData.size());
+            result.setRecordsSuccess(sourceData.size());
+            result.setRecordsError(0);
+            result.setOutputFilePath(outputFilePath);
             result.setOutputFileSize(fileSize);
             result.setStatus("COMPLETED");
             result.setEndTime(LocalDateTime.now());
 
-            markCompleted(executionId, output.getOutputFilePath());
-
             log.info("Batch execution completed successfully: {}", executionId);
-            log.info("Output file: {} ({} bytes)", output.getOutputFilePath(), fileSize);
+            log.info("Output file: {} ({} bytes)", outputFilePath, fileSize);
 
             return result;
 
@@ -204,35 +170,39 @@ public class ManualBatchExecutionService {
     }
 
     /**
-     * Generate fixed-width output file with checkpoint/restart support.
+     * Generate fixed-width output file with Phase 2 transformations
      */
-    private OutputGenerationResult generateOutputFile(
+    private String generateOutputFile(
             List<Map<String, Object>> sourceData,
             List<Map.Entry<String, FieldMapping>> fieldMappings,
             String jobName,
             String executionId) throws IOException {
 
-        String fileName = String.format("%s_%s.txt", jobName, executionId);
+        // Generate output file name
+        String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"));
+        String fileName = String.format("%s_%s_%s.txt", jobName, executionId, timestamp);
         String outputFilePath = OUTPUT_DIRECTORY + fileName;
 
-        int startIndex = readCheckpoint(executionId);
-        boolean appendMode = startIndex > 0;
+        log.info("Generating output file: {}", outputFilePath);
 
-        log.info("Generating output file: {} (resumeStartIndex={})", outputFilePath, startIndex);
-
-        int processedRecords = startIndex;
+        int processedRecords = 0;
         int errorRecords = 0;
 
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(outputFilePath, appendMode))) {
-            for (int i = startIndex; i < sourceData.size(); i++) {
-                Map<String, Object> sourceRow = sourceData.get(i);
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(outputFilePath))) {
+            for (Map<String, Object> sourceRow : sourceData) {
                 try {
+                    // Apply Phase 2 transformations to each field
                     StringBuilder outputLine = new StringBuilder();
 
                     for (Map.Entry<String, FieldMapping> entry : fieldMappings) {
                         FieldMapping mapping = entry.getValue();
+
+                        // Transform field using YamlMappingService (supports all Phase 2 transformations)
                         String transformedValue = yamlMappingService.transformField(sourceRow, mapping);
+
+                        // Apply padding for fixed-width format
                         String paddedValue = applyPadding(transformedValue, mapping);
+
                         outputLine.append(paddedValue);
                     }
 
@@ -240,26 +210,18 @@ public class ManualBatchExecutionService {
                     writer.newLine();
                     processedRecords++;
 
-                    if (processedRecords % checkpointInterval == 0) {
-                        writeCheckpoint(executionId, processedRecords);
-                    }
-
                 } catch (Exception e) {
-                    log.warn("Error processing record {}: {}", i + 1, e.getMessage());
+                    log.warn("Error processing record {}: {}", processedRecords + 1, e.getMessage());
                     errorRecords++;
+                    // Skip row and continue (as per user requirement)
                 }
             }
         }
 
-        clearCheckpoint(executionId);
+        log.info("Output file generated: {} records processed, {} errors",
+                processedRecords, errorRecords);
 
-        log.info("Output file generated: {} records processed, {} errors", processedRecords, errorRecords);
-
-        OutputGenerationResult result = new OutputGenerationResult();
-        result.setOutputFilePath(outputFilePath);
-        result.setRecordsProcessed(processedRecords);
-        result.setRecordsError(errorRecords);
-        return result;
+        return outputFilePath;
     }
 
     /**
@@ -290,110 +252,6 @@ public class ManualBatchExecutionService {
         }
 
         return value;
-    }
-
-    private <T> T withRetry(Retryable<T> operation, String operationName, String executionId) {
-        RuntimeException last = null;
-        for (int attempt = 1; attempt <= maxRetryAttempts; attempt++) {
-            try {
-                return operation.run();
-            } catch (RuntimeException | IOException e) {
-                last = new RuntimeException(e);
-                if (attempt == maxRetryAttempts) {
-                    break;
-                }
-                long backoff = retryBackoffMs * attempt;
-                log.warn("{} failed (attempt {}/{}), backing off {} ms [execution:{}]: {}",
-                        operationName, attempt, maxRetryAttempts, backoff, executionId, e.getMessage());
-                sleep(backoff);
-            }
-        }
-        throw new RuntimeException("Operation failed after retries: " + operationName, last);
-    }
-
-    private void sleep(long millis) {
-        try {
-            Thread.sleep(millis);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        }
-    }
-
-    private int readCheckpoint(String executionId) {
-        try {
-            Path path = checkpointPath(executionId);
-            if (!Files.exists(path)) {
-                return 0;
-            }
-            return Integer.parseInt(Files.readString(path).trim());
-        } catch (Exception e) {
-            log.warn("Failed reading checkpoint for {}: {}", executionId, e.getMessage());
-            return 0;
-        }
-    }
-
-    private void writeCheckpoint(String executionId, int recordCount) {
-        try {
-            Files.createDirectories(stateDir());
-            Files.writeString(checkpointPath(executionId), String.valueOf(recordCount),
-                    StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
-        } catch (Exception e) {
-            log.warn("Failed writing checkpoint for {}: {}", executionId, e.getMessage());
-        }
-    }
-
-    private void clearCheckpoint(String executionId) {
-        try {
-            Files.deleteIfExists(checkpointPath(executionId));
-        } catch (Exception e) {
-            log.warn("Failed clearing checkpoint for {}: {}", executionId, e.getMessage());
-        }
-    }
-
-    private boolean isAlreadyCompleted(String executionId) {
-        return Files.exists(completionPath(executionId));
-    }
-
-    private void markCompleted(String executionId, String outputPath) {
-        try {
-            Files.createDirectories(stateDir());
-            Files.writeString(completionPath(executionId), outputPath,
-                    StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
-        } catch (Exception e) {
-            log.warn("Failed writing completion marker for {}: {}", executionId, e.getMessage());
-        }
-    }
-
-    private String getOutputPathFromCompletion(String executionId) {
-        try {
-            return Files.readString(completionPath(executionId)).trim();
-        } catch (Exception e) {
-            return OUTPUT_DIRECTORY + executionId + ".txt";
-        }
-    }
-
-    private Path checkpointPath(String executionId) {
-        return stateDir().resolve(executionId + ".checkpoint");
-    }
-
-    private Path completionPath(String executionId) {
-        return stateDir().resolve(executionId + ".done");
-    }
-
-    private Path stateDir() {
-        return Paths.get(executionStateDir);
-    }
-
-    @FunctionalInterface
-    private interface Retryable<T> {
-        T run() throws IOException;
-    }
-
-    @Data
-    private static class OutputGenerationResult {
-        private String outputFilePath;
-        private int recordsProcessed;
-        private int recordsError;
     }
 
     /**

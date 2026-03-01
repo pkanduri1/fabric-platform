@@ -153,7 +153,7 @@ public class IdempotencyKeyGenerator {
     private String bytesToHex(byte[] bytes) {
         StringBuilder result = new StringBuilder();
         for (byte b : bytes) {
-            result.append(String.format("%02X", b));
+            result.append(String.format("%02x", b));
         }
         return result.toString();
     }
@@ -190,7 +190,7 @@ public class IdempotencyKeyGenerator {
      */
     public String generateCorrelationId() {
         String timestamp = LocalDateTime.now().format(TIMESTAMP_FORMAT);
-        String uuid = UUID.randomUUID().toString().replace("-", "").substring(0, 8).toUpperCase();
+        String uuid = UUID.randomUUID().toString().replace("-", "").substring(0, 8);
         return "IDEM_" + timestamp + "_" + uuid;
     }
     
