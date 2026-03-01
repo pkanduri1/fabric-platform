@@ -132,11 +132,15 @@ public class IdempotencyService {
             // Execute business logic with error handling
             return executeBusinessLogic(idempotencyEntity, businessLogic, responseType, startTime);
             
+        } catch (IdempotencyException e) {
+            log.error("Error in idempotent processing for correlation ID: {} - {}",
+                    correlationId, e.getMessage(), e);
+            throw e;
         } catch (Exception e) {
-            log.error("Error in idempotent processing for correlation ID: {} - {}", 
+            log.error("Error in idempotent processing for correlation ID: {} - {}",
                     correlationId, e.getMessage(), e);
             throw new IdempotencyException(
-                    "Idempotent processing failed: " + e.getMessage(), 
+                    "Idempotent processing failed: " + e.getMessage(),
                     correlationId, e
             );
         }
