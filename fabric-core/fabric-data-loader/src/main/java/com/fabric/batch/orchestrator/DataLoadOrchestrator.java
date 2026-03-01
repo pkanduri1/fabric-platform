@@ -23,6 +23,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
+import java.time.Duration;
 import java.util.*;
 import java.util.regex.Pattern;
 
@@ -67,9 +68,11 @@ public class DataLoadOrchestrator {
         
         String correlationId = null;
         String jobExecutionId = UUID.randomUUID().toString();
+        Map<String, Long> phaseStartMs = new HashMap<>();
         
         try {
             // 1. Load configuration
+            phaseStart(phaseStartMs, "load_configuration", result, correlationId, jobExecutionId);
             log.debug("Step 1: Loading configuration for {}", configId);
             Optional<DataLoadConfigEntity> configOpt = configurationService.getConfiguration(configId);
             if (configOpt.isEmpty()) {
@@ -78,13 +81,16 @@ public class DataLoadOrchestrator {
             
             DataLoadConfigEntity config = configOpt.get();
             result.setConfiguration(config);
+            phaseEnd(phaseStartMs, "load_configuration", result, correlationId, jobExecutionId);
             
             // 2. Initialize audit trail
+            phaseStart(phaseStartMs, "initialize_audit", result, correlationId, jobExecutionId);
             log.debug("Step 2: Initializing audit trail");
             correlationId = auditTrailManager.auditDataLoadStart(
                 configId, jobExecutionId, fileName, 
                 config.getSourceSystem(), config.getTargetTable());
             result.setCorrelationId(correlationId);
+            phaseEnd(phaseStartMs, "initialize_audit", result, correlationId, jobExecutionId);
             
             // 3. Create processing job record
             log.debug("Step 3: Creating processing job record");
@@ -95,6 +101,14 @@ public class DataLoadOrchestrator {
             // 4. Validate file exists and is readable
             log.debug("Step 4: Validating file access");
             validateFileAccess(filePath);
+
+            // 4b. SQL*Loader pre-flight validation (config/table/file shape)
+            log.debug("Step 4b: Running pre-flight validation");
+            PreFlightCheckResult preFlight = runPreFlightChecks(config, filePath);
+            result.setPreFlightCheck(preFlight);
+            if (!preFlight.isPassed()) {
+                throw new IOException("Pre-flight validation failed: " + preFlight.getSummary());
+            }
             
             // 5. Load validation rules
             log.debug("Step 5: Loading validation rules");
@@ -102,10 +116,12 @@ public class DataLoadOrchestrator {
             result.setValidationRulesCount(validationRules.size());
             
             // 6. Process file with validation
+            phaseStart(phaseStartMs, "validation", result, correlationId, jobExecutionId);
             log.debug("Step 6: Processing file with validation");
             FileProcessingResult processingResult = processFileWithValidation(
                 config, validationRules, filePath, correlationId);
             result.setProcessingResult(processingResult);
+            phaseEnd(phaseStartMs, "validation", result, correlationId, jobExecutionId);
             
             // 7. Check error thresholds
             log.debug("Step 7: Checking error thresholds");
@@ -115,9 +131,11 @@ public class DataLoadOrchestrator {
             
             // 8. Execute SQL*Loader if validation passed and threshold not exceeded
             if (!thresholdCheck.isThresholdExceeded() && processingResult.canProceedToLoad()) {
+                phaseStart(phaseStartMs, "loader", result, correlationId, jobExecutionId);
                 log.debug("Step 8: Executing SQL*Loader");
                 SqlLoaderResult loaderResult = executeSqlLoader(config, filePath, correlationId);
                 result.setLoaderResult(loaderResult);
+                phaseEnd(phaseStartMs, "loader", result, correlationId, jobExecutionId);
                 
                 // 9. Post-load validation if configured
                 if ("Y".equals(config.getPostLoadValidation())) {
@@ -136,6 +154,7 @@ public class DataLoadOrchestrator {
             
             result.setSuccess(true);
             result.setEndTime(LocalDateTime.now());
+            writeRunSummary(result, correlationId, jobExecutionId);
             
             log.info("Data load execution completed successfully - Config: {}, Correlation: {}", 
                 configId, correlationId);
@@ -146,6 +165,7 @@ public class DataLoadOrchestrator {
             result.setSuccess(false);
             result.setErrorMessage(e.getMessage());
             result.setEndTime(LocalDateTime.now());
+            writeRunSummary(result, correlationId, jobExecutionId);
             
             // Audit error event
             if (correlationId != null) {
@@ -384,6 +404,120 @@ public class DataLoadOrchestrator {
     }
     
     /**
+     * SQL*Loader pre-flight checks (config/table/file shape).
+     */
+    private PreFlightCheckResult runPreFlightChecks(DataLoadConfigEntity config, String filePath) {
+        PreFlightCheckResult out = new PreFlightCheckResult();
+
+        // Config checks
+        if (config.getTargetTable() == null || config.getTargetTable().trim().isEmpty()) {
+            out.addError("Target table is missing in configuration");
+        }
+        if (config.getFieldDelimiter() == null || config.getFieldDelimiter().isEmpty()) {
+            out.addError("Field delimiter is missing in configuration");
+        }
+        if (config.getHeaderRows() != null && config.getHeaderRows() < 0) {
+            out.addError("Header rows cannot be negative");
+        }
+
+        // Table shape sanity (minimal gate; prevents malformed SQL*Loader table targets)
+        if (config.getTargetTable() != null &&
+                !config.getTargetTable().matches("^[A-Za-z][A-Za-z0-9_$.]{0,127}$")) {
+            out.addError("Target table name has invalid format: " + config.getTargetTable());
+        }
+
+        // File shape checks
+        try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
+            int headerRows = config.getHeaderRows() != null ? config.getHeaderRows() : 1;
+            String delimiter = config.getFieldDelimiter() != null ? config.getFieldDelimiter() : "|";
+            String line;
+            int lineNo = 0;
+            int expectedColumns = -1;
+            int checkedRows = 0;
+
+            while ((line = reader.readLine()) != null && checkedRows < 200) {
+                lineNo++;
+                if (lineNo <= headerRows) {
+                    continue;
+                }
+                if (line.trim().isEmpty()) {
+                    continue;
+                }
+
+                int cols = line.split(Pattern.quote(delimiter), -1).length;
+                if (expectedColumns < 0) {
+                    expectedColumns = cols;
+                } else if (cols != expectedColumns) {
+                    out.addError("Inconsistent column count at line " + lineNo +
+                            " (expected " + expectedColumns + ", got " + cols + ")");
+                    break;
+                }
+                checkedRows++;
+            }
+
+            if (checkedRows == 0) {
+                out.addError("No data rows found after header rows");
+            }
+        } catch (Exception e) {
+            out.addError("Pre-flight file shape check failed: " + e.getMessage());
+        }
+
+        if (!out.getErrors().isEmpty()) {
+            out.addRemediation("Verify delimiter/header settings in configuration and source file shape");
+            out.addRemediation("Confirm target table name is valid and mapped for this config");
+        }
+
+        return out;
+    }
+
+    private void phaseStart(Map<String, Long> phaseStartMs, String phase, DataLoadResult result,
+                            String correlationId, String jobExecutionId) {
+        phaseStartMs.put(phase, System.currentTimeMillis());
+        log.info("batch_phase_start phase={} correlationId={} jobExecutionId={}", phase, correlationId, jobExecutionId);
+    }
+
+    private void phaseEnd(Map<String, Long> phaseStartMs, String phase, DataLoadResult result,
+                          String correlationId, String jobExecutionId) {
+        Long started = phaseStartMs.get(phase);
+        if (started == null) return;
+        long tookMs = System.currentTimeMillis() - started;
+        result.getPhaseTimingsMs().put(phase, tookMs);
+        log.info("batch_phase_end phase={} tookMs={} correlationId={} jobExecutionId={}",
+                phase, tookMs, correlationId, jobExecutionId);
+    }
+
+    private void writeRunSummary(DataLoadResult result, String correlationId, String jobExecutionId) {
+        try {
+            Path outDir = Paths.get(System.getProperty("java.io.tmpdir"), "fabric-batch-run-summaries");
+            Files.createDirectories(outDir);
+            Path out = outDir.resolve(jobExecutionId + ".summary.txt");
+
+            StringBuilder sb = new StringBuilder();
+            sb.append("jobExecutionId=").append(jobExecutionId).append("\n");
+            sb.append("correlationId=").append(correlationId).append("\n");
+            sb.append("configId=").append(result.getConfigId()).append("\n");
+            sb.append("success=").append(result.isSuccess()).append("\n");
+            sb.append("totalRecords=").append(result.getTotalRecords()).append("\n");
+            sb.append("successfulRecords=").append(result.getSuccessfulRecords()).append("\n");
+            sb.append("failedRecords=").append(result.getFailedRecords()).append("\n");
+            sb.append("durationMs=").append(result.getDurationMs()).append("\n");
+            sb.append("phaseTimingsMs=").append(result.getPhaseTimingsMs()).append("\n");
+            if (result.getLoaderResult() != null) {
+                sb.append("loaderReturnCode=").append(result.getLoaderResult().getReturnCode()).append("\n");
+                sb.append("loaderRejectedRecords=").append(result.getLoaderResult().getRejectedRecords()).append("\n");
+                sb.append("loaderExecutionTimeMs=").append(result.getLoaderResult().getExecutionTimeMs()).append("\n");
+            }
+            Files.writeString(out, sb.toString());
+            result.setRunSummaryPath(out.toString());
+
+            log.info("batch_run_summary_written path={} correlationId={} jobExecutionId={}",
+                    out, correlationId, jobExecutionId);
+        } catch (Exception ex) {
+            log.warn("Could not write run summary for job {}: {}", jobExecutionId, ex.getMessage());
+        }
+    }
+
+    /**
      * Validate file access.
      */
     private void validateFileAccess(String filePath) throws IOException {
@@ -428,11 +562,14 @@ public class DataLoadOrchestrator {
         private String errorMessage;
         private DataLoadConfigEntity configuration;
         private int validationRulesCount;
+        private PreFlightCheckResult preFlightCheck;
         private FileProcessingResult processingResult;
         private ErrorThresholdManager.ThresholdCheckResult thresholdCheck;
         private SqlLoaderResult loaderResult;
         private boolean skippedLoad;
         private String skipReason;
+        private Map<String, Long> phaseTimingsMs = new LinkedHashMap<>();
+        private String runSummaryPath;
         
         public long getDurationMs() {
             if (startTime != null && endTime != null) {
@@ -454,6 +591,37 @@ public class DataLoadOrchestrator {
         }
     }
     
+    /**
+     * Pre-flight validation result.
+     */
+    @Data
+    public static class PreFlightCheckResult {
+        private boolean passed = true;
+        private List<String> errors = new ArrayList<>();
+        private List<String> remediationHints = new ArrayList<>();
+
+        public void addError(String err) {
+            if (err != null && !err.isBlank()) {
+                errors.add(err);
+                passed = false;
+            }
+        }
+
+        public void addRemediation(String hint) {
+            if (hint != null && !hint.isBlank()) {
+                remediationHints.add(hint);
+            }
+        }
+
+        public String getSummary() {
+            if (errors.isEmpty()) {
+                return "PASSED";
+            }
+            return String.join("; ", errors) +
+                    (remediationHints.isEmpty() ? "" : " | remediation: " + String.join("; ", remediationHints));
+        }
+    }
+
     /**
      * File processing result.
      */

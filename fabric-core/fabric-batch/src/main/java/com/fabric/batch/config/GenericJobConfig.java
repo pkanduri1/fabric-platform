@@ -20,6 +20,9 @@ import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.Isolation;
 
 import com.fabric.batch.adapter.DataSourceAdapterRegistry;
+import com.fabric.batch.guardrail.GuardrailEvaluator;
+import com.fabric.batch.guardrail.GuardrailProperties;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import com.fabric.batch.listener.GenericJobListener;
 import com.fabric.batch.listener.GenericStepListener;
 import com.fabric.batch.mapping.YamlMappingService;
@@ -35,6 +38,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Configuration
+@EnableConfigurationProperties(GuardrailProperties.class)
 @RequiredArgsConstructor
 @Slf4j
 public class GenericJobConfig extends org.springframework.batch.core.configuration.support.DefaultBatchConfiguration {
@@ -44,6 +48,7 @@ public class GenericJobConfig extends org.springframework.batch.core.configurati
 	// private final PlatformTransactionManager transactionManager; // Removed:
 	// Provided by superclass
 	private final BatchJobProperties config;
+	private final BatchPerformanceProperties perfProps;
 	private final GenericJobListener jobListener;
 	private final GenericStepListener stepListener;
 	private final TaskExecutor taskExecutor;
@@ -51,8 +56,8 @@ public class GenericJobConfig extends org.springframework.batch.core.configurati
 	// private final SimpleExecutionMonitor executionMonitor;
 	private final DynamicBatchConfigLoader configLoader;
 
-	// ✅ NEW: Inject the adapter registry 6/11/25
 	private final DataSourceAdapterRegistry adapterRegistry;
+	private final GuardrailProperties guardrailProps;
 
 	@Override
 	protected Isolation getIsolationLevelForCreate() {
@@ -108,7 +113,7 @@ public class GenericJobConfig extends org.springframework.batch.core.configurati
 			return new StepBuilder(jobName + "PartitionStep", jobRepository())
 					.partitioner("workerStep", partitioner) // ← String reference
 					.step(createWorkerStep(jobName)) // ← Method call, not bean
-					.gridSize(config.getGridSize())
+					.gridSize(perfProps.getGridSize())
 					.taskExecutor(taskExecutor)
 					.build();
 
@@ -126,17 +131,23 @@ public class GenericJobConfig extends org.springframework.batch.core.configurati
 		String stepName = jobName + "WorkerStep";
 
 		return new StepBuilder(stepName, jobRepository())
-				.<Map<String, Object>, Map<String, Object>>chunk(config.getChunkSize(), getTransactionManager())
+				.<Map<String, Object>, Map<String, Object>>chunk(perfProps.getChunkSize(), getTransactionManager())
 				.reader(genericReader(null)) // These ARE beans and @StepScope
 				.processor(genericProcessor(null)) // These ARE beans and @StepScope
 				.writer(genericWriter(null)) // These ARE beans and @StepScope
 				.listener(stepListener)
+				.listener(guardrailEvaluator())
 				.faultTolerant()
 				.skipLimit(10)
 				.skip(Exception.class)
 				.retryLimit(3)
 				.retry(Exception.class)
 				.build();
+	}
+
+	@Bean
+	public GuardrailEvaluator guardrailEvaluator() {
+		return new GuardrailEvaluator(guardrailProps);
 	}
 
 	// ===== STEP-SCOPED BEANS (Keep these as-is) =====

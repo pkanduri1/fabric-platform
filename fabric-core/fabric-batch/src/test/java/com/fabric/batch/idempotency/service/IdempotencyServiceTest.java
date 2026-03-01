@@ -93,7 +93,7 @@ class IdempotencyServiceTest {
     @Test
     @Order(1)
     @DisplayName("Should create new idempotency record when no existing record")
-    void shouldCreateNewIdempotencyRecord_WhenNoExistingRecord() {
+    void shouldCreateNewIdempotencyRecord_WhenNoExistingRecord() throws Exception {
         // Given
         when(configService.isIdempotencyEnabled(ConfigType.BATCH_JOB, TEST_JOB_NAME)).thenReturn(true);
         when(keyGenerator.generateKey(testRequest)).thenReturn(TEST_IDEMPOTENCY_KEY);
@@ -120,14 +120,14 @@ class IdempotencyServiceTest {
         assertThat(result.isSuccess()).isTrue();
         assertThat(result.isFromCache()).isFalse();
         
-        verify(idempotencyKeyRepository).save(any(FabricIdempotencyKeyEntity.class));
+        verify(idempotencyKeyRepository, atLeast(1)).save(any(FabricIdempotencyKeyEntity.class));
         verify(idempotencyAuditRepository, atLeastOnce()).save(any(FabricIdempotencyAuditEntity.class));
     }
     
     @Test
     @Order(2)
     @DisplayName("Should return cached result when request already completed")
-    void shouldReturnCachedResult_WhenRequestAlreadyCompleted() {
+    void shouldReturnCachedResult_WhenRequestAlreadyCompleted() throws Exception {
         // Given
         when(configService.isIdempotencyEnabled(ConfigType.BATCH_JOB, TEST_JOB_NAME)).thenReturn(true);
         when(keyGenerator.generateKey(testRequest)).thenReturn(TEST_IDEMPOTENCY_KEY);
@@ -188,30 +188,29 @@ class IdempotencyServiceTest {
     @Test
     @Order(4)
     @DisplayName("Should retry failed request when retry count below max")
-    void shouldRetryFailedRequest_WhenRetryCountBelowMax() {
+    void shouldRetryFailedRequest_WhenRetryCountBelowMax() throws Exception {
         // Given
         when(configService.isIdempotencyEnabled(ConfigType.BATCH_JOB, TEST_JOB_NAME)).thenReturn(true);
         when(keyGenerator.generateKey(testRequest)).thenReturn(TEST_IDEMPOTENCY_KEY);
         when(keyGenerator.generateCorrelationId()).thenReturn(TEST_CORRELATION_ID);
-        when(configService.getConfigForTarget(ConfigType.BATCH_JOB, TEST_JOB_NAME)).thenReturn(testConfig);
-        when(objectMapper.writeValueAsString("Retry Success")).thenReturn("\"Retry Success\"");
-        
+
         FabricIdempotencyKeyEntity existingEntity = createFailedEntity();
         existingEntity.setRetryCount(1);
         existingEntity.setMaxRetries(3);
-        
+
         when(idempotencyKeyRepository.findById(TEST_IDEMPOTENCY_KEY)).thenReturn(Optional.of(existingEntity));
-        
-        // When - Note: This will currently throw UnsupportedOperationException
-        // because retry handling is not fully implemented in the service
-        assertThatThrownBy(() -> 
+
+        // When - Retry handling is not fully implemented; UnsupportedOperationException
+        // is wrapped by the IdempotencyException catch block in processWithIdempotency
+        assertThatThrownBy(() ->
             idempotencyService.processWithIdempotencyForBatchJob(
                 testRequest,
                 () -> "Retry Success",
                 String.class
             )
-        ).isInstanceOf(UnsupportedOperationException.class)
-         .hasMessageContaining("Retry request handling not yet implemented");
+        ).isInstanceOf(IdempotencyException.class)
+         .hasMessageContaining("Retry request handling not yet implemented")
+         .hasCauseInstanceOf(UnsupportedOperationException.class);
     }
     
     @Test
@@ -280,7 +279,7 @@ class IdempotencyServiceTest {
     @Test
     @Order(7)
     @DisplayName("Should handle optimistic locking failure gracefully")
-    void shouldHandleOptimisticLockingFailure_Gracefully() {
+    void shouldHandleOptimisticLockingFailure_Gracefully() throws Exception {
         // Given
         when(configService.isIdempotencyEnabled(ConfigType.BATCH_JOB, TEST_JOB_NAME)).thenReturn(true);
         when(keyGenerator.generateKey(testRequest)).thenReturn(TEST_IDEMPOTENCY_KEY);
@@ -292,6 +291,7 @@ class IdempotencyServiceTest {
         FabricIdempotencyKeyEntity savedEntity = createTestEntity(ProcessingState.STARTED);
         when(idempotencyKeyRepository.save(any(FabricIdempotencyKeyEntity.class)))
                 .thenReturn(savedEntity)  // First save (create)
+                .thenReturn(savedEntity)  // Second save (IN_PROGRESS state update)
                 .thenThrow(new OptimisticLockingFailureException("Concurrent modification"));
         
         // When
@@ -341,7 +341,7 @@ class IdempotencyServiceTest {
     @Test
     @Order(9)
     @DisplayName("Should complete within performance threshold")
-    void shouldCompleteWithinPerformanceThreshold() {
+    void shouldCompleteWithinPerformanceThreshold() throws Exception {
         // Given
         when(configService.isIdempotencyEnabled(ConfigType.BATCH_JOB, TEST_JOB_NAME)).thenReturn(true);
         when(keyGenerator.generateKey(testRequest)).thenReturn(TEST_IDEMPOTENCY_KEY);
@@ -377,7 +377,7 @@ class IdempotencyServiceTest {
     @Test
     @Order(10)
     @DisplayName("Should handle API endpoint idempotency correctly")
-    void shouldHandleApiEndpointIdempotency_Correctly() {
+    void shouldHandleApiEndpointIdempotency_Correctly() throws Exception {
         // Given
         when(configService.isIdempotencyEnabled(ConfigType.API_ENDPOINT, TEST_JOB_NAME)).thenReturn(true);
         when(keyGenerator.generateKey(testRequest)).thenReturn(TEST_IDEMPOTENCY_KEY);
