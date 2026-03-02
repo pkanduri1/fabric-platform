@@ -233,16 +233,29 @@ export const HomePage: React.FC = () => {
                   >
                     Configure
                   </Button>
-                  <Button 
-                    size="small" 
+                  <Button
+                    size="small"
                     startIcon={<PlayArrow />}
                     color="success"
+                    disabled={system.jobs.length === 0 && !(system.jobCount && system.jobCount > 0)}
+                    onClick={() => {
+                      if (system.jobs.length > 0) {
+                        navigate(`/configuration/${system.id}/${system.jobs[0].jobName}`);
+                      } else {
+                        navigate(`/configuration/${system.id}`);
+                      }
+                    }}
                   >
                     Run Job
                   </Button>
-                  <Button 
-                    size="small" 
+                  <Button
+                    size="small"
                     startIcon={<Description />}
+                    disabled={system.jobs.length === 0 && !(system.jobCount && system.jobCount > 0)}
+                    onClick={() => {
+                      const jobName = system.jobs[0]?.jobName ?? '';
+                      navigate(`/yaml-preview?systemId=${system.id}&jobName=${jobName}`);
+                    }}
                   >
                     View YAML
                   </Button>
