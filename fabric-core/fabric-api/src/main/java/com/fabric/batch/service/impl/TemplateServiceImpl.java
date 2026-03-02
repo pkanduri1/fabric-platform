@@ -253,6 +253,7 @@ public class TemplateServiceImpl implements TemplateService {
 			}
 
 			List<FieldTemplate> templates = entities.stream()
+					.filter(e -> !"__HEADER__".equals(e.getFieldName()))
 					.map(this::convertToFieldTemplate)
 					.filter(template -> template != null) // Filter out any null conversions
 					.collect(Collectors.toList());
