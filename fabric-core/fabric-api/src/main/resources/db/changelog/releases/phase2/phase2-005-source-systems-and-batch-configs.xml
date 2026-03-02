@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.9.xsd">
+
+    <!-- Issue #27: Create SOURCE_SYSTEMS table -->
+    <changeSet id="phase2-005-source-systems" author="fabric-dev">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists schemaName="CM3INT" tableName="SOURCE_SYSTEMS"/>
+            </not>
+        </preConditions>
+        <comment>Create CM3INT.SOURCE_SYSTEMS table for source system management</comment>
+
+        <createTable schemaName="CM3INT" tableName="SOURCE_SYSTEMS">
+            <column name="ID" type="VARCHAR2(50)">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="NAME" type="VARCHAR2(100)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="TYPE" type="VARCHAR2(20)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="DESCRIPTION" type="VARCHAR2(500)"/>
+            <column name="CONNECTION_STRING" type="VARCHAR2(1000)"/>
+            <column name="ENABLED" type="CHAR(1)" defaultValue="Y">
+                <constraints nullable="false"/>
+            </column>
+            <column name="CREATED_DATE" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="JOB_COUNT" type="NUMBER(10)" defaultValueNumeric="0"/>
+        </createTable>
+
+        <createIndex schemaName="CM3INT" tableName="SOURCE_SYSTEMS" indexName="IDX_SS_ENABLED">
+            <column name="ENABLED"/>
+        </createIndex>
+        <createIndex schemaName="CM3INT" tableName="SOURCE_SYSTEMS" indexName="IDX_SS_TYPE">
+            <column name="TYPE"/>
+        </createIndex>
+    </changeSet>
+
+    <!-- Issue #27: Create BATCH_CONFIGURATIONS table -->
+    <changeSet id="phase2-005-batch-configurations" author="fabric-dev">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists schemaName="CM3INT" tableName="BATCH_CONFIGURATIONS"/>
+            </not>
+        </preConditions>
+        <comment>Create CM3INT.BATCH_CONFIGURATIONS table for batch job configuration storage</comment>
+
+        <createTable schemaName="CM3INT" tableName="BATCH_CONFIGURATIONS">
+            <column name="ID" type="VARCHAR2(50)">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="SOURCE_SYSTEM" type="VARCHAR2(100)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="JOB_NAME" type="VARCHAR2(100)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="TRANSACTION_TYPE" type="VARCHAR2(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="CONFIGURATION_JSON" type="CLOB"/>
+            <column name="ENABLED" type="CHAR(1)" defaultValue="Y">
+                <constraints nullable="false"/>
+            </column>
+            <column name="CREATED_BY" type="VARCHAR2(100)"/>
+            <column name="CREATED_DATE" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP"/>
+            <column name="MODIFIED_BY" type="VARCHAR2(100)"/>
+            <column name="MODIFIED_DATE" type="TIMESTAMP"/>
+            <column name="VERSION" type="NUMBER(10)" defaultValueNumeric="1"/>
+            <column name="DESCRIPTION" type="VARCHAR2(500)"/>
+        </createTable>
+
+        <addUniqueConstraint
+            schemaName="CM3INT"
+            tableName="BATCH_CONFIGURATIONS"
+            columnNames="SOURCE_SYSTEM, JOB_NAME, TRANSACTION_TYPE"
+            constraintName="UQ_BC_SYSTEM_JOB_TXN"/>
+
+        <createIndex schemaName="CM3INT" tableName="BATCH_CONFIGURATIONS" indexName="IDX_BC_SOURCE_SYSTEM">
+            <column name="SOURCE_SYSTEM"/>
+        </createIndex>
+        <createIndex schemaName="CM3INT" tableName="BATCH_CONFIGURATIONS" indexName="IDX_BC_ENABLED">
+            <column name="ENABLED"/>
+        </createIndex>
+    </changeSet>
+
+</databaseChangeLog>
