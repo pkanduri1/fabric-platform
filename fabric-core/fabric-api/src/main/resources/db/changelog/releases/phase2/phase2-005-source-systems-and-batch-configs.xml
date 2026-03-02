@@ -3,10 +3,11 @@
     xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
-    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.9.xsd">
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
 
     <!-- Issue #27: Create SOURCE_SYSTEMS table -->
-    <changeSet id="phase2-005-source-systems" author="fabric-dev">
+    <changeSet id="phase2-005-source-systems" author="fabric-dev" context="development,test,staging,production">
+        <validCheckSum>ANY</validCheckSum>
         <preConditions onFail="MARK_RAN">
             <not>
                 <tableExists schemaName="CM3INT" tableName="SOURCE_SYSTEMS"/>
@@ -41,10 +42,15 @@
         <createIndex schemaName="CM3INT" tableName="SOURCE_SYSTEMS" indexName="IDX_SS_TYPE">
             <column name="TYPE"/>
         </createIndex>
+
+        <rollback>
+            <dropTable schemaName="CM3INT" tableName="SOURCE_SYSTEMS" cascadeConstraints="true"/>
+        </rollback>
     </changeSet>
 
     <!-- Issue #27: Create BATCH_CONFIGURATIONS table -->
-    <changeSet id="phase2-005-batch-configurations" author="fabric-dev">
+    <changeSet id="phase2-005-batch-configurations" author="fabric-dev" context="development,test,staging,production">
+        <validCheckSum>ANY</validCheckSum>
         <preConditions onFail="MARK_RAN">
             <not>
                 <tableExists schemaName="CM3INT" tableName="BATCH_CONFIGURATIONS"/>
@@ -89,6 +95,10 @@
         <createIndex schemaName="CM3INT" tableName="BATCH_CONFIGURATIONS" indexName="IDX_BC_ENABLED">
             <column name="ENABLED"/>
         </createIndex>
+
+        <rollback>
+            <dropTable schemaName="CM3INT" tableName="BATCH_CONFIGURATIONS" cascadeConstraints="true"/>
+        </rollback>
     </changeSet>
 
 </databaseChangeLog>
