@@ -41,7 +41,6 @@
     <changeSet id="phase2-006-seed-field-templates-p327"
                author="fabric-dev"
                context="development,test,staging,production">
-        <validCheckSum>ANY</validCheckSum>
         <comment>Seed placeholder header rows in FIELD_TEMPLATES for file type p327 (P327, ATOCTRAN, EAC, ESA, EST, TRANERT)</comment>
 
         <sql>
@@ -83,7 +82,6 @@
     <changeSet id="phase2-006-seed-field-templates-atoctran"
                author="fabric-dev"
                context="development,test,staging,production">
-        <validCheckSum>ANY</validCheckSum>
         <comment>Seed placeholder header rows in FIELD_TEMPLATES for file type atoctran (P327, ATOCTRAN, EAC, ESA, EST, TRANERT)</comment>
 
         <sql>

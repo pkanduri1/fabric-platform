@@ -7,7 +7,6 @@
 
     <!-- Issue #27: Create SOURCE_SYSTEMS table -->
     <changeSet id="phase2-005-source-systems" author="fabric-dev" context="development,test,staging,production">
-        <validCheckSum>ANY</validCheckSum>
         <preConditions onFail="MARK_RAN">
             <not>
                 <tableExists schemaName="CM3INT" tableName="SOURCE_SYSTEMS"/>
@@ -50,7 +49,6 @@
 
     <!-- Issue #27: Create BATCH_CONFIGURATIONS table -->
     <changeSet id="phase2-005-batch-configurations" author="fabric-dev" context="development,test,staging,production">
-        <validCheckSum>ANY</validCheckSum>
         <preConditions onFail="MARK_RAN">
             <not>
                 <tableExists schemaName="CM3INT" tableName="BATCH_CONFIGURATIONS"/>

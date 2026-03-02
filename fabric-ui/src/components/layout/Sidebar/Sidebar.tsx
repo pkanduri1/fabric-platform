@@ -180,7 +180,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ open, onClose, drawerWidth }) 
                       <Typography variant="body2" noWrap>
                         {system.name}
                       </Typography>
-                      <span style={{ fontSize: '0.7rem' }}>({system.jobs?.length || 0})</span>
+                      <span style={{ fontSize: '0.7rem' }}>({system.jobCount ?? system.jobs?.length ?? 0})</span>
                     </Box>
                   }
                   secondary={
