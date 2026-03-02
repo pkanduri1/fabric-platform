@@ -17,7 +17,8 @@ import {
   Chip,
   IconButton,
   Alert,
-  CircularProgress
+  CircularProgress,
+  Tooltip
 } from '@mui/material';
 import { Add, Delete } from '@mui/icons-material';
 import { SourceSystem, JobConfig } from '../../../types/configuration';
@@ -324,6 +325,14 @@ export const AddSourceSystemDialog: React.FC<AddSourceSystemDialogProps> = ({
               <Add />
             </Button>
           </Grid>
+
+          {formData.jobs.length === 0 && (
+            <Grid item xs={12}>
+              <Alert severity="warning" sx={{ mt: 1 }}>
+                At least one job is required to create a source system.
+              </Alert>
+            </Grid>
+          )}
         </Grid>
       </DialogContent>
       
@@ -331,14 +340,23 @@ export const AddSourceSystemDialog: React.FC<AddSourceSystemDialogProps> = ({
         <Button onClick={handleClose} disabled={isSubmitting}>
           Cancel
         </Button>
-        <Button 
-          onClick={handleSubmit} 
-          variant="contained"
-          disabled={!formData.name || !formData.description || formData.jobs.length === 0 || isSubmitting}
-          startIcon={isSubmitting ? <CircularProgress size={20} /> : null}
-        >
-          {isSubmitting ? 'Creating...' : 'Add Source System'}
-        </Button>
+        <Tooltip title={
+          formData.jobs.length === 0
+            ? "Add at least one job before submitting"
+            : (!formData.name || !formData.description)
+            ? "Fill in the name and description"
+            : ""
+        }>
+          <span>
+            <Button
+              onClick={handleSubmit}
+              variant="contained"
+              disabled={!formData.name || !formData.description || formData.jobs.length === 0 || isSubmitting}
+            >
+              {isSubmitting ? <CircularProgress size={20} /> : 'Add Source System'}
+            </Button>
+          </span>
+        </Tooltip>
       </DialogActions>
     </Dialog>
   );
