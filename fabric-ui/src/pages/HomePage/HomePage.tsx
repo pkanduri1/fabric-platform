@@ -133,7 +133,7 @@ export const HomePage: React.FC = () => {
           <Card>
             <CardContent>
               <Typography variant="h6" color="success.main">
-                {sourceSystems.reduce((total, system) => total + system.jobs.length, 0)}
+                {sourceSystems.reduce((total, system) => total + (system.jobCount ?? system.jobs.length), 0)}
               </Typography>
               <Typography variant="body2" color="text.secondary">
                 Total Jobs
@@ -195,7 +195,7 @@ export const HomePage: React.FC = () => {
 
                   <Box sx={{ mb: 2 }}>
                     <Typography variant="caption" color="text.secondary" display="block">
-                      Jobs ({system.jobs.length})
+                      Jobs ({system.jobCount ?? system.jobs.length})
                     </Typography>
                     <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap', mt: 0.5 }}>
                       {system.jobs.slice(0, 3).map((job) => (
