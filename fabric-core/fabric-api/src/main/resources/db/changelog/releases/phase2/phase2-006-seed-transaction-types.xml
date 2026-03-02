@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <!--
+    =========================================================================
+    PHASE2-006: SEED TRANSACTION TYPES — Issue #31
+    =========================================================================
+
+    Purpose: Populate CM3INT.FIELD_TEMPLATES with placeholder header rows
+             for each (file_type, transaction_type) combination so that the
+             Transaction Type dropdown in the UI is not empty.
+
+    Transaction types seeded: P327, ATOCTRAN, EAC, ESA, EST, TRANERT
+
+    How the dropdown is populated:
+      FieldTemplateRepository.findTransactionTypesByFileType() runs:
+        SELECT DISTINCT TRANSACTION_TYPE FROM cm3int.field_templates
+        WHERE FILE_TYPE = ? AND ENABLED = 'Y' ORDER BY TRANSACTION_TYPE
+
+      Without at least one row per (FILE_TYPE, TRANSACTION_TYPE) combination
+      the dropdown is empty.  This changeset inserts sentinel placeholder
+      rows (FIELD_NAME = '__HEADER__') so the DISTINCT query returns the
+      correct list of types without polluting real field definitions.
+
+    File types: p327, atoctran
+    Transaction types: P327, ATOCTRAN, EAC, ESA, EST, TRANERT
+
+    NOTE: CM3INT.TRANSACTION_TYPES table does not exist in the local
+    Oracle Free DB; all seeding goes into CM3INT.FIELD_TEMPLATES only.
+    =========================================================================
+    -->
+
+    <!-- =====================================================================
+         Seed CM3INT.FIELD_TEMPLATES — one placeholder header row per
+         (file_type, transaction_type) combination for file type: p327
+         ===================================================================== -->
+    <changeSet id="phase2-006-seed-field-templates-p327"
+               author="fabric-dev"
+               context="development,test,staging,production">
+        <validCheckSum>ANY</validCheckSum>
+        <comment>Seed placeholder header rows in FIELD_TEMPLATES for file type p327 (P327, ATOCTRAN, EAC, ESA, EST, TRANERT)</comment>
+
+        <sql>
+            MERGE INTO CM3INT.FIELD_TEMPLATES ft
+            USING (
+                SELECT 'p327' AS FILE_TYPE, 'P327'     AS TRANSACTION_TYPE FROM DUAL UNION ALL
+                SELECT 'p327',              'ATOCTRAN'                      FROM DUAL UNION ALL
+                SELECT 'p327',              'EAC'                           FROM DUAL UNION ALL
+                SELECT 'p327',              'ESA'                           FROM DUAL UNION ALL
+                SELECT 'p327',              'EST'                           FROM DUAL UNION ALL
+                SELECT 'p327',              'TRANERT'                       FROM DUAL
+            ) src
+            ON (ft.FILE_TYPE = src.FILE_TYPE
+                AND ft.TRANSACTION_TYPE = src.TRANSACTION_TYPE
+                AND ft.FIELD_NAME = '__HEADER__')
+            WHEN NOT MATCHED THEN
+                INSERT (FILE_TYPE, TRANSACTION_TYPE, FIELD_NAME,
+                        TARGET_POSITION, LENGTH, DATA_TYPE,
+                        REQUIRED, ENABLED, CREATED_BY, CREATED_DATE, VERSION)
+                VALUES (src.FILE_TYPE, src.TRANSACTION_TYPE, '__HEADER__',
+                        0, 0, 'String',
+                        'N', 'Y', 'SYSTEM', SYSDATE, 1)
+        </sql>
+
+        <rollback>
+            <sql>
+                DELETE FROM CM3INT.FIELD_TEMPLATES
+                WHERE FILE_TYPE = 'p327'
+                  AND FIELD_NAME = '__HEADER__'
+                  AND CREATED_BY = 'SYSTEM'
+            </sql>
+        </rollback>
+    </changeSet>
+
+    <!-- =====================================================================
+         Seed CM3INT.FIELD_TEMPLATES — one placeholder header row per
+         (file_type, transaction_type) combination for file type: atoctran
+         ===================================================================== -->
+    <changeSet id="phase2-006-seed-field-templates-atoctran"
+               author="fabric-dev"
+               context="development,test,staging,production">
+        <validCheckSum>ANY</validCheckSum>
+        <comment>Seed placeholder header rows in FIELD_TEMPLATES for file type atoctran (P327, ATOCTRAN, EAC, ESA, EST, TRANERT)</comment>
+
+        <sql>
+            MERGE INTO CM3INT.FIELD_TEMPLATES ft
+            USING (
+                SELECT 'atoctran' AS FILE_TYPE, 'P327'     AS TRANSACTION_TYPE FROM DUAL UNION ALL
+                SELECT 'atoctran',              'ATOCTRAN'                      FROM DUAL UNION ALL
+                SELECT 'atoctran',              'EAC'                           FROM DUAL UNION ALL
+                SELECT 'atoctran',              'ESA'                           FROM DUAL UNION ALL
+                SELECT 'atoctran',              'EST'                           FROM DUAL UNION ALL
+                SELECT 'atoctran',              'TRANERT'                       FROM DUAL
+            ) src
+            ON (ft.FILE_TYPE = src.FILE_TYPE
+                AND ft.TRANSACTION_TYPE = src.TRANSACTION_TYPE
+                AND ft.FIELD_NAME = '__HEADER__')
+            WHEN NOT MATCHED THEN
+                INSERT (FILE_TYPE, TRANSACTION_TYPE, FIELD_NAME,
+                        TARGET_POSITION, LENGTH, DATA_TYPE,
+                        REQUIRED, ENABLED, CREATED_BY, CREATED_DATE, VERSION)
+                VALUES (src.FILE_TYPE, src.TRANSACTION_TYPE, '__HEADER__',
+                        0, 0, 'String',
+                        'N', 'Y', 'SYSTEM', SYSDATE, 1)
+        </sql>
+
+        <rollback>
+            <sql>
+                DELETE FROM CM3INT.FIELD_TEMPLATES
+                WHERE FILE_TYPE = 'atoctran'
+                  AND FIELD_NAME = '__HEADER__'
+                  AND CREATED_BY = 'SYSTEM'
+            </sql>
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>
