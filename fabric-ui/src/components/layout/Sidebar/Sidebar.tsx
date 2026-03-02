@@ -68,6 +68,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ open, onClose, drawerWidth }) 
       console.log('Selecting system:', systemId);
       await selectSourceSystem(systemId);
 
+      // Navigate to dashboard to show selected system if not already there
+      if (!location.pathname.startsWith('/dashboard')) {
+        navigate('/dashboard');
+      }
+
       // Load jobs from API when expanding
       if (!expandedSystems.includes(systemId)) {
         toggleSystemExpanded(systemId);
