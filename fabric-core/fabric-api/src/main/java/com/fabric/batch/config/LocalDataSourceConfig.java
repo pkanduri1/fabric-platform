@@ -6,6 +6,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.jdbc.DataSourceBuilder;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
@@ -26,6 +27,15 @@ public class LocalDataSourceConfig {
 
     private static final Logger logger = LoggerFactory.getLogger(LocalDataSourceConfig.class);
 
+    @Value("${spring.datasource.url}")
+    private String dbUrl;
+
+    @Value("${spring.datasource.username}")
+    private String dbUsername;
+
+    @Value("${spring.datasource.password}")
+    private String dbPassword;
+
     @Bean
     @Primary
     public DataSource dataSource() {
@@ -33,9 +43,9 @@ public class LocalDataSourceConfig {
         com.zaxxer.hikari.HikariDataSource ds = DataSourceBuilder.create()
                 .type(com.zaxxer.hikari.HikariDataSource.class)
                 .driverClassName("oracle.jdbc.OracleDriver")
-                .url("jdbc:oracle:thin:@localhost:1521/ORCLPDB1")
-                .username("cm3int")
-                .password("MySecurePass123")
+                .url(dbUrl)
+                .username(dbUsername)
+                .password(dbPassword)
                 .build();
 
         // Force READ_COMMITTED to avoid ORA-08177
