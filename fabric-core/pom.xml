@@ -22,6 +22,8 @@
 		<java.version>17</java.version>
 		<resilience4j.version>2.2.0</resilience4j.version>
 		<wiremock.version>3.0.1</wiremock.version>
+		<!-- Default empty value so @{argLine} resolves cleanly when JaCoCo is not active -->
+		<argLine></argLine>
 	</properties>
 	
 	<modules>
@@ -94,6 +96,7 @@
 					<artifactId>maven-surefire-plugin</artifactId>
 					<configuration>
 						<argLine>
+							@{argLine}
 							-Dnet.bytebuddy.experimental=true
 							--add-opens java.base/java.lang=ALL-UNNAMED
 							--add-opens java.base/java.util=ALL-UNNAMED
