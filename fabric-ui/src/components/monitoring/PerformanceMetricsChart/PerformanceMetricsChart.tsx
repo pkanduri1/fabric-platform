@@ -43,6 +43,7 @@ import {
   useTheme,
   useMediaQuery
 } from '@mui/material';
+import { SelectChangeEvent } from '@mui/material';
 import {
   LineChart,
   Line,
@@ -62,7 +63,6 @@ import {
   TrendData,
   PerformanceChartProps
 } from '../../../types/monitoring';
-import { formatNumber, formatTimestamp } from '../../../utils/formatters';
 
 // Chart types
 type ChartType = 'line' | 'bar';
@@ -89,26 +89,6 @@ const TIME_RANGE_OPTIONS = [
 
 // Maximum data points to display
 const MAX_DATA_POINTS = 50;
-
-/**
- * Extract metric value from a PerformanceMetrics object by tab key.
- */
-function getMetricValue(metric: PerformanceMetrics, tabKey: MetricTabKey): number {
-  switch (tabKey) {
-    case 'throughput':
-      return metric.totalThroughput;
-    case 'successRate':
-      return metric.successRate;
-    case 'errorRate':
-      return metric.errorRate;
-    case 'responseTime':
-      return metric.averageExecutionTime;
-    case 'resourceUsage':
-      return metric.memoryUsage;
-    default:
-      return 0;
-  }
-}
 
 /**
  * Validate a single metric object. Returns true if valid.
@@ -249,7 +229,7 @@ export const PerformanceMetricsChart: React.FC<PerformanceChartProps> = ({
   /**
    * Handle time range change.
    */
-  const handleTimeRangeChange = (event: any) => {
+  const handleTimeRangeChange = (event: SelectChangeEvent<string>) => {
     const newRange = event.target.value;
     setSelectedTimeRange(newRange);
     onTimeRangeChange?.(newRange);
@@ -438,6 +418,7 @@ export const PerformanceMetricsChart: React.FC<PerformanceChartProps> = ({
         {/* Right: controls */}
         <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', flexWrap: 'wrap' }}>
           {/* Auto refresh switch */}
+          {/* TODO: wire to parent refresh callback via onAutoRefreshChange prop */}
           <FormControlLabel
             control={
               <Switch
@@ -479,6 +460,7 @@ export const PerformanceMetricsChart: React.FC<PerformanceChartProps> = ({
             open={Boolean(exportAnchor)}
             onClose={handleExportClose}
           >
+            {/* TODO: implement PNG/CSV export */}
             <MenuItem onClick={handleExportClose}>Export as PNG</MenuItem>
             <MenuItem onClick={handleExportClose}>Export as CSV</MenuItem>
           </Menu>
@@ -538,7 +520,6 @@ export const PerformanceMetricsChart: React.FC<PerformanceChartProps> = ({
             key={tab.key}
             value={tab.key}
             label={tab.label}
-            tabIndex={0}
             id={`metric-tab-${tab.key}`}
             aria-controls={`metric-tabpanel-${tab.key}`}
           />
@@ -606,7 +587,7 @@ export const PerformanceMetricsChart: React.FC<PerformanceChartProps> = ({
       </Box>
 
       {/* Accessible data table for screen readers */}
-      <Box sx={{ position: 'absolute', left: -9999, top: -9999 }} aria-hidden={false}>
+      <Box sx={{ position: 'absolute', width: 1, height: 1, overflow: 'hidden', clip: 'rect(0,0,0,0)', whiteSpace: 'nowrap' }}>
         <Table aria-label="Chart data">
           <TableHead>
             <TableRow>

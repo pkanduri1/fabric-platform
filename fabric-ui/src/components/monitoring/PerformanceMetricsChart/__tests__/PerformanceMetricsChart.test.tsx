@@ -44,18 +44,6 @@ jest.mock('recharts', () => {
         {children}
       </div>
     ),
-    AreaChart: ({ children, data, ...props }: any) => (
-      <div
-        data-testid="area-chart"
-        data-chart-data={JSON.stringify({
-          datasets: [{ data: extractData(data || []) }],
-          labels: (data || []).map((d: any) => d.time),
-        })}
-        {...props}
-      >
-        {children}
-      </div>
-    ),
     BarChart: ({ children, data, ...props }: any) => (
       <div
         data-testid="bar-chart"
@@ -69,7 +57,6 @@ jest.mock('recharts', () => {
       </div>
     ),
     Line: () => null,
-    Area: () => null,
     Bar: () => null,
     XAxis: () => null,
     YAxis: () => null,
@@ -606,10 +593,16 @@ describe('PerformanceMetricsChart', () => {
         </TestWrapper>
       );
 
+      // MUI Tabs uses roving-tabindex: the selected tab has tabindex="0",
+      // non-selected tabs have tabindex="-1". The tab list itself is keyboard navigable.
       const tabs = screen.getAllByRole('tab');
-      tabs.forEach(tab => {
-        expect(tab).toHaveAttribute('tabindex', '0');
-      });
+      const selectedTab = tabs.find(tab => tab.getAttribute('aria-selected') === 'true');
+      expect(selectedTab).toHaveAttribute('tabindex', '0');
+      tabs
+        .filter(tab => tab.getAttribute('aria-selected') !== 'true')
+        .forEach(tab => {
+          expect(tab).toHaveAttribute('tabindex', '-1');
+        });
     });
 
     it('should provide data table alternative for screen readers', () => {
