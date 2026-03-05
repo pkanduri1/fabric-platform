@@ -1,9 +1,9 @@
 /**
  * MonitoringDashboard Component Tests
- * 
+ *
  * Comprehensive test suite for the MonitoringDashboard component including
  * rendering, user interactions, real-time updates, and error handling.
- * 
+ *
  * @author Senior Full Stack Developer Agent
  * @version 1.0
  * @since 2025-08-08
@@ -16,12 +16,12 @@ import { BrowserRouter } from 'react-router-dom';
 import { MonitoringDashboard } from '../MonitoringDashboard';
 import { useAuth } from '../../../contexts/AuthContext';
 import { useRealTimeMonitoring } from '../../../hooks/useRealTimeMonitoring';
-import { 
-  DashboardData, 
-  ActiveJob, 
-  JobStatus, 
-  JobPriority, 
-  Alert, 
+import {
+  DashboardData,
+  ActiveJob,
+  JobStatus,
+  JobPriority,
+  Alert,
   AlertSeverity,
   AlertType,
   TrendIndicator,
@@ -35,8 +35,8 @@ jest.mock('../../../components/monitoring/JobStatusGrid/JobStatusGrid', () => ({
   JobStatusGrid: ({ jobs, onJobSelect }: any) => (
     <div data-testid="job-status-grid">
       {jobs.map((job: ActiveJob) => (
-        <div 
-          key={job.executionId} 
+        <div
+          key={job.executionId}
           data-testid={`job-${job.executionId}`}
           onClick={() => onJobSelect(job.executionId)}
         >
@@ -50,13 +50,13 @@ jest.mock('../../../components/monitoring/AlertsPanel/AlertsPanel', () => ({
   AlertsPanel: ({ alerts, onAcknowledge }: any) => (
     <div data-testid="alerts-panel">
       {alerts.map((alert: Alert) => (
-        <div 
-          key={alert.alertId} 
+        <div
+          key={alert.alertId}
           data-testid={`alert-${alert.alertId}`}
         >
           <span>{alert.title} - {alert.severity}</span>
           {onAcknowledge && (
-            <button 
+            <button
               onClick={() => onAcknowledge(alert.alertId)}
               data-testid={`ack-${alert.alertId}`}
             >
@@ -89,7 +89,7 @@ jest.mock('../../../components/monitoring/JobDetailsModal/JobDetailsModal', () =
         <div>Job Details for: {executionId}</div>
         <button onClick={onClose} data-testid="close-modal">Close</button>
       </div>
-    ) : null,
+    ) : null
   )
 }));
 const mockUseAuth = useAuth as jest.MockedFunction<typeof useAuth>;
@@ -99,8 +99,8 @@ const createMockJob = (overrides: Partial<ActiveJob> = {}): ActiveJob => ({
   executionId: 'job-123',
   jobName: 'Test Job',
   sourceSystem: 'TestSystem',
-  status: JobStatus.RUNNING
-  priority: JobPriority.NORMAL
+  status: JobStatus.RUNNING,
+  priority: JobPriority.NORMAL,
   startTime: '2025-08-08T10:00:00Z',
   progress: 50,
   recordsProcessed: 1000,
@@ -110,15 +110,15 @@ const createMockJob = (overrides: Partial<ActiveJob> = {}): ActiveJob => ({
   errorCount: 0,
   warningCount: 0,
   performanceScore: 85,
-  trendIndicator: TrendIndicator.STABLE
+  trendIndicator: TrendIndicator.STABLE,
   lastHeartbeat: '2025-08-08T10:05:00Z',
   correlationId: 'corr-123',
   ...overrides
 });
 const createMockAlert = (overrides: Partial<Alert> = {}): Alert => ({
   alertId: 'alert-123',
-  type: AlertType.ERROR_RATE
-  severity: AlertSeverity.WARNING
+  type: AlertType.ERROR_RATE,
+  severity: AlertSeverity.WARNING,
   title: 'High Error Rate',
   description: 'Error rate exceeded threshold',
   timestamp: '2025-08-08T10:00:00Z',
@@ -126,7 +126,7 @@ const createMockAlert = (overrides: Partial<Alert> = {}): Alert => ({
   resolved: false,
   escalated: false,
   correlationId: 'corr-alert-123',
-  affectedResources: ['job-123']
+  affectedResources: ['job-123'],
   ...overrides
 });
 const createMockSystemHealth = (): SystemHealth => ({
@@ -135,30 +135,30 @@ const createMockSystemHealth = (): SystemHealth => ({
     status: 'HEALTHY',
     responseTime: 50,
     connectionPool: 10,
-  }
+  },
   webSocket: {
     status: 'HEALTHY',
     activeConnections: 25,
     messageRate: 100,
-  }
+  },
   batchProcessing: {
     status: 'HEALTHY',
     activeJobs: 5,
     queueLength: 2,
-  }
+  },
   memory: {
     status: 'HEALTHY',
     used: 4096,
     available: 8192,
     percentage: 50,
-  }
+  },
   lastCheck: '2025-08-08T10:05:00Z',
 });
 const createMockPerformanceMetrics = (): PerformanceMetrics => ({
   totalThroughput: 1000,
   averageExecutionTime: 30000,
-  successRate: 95.5
-  errorRate: 4.5
+  successRate: 95.5,
+  errorRate: 4.5,
   memoryUsage: 75,
   cpuUsage: 60,
   activeConnections: 25,
@@ -168,17 +168,17 @@ const createMockPerformanceMetrics = (): PerformanceMetrics => ({
 });
 const createMockDashboardData = (overrides: Partial<DashboardData> = {}): DashboardData => ({
   activeJobs: [
-    createMockJob({ executionId: 'job-1', jobName: 'Job 1', status: JobStatus.RUNNING })
-    createMockJob({ executionId: 'job-2', jobName: 'Job 2', status: JobStatus.PENDING })
-    createMockJob({ executionId: 'job-3', jobName: 'Job 3', status: JobStatus.FAILED })
-  ]
+    createMockJob({ executionId: 'job-1', jobName: 'Job 1', status: JobStatus.RUNNING }),
+    createMockJob({ executionId: 'job-2', jobName: 'Job 2', status: JobStatus.PENDING }),
+    createMockJob({ executionId: 'job-3', jobName: 'Job 3', status: JobStatus.FAILED }),
+  ],
   recentCompletions: [],
-  performanceMetrics: createMockPerformanceMetrics()
-  systemHealth: createMockSystemHealth()
+  performanceMetrics: createMockPerformanceMetrics(),
+  systemHealth: createMockSystemHealth(),
   alerts: [
-    createMockAlert({ alertId: 'alert-1', severity: AlertSeverity.WARNING })
-    createMockAlert({ alertId: 'alert-2', severity: AlertSeverity.CRITICAL, acknowledged: false })
-  ]
+    createMockAlert({ alertId: 'alert-1', severity: AlertSeverity.WARNING }),
+    createMockAlert({ alertId: 'alert-2', severity: AlertSeverity.CRITICAL, acknowledged: false }),
+  ],
   trends: {
     period: 'HOUR',
     startDate: '2025-08-08T09:00:00Z',
@@ -188,7 +188,7 @@ const createMockDashboardData = (overrides: Partial<DashboardData> = {}): Dashbo
     errorRateTrends: [],
     performanceScoreTrends: [],
     systemHealthTrends: [],
-  }
+  },
   lastUpdate: '2025-08-08T10:05:00Z',
   correlationId: 'dashboard-123',
   ...overrides
@@ -208,22 +208,20 @@ describe('MonitoringDashboard', () => {
   beforeEach(() => {
     // Setup default mocks
     mockUseAuth.mockReturnValue({
-      user: { id: '1', username: 'testuser' }
-      hasRole: jest.fn((role: string) => ['OPERATIONS_MANAGER', 'MONITORING_USER', 'ADMIN'].includes(role))
+      user: { id: '1', username: 'testuser' },
+      hasRole: jest.fn((role: string) => ['OPERATIONS_MANAGER', 'MONITORING_USER', 'ADMIN'].includes(role)),
       accessToken: 'mock-token',
       refreshAccessToken: jest.fn()
     } as any);
     mockUseRealTimeMonitoring.mockReturnValue({
-      dashboardData: createMockDashboardData()
+      dashboardData: createMockDashboardData(),
       loading: false,
       error: null,
       connected: true,
-      refresh: jest.fn().mockResolvedValue(undefined)
-      subscribe: jest.fn()
-      unsubscribe: jest.fn()
-        getCachedData: jest.fn().mockReturnValue(createMockDashboardData())
-        isDataFresh: jest.fn().mockReturnValue(true)
-      getCachedData: jest.fn().mockReturnValue(createMockDashboardData())
+      refresh: jest.fn().mockResolvedValue(undefined),
+      subscribe: jest.fn(),
+      unsubscribe: jest.fn(),
+      getCachedData: jest.fn().mockReturnValue(createMockDashboardData()),
       isDataFresh: jest.fn().mockReturnValue(true)
     });
   });
@@ -256,17 +254,15 @@ describe('MonitoringDashboard', () => {
     });
     it('should show offline indicator when disconnected', () => {
       mockUseRealTimeMonitoring.mockReturnValue({
-        dashboardData: createMockDashboardData()
+        dashboardData: createMockDashboardData(),
         loading: false,
         error: null,
         connected: false,
-        refresh: jest.fn()
-        subscribe: jest.fn()
-        unsubscribe: jest.fn()
-        getCachedData: jest.fn().mockReturnValue(createMockDashboardData())
+        refresh: jest.fn(),
+        subscribe: jest.fn(),
+        unsubscribe: jest.fn(),
+        getCachedData: jest.fn().mockReturnValue(createMockDashboardData()),
         isDataFresh: jest.fn().mockReturnValue(true)
-        
-        
       });
       render(
         <TestWrapper>
@@ -281,12 +277,11 @@ describe('MonitoringDashboard', () => {
         loading: true,
         error: null,
         connected: true,
-        refresh: jest.fn()
-        subscribe: jest.fn()
-        unsubscribe: jest.fn()
-        getCachedData: jest.fn().mockReturnValue(createMockDashboardData())
+        refresh: jest.fn(),
+        subscribe: jest.fn(),
+        unsubscribe: jest.fn(),
+        getCachedData: jest.fn().mockReturnValue(createMockDashboardData()),
         isDataFresh: jest.fn().mockReturnValue(true)
-        
       });
       render(
         <TestWrapper>
@@ -299,8 +294,8 @@ describe('MonitoringDashboard', () => {
   describe('Access Control', () => {
     it('should show access denied for unauthorized users', () => {
       mockUseAuth.mockReturnValue({
-        user: { id: '1', username: 'testuser' }
-        hasRole: jest.fn(() => false)
+        user: { id: '1', username: 'testuser' },
+        hasRole: jest.fn(() => false),
         accessToken: 'mock-token',
         refreshAccessToken: jest.fn()
       } as any);
@@ -317,16 +312,15 @@ describe('MonitoringDashboard', () => {
         alerts: [createMockAlert({ alertId: 'alert-1', acknowledged: false })]
       });
       mockUseRealTimeMonitoring.mockReturnValue({
-        dashboardData: mockData
+        dashboardData: mockData,
         loading: false,
         error: null,
         connected: true,
-        refresh: jest.fn()
-        subscribe: jest.fn()
-        unsubscribe: jest.fn()
-        getCachedData: jest.fn().mockReturnValue(createMockDashboardData())
+        refresh: jest.fn(),
+        subscribe: jest.fn(),
+        unsubscribe: jest.fn(),
+        getCachedData: jest.fn().mockReturnValue(createMockDashboardData()),
         isDataFresh: jest.fn().mockReturnValue(true)
-        
       });
       render(
         <TestWrapper>
@@ -337,8 +331,8 @@ describe('MonitoringDashboard', () => {
     });
     it('should hide acknowledge buttons for users without manage permissions', () => {
       mockUseAuth.mockReturnValue({
-        user: { id: '1', username: 'testuser' }
-        hasRole: jest.fn((role: string) => role === 'MONITORING_USER')
+        user: { id: '1', username: 'testuser' },
+        hasRole: jest.fn((role: string) => role === 'MONITORING_USER'),
         accessToken: 'mock-token',
         refreshAccessToken: jest.fn()
       } as any);
@@ -346,16 +340,15 @@ describe('MonitoringDashboard', () => {
         alerts: [createMockAlert({ alertId: 'alert-1', acknowledged: false })]
       });
       mockUseRealTimeMonitoring.mockReturnValue({
-        dashboardData: mockData
+        dashboardData: mockData,
         loading: false,
         error: null,
         connected: true,
-        refresh: jest.fn()
-        subscribe: jest.fn()
-        unsubscribe: jest.fn()
-        getCachedData: jest.fn().mockReturnValue(createMockDashboardData())
+        refresh: jest.fn(),
+        subscribe: jest.fn(),
+        unsubscribe: jest.fn(),
+        getCachedData: jest.fn().mockReturnValue(createMockDashboardData()),
         isDataFresh: jest.fn().mockReturnValue(true)
-        
       });
       render(
         <TestWrapper>
@@ -368,7 +361,7 @@ describe('MonitoringDashboard', () => {
   describe('User Interactions', () => {
     it('should handle job selection', async () => {
       const user = userEvent.setup();
-      
+
       render(
         <TestWrapper>
           <MonitoringDashboard />
@@ -381,7 +374,7 @@ describe('MonitoringDashboard', () => {
     });
     it('should close job details modal', async () => {
       const user = userEvent.setup();
-      
+
       render(
         <TestWrapper>
           <MonitoringDashboard />
@@ -398,21 +391,20 @@ describe('MonitoringDashboard', () => {
     });
     it('should handle manual refresh', async () => {
       const mockRefresh = jest.fn().mockResolvedValue(undefined);
-      
+
       mockUseRealTimeMonitoring.mockReturnValue({
-        dashboardData: createMockDashboardData()
+        dashboardData: createMockDashboardData(),
         loading: false,
         error: null,
         connected: true,
-        refresh: mockRefresh
-        subscribe: jest.fn()
-        unsubscribe: jest.fn()
-        getCachedData: jest.fn().mockReturnValue(createMockDashboardData())
+        refresh: mockRefresh,
+        subscribe: jest.fn(),
+        unsubscribe: jest.fn(),
+        getCachedData: jest.fn().mockReturnValue(createMockDashboardData()),
         isDataFresh: jest.fn().mockReturnValue(true)
-        
       });
       const user = userEvent.setup();
-      
+
       render(
         <TestWrapper>
           <MonitoringDashboard />
@@ -424,7 +416,7 @@ describe('MonitoringDashboard', () => {
     });
     it('should toggle fullscreen mode', async () => {
       const user = userEvent.setup();
-      
+
       render(
         <TestWrapper>
           <MonitoringDashboard />
@@ -436,7 +428,7 @@ describe('MonitoringDashboard', () => {
     });
     it('should open and close settings menu', async () => {
       const user = userEvent.setup();
-      
+
       render(
         <TestWrapper>
           <MonitoringDashboard />
@@ -467,16 +459,15 @@ describe('MonitoringDashboard', () => {
       );
       // Update with new data
       mockUseRealTimeMonitoring.mockReturnValue({
-        dashboardData: mockData
+        dashboardData: mockData,
         loading: false,
         error: null,
         connected: true,
-        refresh: jest.fn()
-        subscribe: jest.fn()
-        unsubscribe: jest.fn()
-        getCachedData: jest.fn().mockReturnValue(createMockDashboardData())
+        refresh: jest.fn(),
+        subscribe: jest.fn(),
+        unsubscribe: jest.fn(),
+        getCachedData: jest.fn().mockReturnValue(createMockDashboardData()),
         isDataFresh: jest.fn().mockReturnValue(true)
-        
       });
       rerender(
         <TestWrapper>
@@ -488,22 +479,21 @@ describe('MonitoringDashboard', () => {
     it('should update statistics when jobs change', () => {
       const mockData = createMockDashboardData({
         activeJobs: [
-          createMockJob({ status: JobStatus.RUNNING })
-          createMockJob({ status: JobStatus.RUNNING })
-          createMockJob({ status: JobStatus.FAILED })
+          createMockJob({ status: JobStatus.RUNNING }),
+          createMockJob({ status: JobStatus.RUNNING }),
+          createMockJob({ status: JobStatus.FAILED }),
         ]
       });
       mockUseRealTimeMonitoring.mockReturnValue({
-        dashboardData: mockData
+        dashboardData: mockData,
         loading: false,
         error: null,
         connected: true,
-        refresh: jest.fn()
-        subscribe: jest.fn()
-        unsubscribe: jest.fn()
-        getCachedData: jest.fn().mockReturnValue(createMockDashboardData())
+        refresh: jest.fn(),
+        subscribe: jest.fn(),
+        unsubscribe: jest.fn(),
+        getCachedData: jest.fn().mockReturnValue(createMockDashboardData()),
         isDataFresh: jest.fn().mockReturnValue(true)
-        
       });
       render(
         <TestWrapper>
@@ -526,14 +516,13 @@ describe('MonitoringDashboard', () => {
       mockUseRealTimeMonitoring.mockReturnValue({
         dashboardData: null,
         loading: false,
-        error: mockError
+        error: mockError,
         connected: false,
-        refresh: jest.fn()
-        subscribe: jest.fn()
-        unsubscribe: jest.fn()
-        getCachedData: jest.fn().mockReturnValue(createMockDashboardData())
+        refresh: jest.fn(),
+        subscribe: jest.fn(),
+        unsubscribe: jest.fn(),
+        getCachedData: jest.fn().mockReturnValue(createMockDashboardData()),
         isDataFresh: jest.fn().mockReturnValue(true)
-        
       });
       render(
         <TestWrapper>
@@ -544,16 +533,15 @@ describe('MonitoringDashboard', () => {
     });
     it('should show connection status FAB when disconnected', () => {
       mockUseRealTimeMonitoring.mockReturnValue({
-        dashboardData: createMockDashboardData()
+        dashboardData: createMockDashboardData(),
         loading: false,
         error: null,
         connected: false,
-        refresh: jest.fn()
-        subscribe: jest.fn()
-        unsubscribe: jest.fn()
-        getCachedData: jest.fn().mockReturnValue(createMockDashboardData())
+        refresh: jest.fn(),
+        subscribe: jest.fn(),
+        unsubscribe: jest.fn(),
+        getCachedData: jest.fn().mockReturnValue(createMockDashboardData()),
         isDataFresh: jest.fn().mockReturnValue(true)
-        
       });
       render(
         <TestWrapper>
@@ -570,13 +558,13 @@ describe('MonitoringDashboard', () => {
       Object.defineProperty(window, 'matchMedia', {
         writable: true,
         value: jest.fn().mockImplementation(query => ({
-          matches: query.includes('(max-width: 960px)')
-          media: query
+          matches: query.includes('(max-width: 960px)'),
+          media: query,
           onchange: null,
-          addListener: jest.fn()
-          removeListener: jest.fn()
-          addEventListener: jest.fn()
-          removeEventListener: jest.fn()
+          addListener: jest.fn(),
+          removeListener: jest.fn(),
+          addEventListener: jest.fn(),
+          removeEventListener: jest.fn(),
           dispatchEvent: jest.fn()
         }))
       });
@@ -596,18 +584,17 @@ describe('MonitoringDashboard', () => {
   describe('Performance', () => {
     it('should not re-render unnecessarily', () => {
       const mockData = createMockDashboardData();
-      
+
       mockUseRealTimeMonitoring.mockReturnValue({
-        dashboardData: mockData
+        dashboardData: mockData,
         loading: false,
         error: null,
         connected: true,
-        refresh: jest.fn()
-        subscribe: jest.fn()
-        unsubscribe: jest.fn()
-        getCachedData: jest.fn().mockReturnValue(createMockDashboardData())
+        refresh: jest.fn(),
+        subscribe: jest.fn(),
+        unsubscribe: jest.fn(),
+        getCachedData: jest.fn().mockReturnValue(createMockDashboardData()),
         isDataFresh: jest.fn().mockReturnValue(true)
-        
       });
       const { rerender } = render(
         <TestWrapper>
