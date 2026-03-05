@@ -75,6 +75,9 @@
     },
     "transformIgnorePatterns": [
       "node_modules/(?!(axios)/)"
+    ],
+    "testMatch": [
+      "<rootDir>/src/**/*.{spec,test}.{js,jsx,ts,tsx}"
     ]
   },
   "proxy": "http://localhost:8080"
