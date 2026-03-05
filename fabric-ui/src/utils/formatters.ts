@@ -46,13 +46,12 @@ export function formatNumber(num: number): string {
 }
 
 /**
- * Format timestamp to localized date/time string
+ * Format timestamp to UTC date/time string (YYYY-MM-DD HH:MM:SS UTC)
  */
 export function formatTimestamp(timestamp: string): string {
   const date = new Date(timestamp);
-  // Use ISO-compatible format: YYYY-MM-DD HH:MM:SS (UTC) for consistent rendering
   const pad = (n: number) => String(n).padStart(2, '0');
-  return `${date.getUTCFullYear()}-${pad(date.getUTCMonth() + 1)}-${pad(date.getUTCDate())} ${pad(date.getUTCHours())}:${pad(date.getUTCMinutes())}:${pad(date.getUTCSeconds())}`;
+  return `${date.getUTCFullYear()}-${pad(date.getUTCMonth() + 1)}-${pad(date.getUTCDate())} ${pad(date.getUTCHours())}:${pad(date.getUTCMinutes())}:${pad(date.getUTCSeconds())} UTC`;
 }
 
 /**

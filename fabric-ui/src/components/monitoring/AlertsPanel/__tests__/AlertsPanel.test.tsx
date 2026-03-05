@@ -165,7 +165,7 @@ describe('AlertsPanel', () => {
         </TestWrapper>
       );
 
-      const timestamps = screen.getAllByText(/10:0[0-2]:00/);
+      const timestamps = screen.getAllByText(/10:0[0-2]:00 UTC/);
       expect(timestamps.length).toBeGreaterThan(0);
     });
 

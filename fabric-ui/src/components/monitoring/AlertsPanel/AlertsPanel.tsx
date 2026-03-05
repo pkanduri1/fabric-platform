@@ -146,7 +146,6 @@ export const AlertsPanel: React.FC<AlertPanelProps> = ({
   }, []);
 
   // Component state
-  const [localFilters] = useState<AlertFilters>(filters);
   const [severityFilter, setSeverityFilter] = useState<string>('all');
   const [selectedAlert, setSelectedAlert] = useState<Alert | null>(null);
   const [resolveDialogOpen, setResolveDialogOpen] = useState(false);
@@ -198,7 +197,6 @@ export const AlertsPanel: React.FC<AlertPanelProps> = ({
   // Update live region on alerts change
   useEffect(() => {
     if (alerts.length > 0) {
-      const pending = alerts.filter((a: Alert) => !a.acknowledged).length;
       // Keep live region text distinct from visible summary to avoid duplicate-text issues
       setLiveMessage(`Alerts updated: ${alerts.length} total`);
     }
@@ -215,53 +213,53 @@ export const AlertsPanel: React.FC<AlertPanelProps> = ({
       if (severityFilter === 'warning' && alert.severity !== 'WARNING') return false;
 
       // Severity filter from props
-      if (localFilters.severity && localFilters.severity.length > 0) {
-        if (!localFilters.severity.includes(alert.severity)) return false;
+      if (filters.severity && filters.severity.length > 0) {
+        if (!filters.severity.includes(alert.severity)) return false;
       }
 
       // Type filter
-      if (localFilters.type && localFilters.type.length > 0) {
-        if (!localFilters.type.includes(alert.type)) return false;
+      if (filters.type && filters.type.length > 0) {
+        if (!filters.type.includes(alert.type)) return false;
       }
 
       // Source system filter
-      if (localFilters.sourceSystem && localFilters.sourceSystem.length > 0) {
-        if (!alert.sourceSystem || !localFilters.sourceSystem.includes(alert.sourceSystem)) return false;
+      if (filters.sourceSystem && filters.sourceSystem.length > 0) {
+        if (!alert.sourceSystem || !filters.sourceSystem.includes(alert.sourceSystem)) return false;
       }
 
       // Acknowledged filter
-      if (localFilters.acknowledged !== undefined) {
-        if (alert.acknowledged !== localFilters.acknowledged) return false;
+      if (filters.acknowledged !== undefined) {
+        if (alert.acknowledged !== filters.acknowledged) return false;
       }
 
       // Resolved filter
-      if (localFilters.resolved !== undefined) {
-        if (alert.resolved !== localFilters.resolved) return false;
+      if (filters.resolved !== undefined) {
+        if (alert.resolved !== filters.resolved) return false;
       }
 
       // Date range filter
-      if (localFilters.dateRange) {
+      if (filters.dateRange) {
         const alertDate = new Date(alert.timestamp);
-        const startDate = new Date(localFilters.dateRange.start);
-        const endDate = new Date(localFilters.dateRange.end);
+        const startDate = new Date(filters.dateRange.start);
+        const endDate = new Date(filters.dateRange.end);
         if (alertDate < startDate || alertDate > endDate) return false;
       }
 
       return true;
     });
-  }, [alerts, localFilters, severityFilter]);
+  }, [alerts, filters, severityFilter]);
 
   const hasActiveFilters = useMemo(() => {
     return (
       severityFilter !== 'all' ||
-      (localFilters.severity && localFilters.severity.length > 0) ||
-      (localFilters.type && localFilters.type.length > 0) ||
-      (localFilters.sourceSystem && localFilters.sourceSystem.length > 0) ||
-      localFilters.acknowledged !== undefined ||
-      localFilters.resolved !== undefined ||
-      !!localFilters.dateRange
+      (filters.severity && filters.severity.length > 0) ||
+      (filters.type && filters.type.length > 0) ||
+      (filters.sourceSystem && filters.sourceSystem.length > 0) ||
+      filters.acknowledged !== undefined ||
+      filters.resolved !== undefined ||
+      !!filters.dateRange
     );
-  }, [localFilters, severityFilter]);
+  }, [filters, severityFilter]);
 
   /**
    * Get alert statistics (based on all alerts, not filtered)
@@ -503,6 +501,7 @@ export const AlertsPanel: React.FC<AlertPanelProps> = ({
           </Typography>
           <Box sx={{ display: 'flex', gap: 0.5 }}>
             <Tooltip title={soundEnabled ? 'Mute Alerts' : 'Enable Alert Sounds'}>
+              {/* TODO: wire to onToggleSound callback */}
               <IconButton size="small">
                 {soundEnabled ? <VolumeUp /> : <VolumeOff />}
               </IconButton>
@@ -743,6 +742,7 @@ export const AlertsPanel: React.FC<AlertPanelProps> = ({
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setSnoozeDialogOpen(false)}>Cancel</Button>
+          {/* TODO: wire to API */}
           <Button variant="contained" onClick={() => setSnoozeDialogOpen(false)}>
             Snooze 30 minutes
           </Button>
@@ -762,6 +762,7 @@ export const AlertsPanel: React.FC<AlertPanelProps> = ({
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setEscalateDialogOpen(false)}>Cancel</Button>
+          {/* TODO: wire to API */}
           <Button variant="contained" color="error" onClick={() => setEscalateDialogOpen(false)}>
             Escalate
           </Button>
