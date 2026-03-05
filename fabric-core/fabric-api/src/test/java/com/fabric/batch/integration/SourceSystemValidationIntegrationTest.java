@@ -1,12 +1,13 @@
 package com.fabric.batch.integration;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fabric.batch.config.QuerySecurityConfig;
 import com.fabric.batch.dto.MasterQueryCreateRequest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.jdbc.DataSourceBuilder;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureWebMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
@@ -45,7 +46,6 @@ import static org.hamcrest.Matchers.containsString;
  * =========================================================================
  */
 @SpringBootTest
-@AutoConfigureWebMvc
 @AutoConfigureMockMvc
 @TestPropertySource(properties = {
     "spring.datasource.url=jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE",
@@ -97,9 +97,15 @@ class SourceSystemValidationIntegrationTest {
                     .build();
         }
 
+        @Bean(name = "readOnlyDataSourceHealthIndicator")
+        public QuerySecurityConfig.ReadOnlyDataSourceHealthIndicator readOnlyDataSourceHealthIndicator(
+                @Qualifier("readOnlyDataSource") DataSource readOnlyDataSource) {
+            return new QuerySecurityConfig.ReadOnlyDataSourceHealthIndicator(readOnlyDataSource);
+        }
+
         @Bean(name = "readOnlyJdbcTemplate")
-        public JdbcTemplate readOnlyJdbcTemplate() {
-            JdbcTemplate template = new JdbcTemplate(readOnlyDataSource());
+        public JdbcTemplate readOnlyJdbcTemplate(@Qualifier("readOnlyDataSource") DataSource readOnlyDataSource) {
+            JdbcTemplate template = new JdbcTemplate(readOnlyDataSource);
             template.setQueryTimeout(30);
             template.setFetchSize(100);
             template.setMaxRows(100);
@@ -108,14 +114,14 @@ class SourceSystemValidationIntegrationTest {
 
         @Bean(name = "jdbcTemplate")
         @Primary
-        public JdbcTemplate jdbcTemplate() {
-            return new JdbcTemplate(dataSource());
+        public JdbcTemplate jdbcTemplate(@Qualifier("dataSource") DataSource dataSource) {
+            return new JdbcTemplate(dataSource);
         }
 
         @Bean
-        public DataSourceInitializer dataSourceInitializer() {
+        public DataSourceInitializer dataSourceInitializer(@Qualifier("dataSource") DataSource dataSource) {
             DataSourceInitializer initializer = new DataSourceInitializer();
-            initializer.setDataSource(dataSource());
+            initializer.setDataSource(dataSource);
             ResourceDatabasePopulator populator = new ResourceDatabasePopulator();
             populator.addScript(new ClassPathResource("schema-h2.sql"));
             populator.addScript(new ClassPathResource("data-h2.sql"));

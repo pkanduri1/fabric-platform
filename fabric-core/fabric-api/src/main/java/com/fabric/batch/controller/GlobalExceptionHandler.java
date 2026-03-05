@@ -30,7 +30,7 @@ public class GlobalExceptionHandler {
 
     /**
      * Handles bean validation errors (from @Valid on request bodies).
-     * Formats the first constraint violation message into a standardised error response.
+     * Formats all constraint violation messages, joined by semicolons, into a standardised error response.
      *
      * @param ex the validation exception
      * @return 400 Bad Request with JSON body containing error details
