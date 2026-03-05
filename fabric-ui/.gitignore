@@ -23,6 +23,7 @@ yarn-debug.log*
 yarn-error.log*
 
 # Playwright
-e2e/.auth/
+e2e/.auth/*.json
 playwright-report/
 test-results/
+.env.playwright
