@@ -24,8 +24,12 @@ async function globalSetup(_config: FullConfig) {
     // Wait for redirect to dashboard
     await page.waitForURL(`${baseURL}/dashboard`, { timeout: 15_000 });
 
-    // Patch fabric_user in localStorage to include MONITORING_USER role so
-    // tests that navigate to /monitoring are not blocked by the role check.
+    // IMPORTANT: Patch fabric_user in localStorage to include MONITORING_USER role.
+    // This works because AuthContext.initializeAuth() uses the stored fabric_user as
+    // the authoritative source for user roles (getUserProfile() is called only as a
+    // liveness check, its result is discarded). If the backend ever starts returning
+    // authoritative roles, this patch may be silently bypassed.
+    // TODO: Long-term fix — configure the E2E test user to have MONITORING_USER in the DB.
     await page.evaluate(() => {
       const raw = localStorage.getItem('fabric_user');
       if (raw) {
