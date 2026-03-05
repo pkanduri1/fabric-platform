@@ -229,6 +229,7 @@ export function AuthProvider({ children, value: testValue }: AuthProviderProps) 
             } catch (refreshError) {
               // Refresh failed, clear storage and require re-login
               clearStorage();
+              dispatch({ type: 'INITIALIZED' });
             }
           }
         } else {
