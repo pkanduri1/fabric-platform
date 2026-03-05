@@ -153,15 +153,6 @@ export const Header: React.FC<HeaderProps> = ({ onMenuToggle, menuOpen }) => {
             <AccountCircle sx={{ mr: 1 }} />
             Profile
           </MenuItem>
-          <MenuItem
-            onClick={() => {
-              handleClose();
-              logout();
-            }}
-          >
-            <Logout sx={{ mr: 1 }} />
-            Logout
-          </MenuItem>
         </Menu>
       </Toolbar>
     </AppBar>
