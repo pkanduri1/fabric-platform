@@ -521,6 +521,8 @@ describe('WebSocket Integration Tests', () => {
   });
 
   describe('Connection Resilience', () => {
+    jest.setTimeout(10000);
+
     beforeEach(async () => {
       await service.connect('valid-token');
       await waitFor(() => {
@@ -530,7 +532,6 @@ describe('WebSocket Integration Tests', () => {
     });
 
     it('should handle connection loss and reconnection', async () => {
-      jest.setTimeout(10000);
       const reconnectHandler = jest.fn();
       const connectHandler = jest.fn();
       
