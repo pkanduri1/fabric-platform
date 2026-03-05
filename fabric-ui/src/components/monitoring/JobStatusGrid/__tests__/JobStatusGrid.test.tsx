@@ -14,6 +14,15 @@ import { render, screen, fireEvent, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 
+// Mutable flag controlling the return value of useMediaQuery.
+// Default false (desktop). Set to true in Mobile Responsiveness beforeEach.
+let mockMediaQueryMobile = false;
+
+jest.mock('@mui/material', () => ({
+  ...jest.requireActual('@mui/material'),
+  useMediaQuery: () => mockMediaQueryMobile,
+}));
+
 import { JobStatusGrid } from '../JobStatusGrid';
 import { 
   ActiveJob, 
@@ -495,16 +504,11 @@ describe('JobStatusGrid', () => {
 
   describe('Mobile Responsiveness', () => {
     beforeEach(() => {
-      Object.defineProperty(window, 'matchMedia', {
-        writable: true,
-        value: jest.fn().mockImplementation(query => ({
-          matches: query.includes('(max-width: 600px)'),
-          media: query,
-          onchange: null,
-          addListener: jest.fn(),
-          removeListener: jest.fn(),
-        })),
-      });
+      mockMediaQueryMobile = true;
+    });
+
+    afterEach(() => {
+      mockMediaQueryMobile = false;
     });
 
     it('should adapt layout for mobile screens', () => {

@@ -13,6 +13,16 @@ import { render, screen, fireEvent, waitFor, within } from '@testing-library/rea
 import userEvent from '@testing-library/user-event';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import { BrowserRouter } from 'react-router-dom';
+
+// Mutable flag controlling the return value of useMediaQuery.
+// Default false (desktop). Set to true in Mobile Responsiveness beforeEach.
+let mockMediaQueryMobile = false;
+
+jest.mock('@mui/material', () => ({
+  ...jest.requireActual('@mui/material'),
+  useMediaQuery: () => mockMediaQueryMobile,
+}));
+
 import { MonitoringDashboard } from '../MonitoringDashboard';
 import { useAuth } from '../../../contexts/AuthContext';
 import { useRealTimeMonitoring } from '../../../hooks/useRealTimeMonitoring';
@@ -566,20 +576,12 @@ describe('MonitoringDashboard', () => {
   });
   describe('Mobile Responsiveness', () => {
     beforeEach(() => {
-      // Mock mobile breakpoint
-      Object.defineProperty(window, 'matchMedia', {
-        writable: true,
-        value: jest.fn().mockImplementation(query => ({
-          matches: query.includes('(max-width: 960px)'),
-          media: query,
-          onchange: null,
-          addListener: jest.fn(),
-          removeListener: jest.fn(),
-          addEventListener: jest.fn(),
-          removeEventListener: jest.fn(),
-          dispatchEvent: jest.fn()
-        }))
-      });
+      // Signal useMediaQuery mock to return true (mobile breakpoint active).
+      mockMediaQueryMobile = true;
+    });
+
+    afterEach(() => {
+      mockMediaQueryMobile = false;
     });
     it('should adapt layout for mobile screens', () => {
       render(
