@@ -17,13 +17,14 @@ test('10 - alert acknowledgment updates alert state', async ({ page }) => {
   const firstAckBtn = alertsPanel.getByRole('button', { name: /acknowledge/i }).first();
   const hasAlerts = await firstAckBtn.isVisible().catch(() => false);
 
-  if (hasAlerts) {
-    await firstAckBtn.click();
-    await page.waitForTimeout(1000);
-    await expect(alertsPanel).toBeVisible();
-  } else {
-    test.info().annotations.push({ type: 'note', description: 'No unacknowledged alerts present' });
+  if (!hasAlerts) {
+    test.skip(true, 'No unacknowledged alerts present — skipping ack assertion');
+    return;
   }
+
+  await firstAckBtn.click();
+  // Assert the button disappears (alert transitioned to acknowledged state)
+  await expect(firstAckBtn).not.toBeVisible({ timeout: 5_000 });
 });
 
 test('11 - metric chart tabs switch content', async ({ page }) => {
@@ -35,14 +36,15 @@ test('11 - metric chart tabs switch content', async ({ page }) => {
   await errorRateTab.click();
   await expect(errorRateTab).toHaveAttribute('aria-selected', 'true');
 
-  // Click Throughput tab
+  // Click Throughput tab — also verifies Error Rate is deselected
   const throughputTab = chart.getByRole('tab', { name: /throughput/i });
   await throughputTab.click();
   await expect(throughputTab).toHaveAttribute('aria-selected', 'true');
+  await expect(errorRateTab).toHaveAttribute('aria-selected', 'false');
 });
 
 test('12 - WebSocket real-time indicator shows connection', async ({ page }) => {
   const indicator = page.getByTestId('real-time-indicator');
   await expect(indicator).toBeVisible({ timeout: 15_000 });
-  await expect(indicator).not.toBeEmpty();
+  await expect(indicator).toHaveText('LIVE');
 });
