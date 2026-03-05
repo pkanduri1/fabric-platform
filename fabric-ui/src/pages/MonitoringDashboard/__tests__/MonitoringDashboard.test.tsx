@@ -456,8 +456,10 @@ describe('MonitoringDashboard', () => {
       await user.click(settingsButton);
       expect(screen.getByText('Settings')).toBeInTheDocument();
       expect(screen.getByText('Export Data')).toBeInTheDocument();
-      // Click outside to close menu
-      await user.click(document.body);
+      // Press Escape to close menu — MUI Menu unmounts its items on close,
+      // so not.toBeInTheDocument() is correct; clicking document.body does not
+      // trigger MUI's backdrop handler, but Escape does.
+      await user.keyboard('{Escape}');
       await waitFor(() => {
         expect(screen.queryByText('Settings')).not.toBeInTheDocument();
       });

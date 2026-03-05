@@ -119,7 +119,8 @@ jest.mock('../../hooks/useRealTimeMonitoring', () => ({
 import * as realTimeMonitoringModule from '../../hooks/useRealTimeMonitoring';
 const mockUseRealTimeMonitoring = realTimeMonitoringModule.useRealTimeMonitoring as jest.Mock;
 
-// Mock audio — plain function so jest.clearAllMocks() doesn't wipe it
+// Mock audio — note: jest.clearAllMocks() wipes this implementation, so
+// individual sound tests must re-install the mock in their own beforeEach/test body
 global.Audio = jest.fn().mockImplementation(() => ({
   play: jest.fn().mockResolvedValue(undefined),
   volume: 0.5
