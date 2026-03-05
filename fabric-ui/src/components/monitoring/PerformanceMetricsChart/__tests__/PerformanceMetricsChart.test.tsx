@@ -21,6 +21,67 @@ import {
   TrendData 
 } from '../../../../types/monitoring';
 
+// Mock recharts to avoid JSDOM ResizeObserver crash from ResponsiveContainer
+jest.mock('recharts', () => {
+  // Helper: extract the first non-time numeric key from each data row
+  const extractData = (data: any[]) => {
+    if (!data || data.length === 0) return [];
+    const sample = data[0];
+    const key = Object.keys(sample).find((k) => k !== 'time') || 'throughput';
+    return data.map((d: any) => d[key] !== undefined ? d[key] : null);
+  };
+
+  return {
+    LineChart: ({ children, data, ...props }: any) => (
+      <div
+        data-testid="line-chart"
+        data-chart-data={JSON.stringify({
+          datasets: [{ data: extractData(data || []) }],
+          labels: (data || []).map((d: any) => d.time),
+        })}
+        {...props}
+      >
+        {children}
+      </div>
+    ),
+    AreaChart: ({ children, data, ...props }: any) => (
+      <div
+        data-testid="area-chart"
+        data-chart-data={JSON.stringify({
+          datasets: [{ data: extractData(data || []) }],
+          labels: (data || []).map((d: any) => d.time),
+        })}
+        {...props}
+      >
+        {children}
+      </div>
+    ),
+    BarChart: ({ children, data, ...props }: any) => (
+      <div
+        data-testid="bar-chart"
+        data-chart-data={JSON.stringify({
+          datasets: [{ data: extractData(data || []) }],
+          labels: (data || []).map((d: any) => d.time),
+        })}
+        {...props}
+      >
+        {children}
+      </div>
+    ),
+    Line: () => null,
+    Area: () => null,
+    Bar: () => null,
+    XAxis: () => null,
+    YAxis: () => null,
+    CartesianGrid: () => null,
+    Tooltip: () => null,
+    Legend: () => null,
+    ResponsiveContainer: ({ children }: any) => <div style={{ width: 800, height: 300 }}>{children}</div>,
+    ReferenceLine: () => null,
+    Brush: () => null,
+  };
+});
+
 // Mock Chart.js
 jest.mock('react-chartjs-2', () => ({
   Line: ({ data, options, ...props }: any) => (
@@ -582,11 +643,14 @@ describe('PerformanceMetricsChart', () => {
       Object.defineProperty(window, 'matchMedia', {
         writable: true,
         value: jest.fn().mockImplementation(query => ({
-          matches: query.includes('(max-width: 768px)'),
+          matches: query.includes('max-width'),
           media: query,
           onchange: null,
           addListener: jest.fn(),
           removeListener: jest.fn(),
+          addEventListener: jest.fn(),
+          removeEventListener: jest.fn(),
+          dispatchEvent: jest.fn(),
         })),
       });
     });
