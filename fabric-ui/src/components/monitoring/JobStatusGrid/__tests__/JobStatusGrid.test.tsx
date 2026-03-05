@@ -273,7 +273,7 @@ describe('JobStatusGrid', () => {
 
       expect(screen.getByText(/view details/i)).toBeInTheDocument();
       expect(screen.getByText(/cancel job/i)).toBeInTheDocument();
-      expect(screen.getByText(/restart job/i)).toBeInTheDocument();
+      expect(screen.getByText(/pause job/i)).toBeInTheDocument();
     });
 
     it('should handle refresh button', async () => {
@@ -400,9 +400,9 @@ describe('JobStatusGrid', () => {
       );
 
       // Should render jobs in alphabetical order
-      const jobCards = screen.getAllByRole('button');
-      const jobNames = jobCards.map(card => 
-        within(card).queryByText(/.*Job/)?.textContent
+      const jobRows = screen.getAllByTestId('job-row');
+      const jobNames = jobRows.map(row =>
+        within(row).queryByText(/.*Job/)?.textContent
       ).filter(Boolean);
 
       expect(jobNames[0]).toBe('Data Import Job');
@@ -520,10 +520,10 @@ describe('JobStatusGrid', () => {
 
       // Should render in mobile-friendly format
       expect(screen.getByText('Data Import Job')).toBeInTheDocument();
-      
-      // Mobile view should show stacked layout
-      const jobCards = screen.getAllByRole('button');
-      expect(jobCards).toHaveLength(4);
+
+      // Mobile card view: 4 job cards + 4 "more actions" buttons (one per card)
+      const moreActionsButtons = screen.getAllByLabelText(/more actions/i);
+      expect(moreActionsButtons).toHaveLength(4);
     });
   });
 
@@ -575,7 +575,8 @@ describe('JobStatusGrid', () => {
       );
 
       expect(screen.getByRole('region', { name: /job status grid/i })).toBeInTheDocument();
-      expect(screen.getAllByRole('button')).toHaveLength(8); // 4 job cards + 4 action menus
+      // 1 refresh + 6 sort labels + 4 job rows + 4 more-actions + 2 pagination = 17
+      expect(screen.getAllByRole('button')).toHaveLength(17);
     });
 
     it('should support keyboard navigation', () => {
@@ -585,9 +586,14 @@ describe('JobStatusGrid', () => {
         </TestWrapper>
       );
 
-      const jobCards = screen.getAllByRole('button');
-      jobCards.forEach(card => {
-        expect(card).toHaveAttribute('tabindex', '0');
+      // Job rows and action buttons should be keyboard navigable (tabindex="0")
+      const jobRows = screen.getAllByTestId('job-row');
+      jobRows.forEach(row => {
+        expect(row).toHaveAttribute('tabindex', '0');
+      });
+      const moreActionsButtons = screen.getAllByLabelText(/more actions/i);
+      moreActionsButtons.forEach(btn => {
+        expect(btn).toHaveAttribute('tabindex', '0');
       });
     });
 
