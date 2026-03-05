@@ -171,7 +171,7 @@ export const AlertsPanel: React.FC<AlertPanelProps> = ({
     const newIds = new Set(newAlerts.map((a: Alert) => a.alertId));
     newAlertIdsRef.current = newIds;
 
-    const soundSeverities: AlertSeverity[] = ['CRITICAL', 'ERROR', 'WARNING'];
+    const soundSeverities: AlertSeverity[] = [AlertSeverity.CRITICAL, AlertSeverity.ERROR, AlertSeverity.WARNING];
 
     // Play sound for any new alerts that arrived
     newAlerts.forEach((alert: Alert) => {

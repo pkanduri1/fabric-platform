@@ -1,5 +1,5 @@
 // src/pages/HomePage/HomePage.tsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Box,
   Typography,
@@ -32,11 +32,16 @@ export const HomePage: React.FC = () => {
   // Local state for loading and error handling
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  
-  const [showAddDialog, setShowAddDialog] = useState(false);
 
-  // Load source systems on mount
+  const [showAddDialog, setShowAddDialog] = useState(false);
+  const hasLoadedRef = useRef(false);
+
+  // Load source systems on mount — run once only to avoid infinite re-trigger
+  // when the API returns an empty list
   useEffect(() => {
+    if (hasLoadedRef.current) return;
+    hasLoadedRef.current = true;
+
     const loadSystems = async () => {
       try {
         setIsLoading(true);
@@ -50,10 +55,9 @@ export const HomePage: React.FC = () => {
       }
     };
 
-    if (sourceSystems.length === 0) {
-      loadSystems();
-    }
-  }, [refreshSourceSystems, sourceSystems.length]);
+    loadSystems();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleAddSourceSystem = async (newSystem: Omit<SourceSystem, 'id'>) => {
     try {

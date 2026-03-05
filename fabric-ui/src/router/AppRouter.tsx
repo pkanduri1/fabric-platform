@@ -11,7 +11,18 @@ import TemplateStudioPage from '../pages/TemplateStudioPage/TemplateStudioPage';
 import TemplateAdminPage from '../pages/TemplateAdminPage/TemplateAdminPage';
 import { MonitoringDashboard } from '../pages/MonitoringDashboard/MonitoringDashboard';
 import { ManualJobConfigurationPage } from '../pages/ManualJobConfigurationPage';
+import { LoginPage } from '../pages/LoginPage/LoginPage';
+import { useAuth } from '../contexts/AuthContext';
 import { useLocation } from 'react-router-dom';
+
+/** Redirect unauthenticated users to /login, show a blank screen while auth initializes */
+const ProtectedLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { isAuthenticated, isInitialized } = useAuth();
+  if (!isInitialized) return null;
+  if (!isAuthenticated) return <Navigate to="/login" replace />;
+  return <>{children}</>;
+};
+
 export const AppRouter: React.FC = () => {
 
     const location = useLocation();
@@ -19,36 +30,43 @@ export const AppRouter: React.FC = () => {
     console.log('AppRouter - Current location:', location.pathname);
     console.log('AppRouter - Rendering routes');
     return (
-        <PageLayout>
-            <Routes>
-                <Route path="/" element={<Navigate to="/dashboard" replace />} />
-                <Route path="/dashboard" element={<HomePage />} />
-                {/* <Route path="/configuration" element={<ConfigurationPage />} />
-        <Route path="/configuration/:systemId/:jobName" element={<ConfigurationPage />} /> */}
-                <Route path="/configuration/:systemId/:jobName" element={<ConfigurationPage />} />
-                <Route path="/configuration" element={<ConfigurationPage />
-                } />
+        <Routes>
+            {/* Public route — no PageLayout, no auth guard */}
+            <Route path="/login" element={<LoginPage />} />
 
+            {/* All protected routes wrapped in PageLayout + auth guard */}
+            <Route path="*" element={
+                <ProtectedLayout>
+                    <PageLayout>
+                        <Routes>
+                            <Route index element={<Navigate to="/dashboard" replace />} />
+                            <Route path="dashboard" element={<HomePage />} />
+                            {/* <Route path="configuration" element={<ConfigurationPage />} />
+                <Route path="configuration/:systemId/:jobName" element={<ConfigurationPage />} /> */}
+                            <Route path="configuration/:systemId/:jobName" element={<ConfigurationPage />} />
+                            <Route path="configuration" element={<ConfigurationPage />} />
 
-                {/* New Template-Based Configuration Routes */}
-                <Route path="/template-configuration" element={<TemplateConfigurationPage />} />
+                            {/* New Template-Based Configuration Routes */}
+                            <Route path="template-configuration" element={<TemplateConfigurationPage />} />
+                            <Route path="template-configuration/:systemId/:jobName" element={<TemplateConfigurationPage />} />
 
-                <Route path="/template-configuration/:systemId/:jobName" element={<TemplateConfigurationPage />} />
+                            {/* Template Administration Routes */}
+                            <Route path="admin/templates" element={<TemplateAdminPage />} />
+                            <Route path="template-studio" element={<TemplateStudioPage />} />
 
-                {/* Template Administration Routes */}
-                <Route path="/admin/templates" element={<TemplateAdminPage />} />
-                <Route path="/template-studio" element={<TemplateStudioPage />} />
+                            {/* Monitoring Dashboard Routes */}
+                            <Route path="monitoring" element={<MonitoringDashboard />} />
 
-                {/* Monitoring Dashboard Routes */}
-                <Route path="/monitoring" element={<MonitoringDashboard />} />
+                            {/* Manual Job Configuration Routes - Phase 3A */}
+                            <Route path="manual-job-config" element={<ManualJobConfigurationPage />} />
 
-                {/* Manual Job Configuration Routes - Phase 3A */}
-                <Route path="/manual-job-config" element={<ManualJobConfigurationPage />} />
-
-                <Route path="/yaml-preview" element={<YamlPreviewPage />} />
-                <Route path="/testing" element={<TestingPage />} />
-                <Route path="*" element={<Navigate to="/dashboard" replace />} />
-            </Routes>
-        </PageLayout>
+                            <Route path="yaml-preview" element={<YamlPreviewPage />} />
+                            <Route path="testing" element={<TestingPage />} />
+                            <Route path="*" element={<Navigate to="/dashboard" replace />} />
+                        </Routes>
+                    </PageLayout>
+                </ProtectedLayout>
+            } />
+        </Routes>
     );
 };

@@ -20,9 +20,11 @@ import {
   AccountCircle,
   Notifications,
   Save,
-  Refresh
+  Refresh,
+  Logout,
 } from '@mui/icons-material';
 import { useTheme } from '../../../contexts/ThemeContext';
+import { useAuth } from '../../../contexts/AuthContext';
 import { useConfigurationContext } from '../../../contexts/ConfigurationContext';
 
 interface HeaderProps {
@@ -39,6 +41,8 @@ export const Header: React.FC<HeaderProps> = ({ onMenuToggle, menuOpen }) => {
     saveConfiguration,
     refreshSourceSystems 
   } = useConfigurationContext();
+
+  const { logout } = useAuth();
 
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
 
@@ -122,6 +126,15 @@ export const Header: React.FC<HeaderProps> = ({ onMenuToggle, menuOpen }) => {
           <IconButton color="inherit" onClick={handleProfileMenu}>
             <AccountCircle />
           </IconButton>
+
+          <IconButton
+            color="inherit"
+            data-testid="logout-btn"
+            onClick={() => logout()}
+            title="Logout"
+          >
+            <Logout />
+          </IconButton>
         </Box>
 
         {/* Profile Menu */}
@@ -139,6 +152,15 @@ export const Header: React.FC<HeaderProps> = ({ onMenuToggle, menuOpen }) => {
           <MenuItem onClick={handleClose}>
             <AccountCircle sx={{ mr: 1 }} />
             Profile
+          </MenuItem>
+          <MenuItem
+            onClick={() => {
+              handleClose();
+              logout();
+            }}
+          >
+            <Logout sx={{ mr: 1 }} />
+            Logout
           </MenuItem>
         </Menu>
       </Toolbar>

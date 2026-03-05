@@ -151,13 +151,13 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
 
           {/* Error Alert */}
           {error && (
-            <Alert severity="error" sx={{ mb: 2 }} onClose={clearError}>
+            <Alert severity="error" sx={{ mb: 2 }} onClose={clearError} data-testid="login-error">
               {error}
             </Alert>
           )}
 
           {/* Login Form */}
-          <form onSubmit={handleSubmit}>
+          <form onSubmit={handleSubmit} data-testid="login-form">
             <TextField
               fullWidth
               label="Username"
@@ -168,6 +168,7 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
               helperText={validationErrors.username}
               disabled={loading}
               sx={{ mb: 2 }}
+              inputProps={{ 'data-testid': 'username-input' }}
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
@@ -188,6 +189,7 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
               helperText={validationErrors.password}
               disabled={loading}
               sx={{ mb: 3 }}
+              inputProps={{ 'data-testid': 'password-input' }}
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
@@ -214,6 +216,7 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
               variant="contained"
               size="large"
               disabled={loading}
+              data-testid="login-submit"
               sx={{
                 py: 1.5,
                 fontSize: '1.1rem',

@@ -37,6 +37,7 @@ interface User {
 
 interface AuthState {
   isAuthenticated: boolean;
+  isInitialized: boolean;
   user: User | null;
   accessToken: string | null;
   refreshToken: string | null;
@@ -60,6 +61,7 @@ interface AuthContextType extends AuthState {
   hasAnyRole: (roles: string[]) => boolean;
   hasAnyPermission: (permissions: string[]) => boolean;
   clearError: () => void;
+  isInitialized: boolean;
 }
 
 // Action types
@@ -72,11 +74,13 @@ type AuthAction =
   | { type: 'REFRESH_TOKEN_FAILURE' }
   | { type: 'SET_LOADING'; payload: boolean }
   | { type: 'CLEAR_ERROR' }
-  | { type: 'SET_ERROR'; payload: string };
+  | { type: 'SET_ERROR'; payload: string }
+  | { type: 'INITIALIZED' };
 
 // Initial state
 const initialState: AuthState = {
   isAuthenticated: false,
+  isInitialized: false,
   user: null,
   accessToken: null,
   refreshToken: null,
@@ -100,6 +104,7 @@ function authReducer(state: AuthState, action: AuthAction): AuthState {
       return {
         ...state,
         isAuthenticated: true,
+        isInitialized: true,
         user: action.payload.user,
         accessToken: action.payload.accessToken,
         refreshToken: action.payload.refreshToken,
@@ -124,7 +129,14 @@ function authReducer(state: AuthState, action: AuthAction): AuthState {
       
     case 'LOGOUT':
       return {
-        ...initialState
+        ...initialState,
+        isInitialized: true
+      };
+
+    case 'INITIALIZED':
+      return {
+        ...state,
+        isInitialized: true
       };
       
     case 'REFRESH_TOKEN_SUCCESS':
@@ -138,6 +150,7 @@ function authReducer(state: AuthState, action: AuthAction): AuthState {
     case 'REFRESH_TOKEN_FAILURE':
       return {
         ...initialState,
+        isInitialized: true,
         error: 'Session expired. Please login again.'
       };
       
@@ -219,46 +232,13 @@ export function AuthProvider({ children, value: testValue }: AuthProviderProps) 
             }
           }
         } else {
-          // TEMPORARY: Auto-login with mock user for development/testing
-          console.log('[AuthContext] No stored auth found, using mock authentication for development');
-          const mockUser = {
-            userId: 'test-user-001',
-            username: 'testuser',
-            email: 'testuser@example.com',
-            fullName: 'Test User',
-            roles: ['JOB_CREATOR', 'JOB_MODIFIER', 'JOB_EXECUTOR', 'JOB_VIEWER'],
-            permissions: ['READ_CONFIGS', 'WRITE_CONFIGS', 'DELETE_CONFIGS'],
-            department: 'Engineering',
-            title: 'Senior Developer',
-            mfaEnabled: false,
-            mfaVerified: true
-          };
-          
-          const mockSession = {
-            sessionId: 'mock-session-' + Date.now(),
-            correlationId: 'mock-correlation-' + Date.now()
-          };
-          
-          // Store mock auth data
-          localStorage.setItem(TOKEN_STORAGE_KEY, 'mock-access-token');
-          localStorage.setItem(REFRESH_TOKEN_STORAGE_KEY, 'mock-refresh-token');
-          localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(mockUser));
-          localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(mockSession));
-          
-          dispatch({
-            type: 'LOGIN_SUCCESS',
-            payload: {
-              user: mockUser,
-              accessToken: 'mock-access-token',
-              refreshToken: 'mock-refresh-token',
-              sessionId: mockSession.sessionId,
-              correlationId: mockSession.correlationId
-            }
-          });
+          // No stored auth — user needs to log in
+          dispatch({ type: 'INITIALIZED' });
         }
       } catch (error) {
         console.error('Error initializing auth state:', error);
         clearStorage();
+        dispatch({ type: 'INITIALIZED' });
       }
     };
 
