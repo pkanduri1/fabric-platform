@@ -24,18 +24,21 @@ async function globalSetup(_config: FullConfig) {
     // Wait for redirect to dashboard
     await page.waitForURL(`${baseURL}/dashboard`, { timeout: 15_000 });
 
-    // IMPORTANT: Patch fabric_user in localStorage to include MONITORING_USER role.
+    // IMPORTANT: Patch fabric_user in localStorage to include required E2E roles.
     // This works because AuthContext.initializeAuth() uses the stored fabric_user as
     // the authoritative source for user roles (getUserProfile() is called only as a
     // liveness check, its result is discarded). If the backend ever starts returning
     // authoritative roles, this patch may be silently bypassed.
-    // TODO: Long-term fix — configure the E2E test user to have MONITORING_USER in the DB.
+    // TODO: Long-term fix — configure the E2E test user to have these roles in the DB.
     await page.evaluate(() => {
       const raw = localStorage.getItem('fabric_user');
       if (raw) {
         const user = JSON.parse(raw);
-        if (!user.roles.includes('MONITORING_USER')) {
-          user.roles.push('MONITORING_USER');
+        const requiredRoles = ['MONITORING_USER', 'JOB_CREATOR'];
+        for (const role of requiredRoles) {
+          if (!user.roles.includes(role)) {
+            user.roles.push(role);
+          }
         }
         localStorage.setItem('fabric_user', JSON.stringify(user));
       }

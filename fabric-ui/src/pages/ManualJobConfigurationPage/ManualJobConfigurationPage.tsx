@@ -364,6 +364,7 @@ export const ManualJobConfigurationPage: React.FC = () => {
             
             {canCreateConfigurations && (
               <Fab
+                data-testid="manual-job-create-btn"
                 color="secondary"
                 variant="extended"
                 onClick={handleCreateConfiguration}

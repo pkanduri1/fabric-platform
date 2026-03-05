@@ -400,7 +400,7 @@ export const JobConfigurationForm: React.FC<JobConfigurationFormProps> = React.m
         )}
       </DialogTitle>
 
-      <form onSubmit={handleSubmit(onSubmit)}>
+      <form data-testid="manual-job-form" onSubmit={handleSubmit(onSubmit)}>
         <DialogContent dividers sx={{ p: 3 }}>
           {/* Sensitive data warning */}
           {sensitiveDataWarning && (
@@ -1024,6 +1024,7 @@ export const JobConfigurationForm: React.FC<JobConfigurationFormProps> = React.m
             
             {!isReadOnly && (
               <Button
+                data-testid="manual-job-submit"
                 type="submit"
                 variant="contained"
                 disabled={loading || !isValid || !isDirty}
