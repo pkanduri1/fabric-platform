@@ -1234,6 +1234,7 @@ const TemplateStudioPageContent: React.FC = () => {
                                 placeholder="Search fields by name, type, transformation, or source..."
                                 value={searchText}
                                 onChange={(e) => setSearchText(e.target.value)}
+                                inputProps={{ 'data-testid': 'template-search' }}
                                 InputProps={{
                                     startAdornment: (
                                         <InputAdornment position="start">
@@ -1252,7 +1253,7 @@ const TemplateStudioPageContent: React.FC = () => {
                                 Showing {filteredFields.length} of {templateFields.length} fields
                             </Typography>
                         </Box>
-                        <Box sx={{ flexGrow: 1, width: '100%', height: '100%', minHeight: 400, overflow: 'hidden' }}>
+                        <Box data-testid="template-list" sx={{ flexGrow: 1, width: '100%', height: '100%', minHeight: 400, overflow: 'hidden' }}>
                             {loading && templateFields.length === 0 ? (
                                 <>
                                     {console.log('🔄 Showing loading spinner')}

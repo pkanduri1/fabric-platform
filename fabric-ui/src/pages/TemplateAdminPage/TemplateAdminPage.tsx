@@ -652,6 +652,7 @@ const TemplateAdminPage: React.FC = () => {
                 </Button>
                 
                 <Button
+                  data-testid="create-template-btn"
                   variant="outlined"
                   startIcon={<AddIcon />}
                   onClick={() => setAddFileTypeOpen(true)}
@@ -1094,6 +1095,7 @@ const TemplateAdminPage: React.FC = () => {
                 onChange={(e) => setNewFileType({...newFileType, fileType: e.target.value})}
                 required
                 placeholder="e.g., p327, atoctran"
+                inputProps={{ 'data-testid': 'template-name-input' }}
               />
             </Grid>
             <Grid item xs={12}>
@@ -1130,7 +1132,7 @@ const TemplateAdminPage: React.FC = () => {
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setAddFileTypeOpen(false)}>Cancel</Button>
-          <Button onClick={handleAddFileType} variant="contained">Add File Type</Button>
+          <Button data-testid="template-form-submit" onClick={handleAddFileType} variant="contained">Add File Type</Button>
         </DialogActions>
       </Dialog>
 
