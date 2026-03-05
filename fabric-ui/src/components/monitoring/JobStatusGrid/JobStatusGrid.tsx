@@ -737,6 +737,7 @@ export const JobStatusGrid: React.FC<JobGridProps> = ({
     <Box
       role="region"
       aria-label="Job Status Grid"
+      data-testid="job-status-grid"
       sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}
     >
       {/* Toolbar */}

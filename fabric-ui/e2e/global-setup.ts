@@ -24,6 +24,19 @@ async function globalSetup(_config: FullConfig) {
     // Wait for redirect to dashboard
     await page.waitForURL(`${baseURL}/dashboard`, { timeout: 15_000 });
 
+    // Patch fabric_user in localStorage to include MONITORING_USER role so
+    // tests that navigate to /monitoring are not blocked by the role check.
+    await page.evaluate(() => {
+      const raw = localStorage.getItem('fabric_user');
+      if (raw) {
+        const user = JSON.parse(raw);
+        if (!user.roles.includes('MONITORING_USER')) {
+          user.roles.push('MONITORING_USER');
+        }
+        localStorage.setItem('fabric_user', JSON.stringify(user));
+      }
+    });
+
     // Ensure .auth directory exists before writing
     const authDir = path.resolve(__dirname, '.auth');
     fs.mkdirSync(authDir, { recursive: true });

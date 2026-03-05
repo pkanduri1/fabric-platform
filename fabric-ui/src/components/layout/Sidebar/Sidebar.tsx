@@ -107,7 +107,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ open, onClose, drawerWidth }) 
 
   const navigationItems = [
     { path: '/dashboard', label: 'Dashboard', icon: <Dashboard /> },
-    // { path: '/monitoring', label: 'Job Monitoring', icon: <MonitorHeart /> },
+    { path: '/monitoring', label: 'Monitoring', icon: <MonitorHeart /> },
     // { path: '/manual-job-config', label: 'Manual Job Configuration', icon: <Build /> },
     // { path: '/configuration', label: 'Legacy Configuration', icon: <Settings /> },
     { path: '/template-configuration', label: 'Template Configuration', icon: <DynamicForm /> },
@@ -136,6 +136,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ open, onClose, drawerWidth }) 
         {navigationItems.map((item) => (
           <ListItemButton
             key={item.path}
+            data-testid={`nav-${item.label.toLowerCase().replace(/\s+/g, '-')}`}
             selected={location.pathname === item.path || location.pathname.startsWith(item.path)}
             onClick={() => navigate(item.path)}
           >
