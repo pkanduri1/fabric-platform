@@ -472,7 +472,7 @@ describe('useWebSocket', () => {
       rerender();
 
       await waitFor(() => {
-        expect(mockServiceInstance.updateAuthToken).toHaveBeenCalledWith('new-token');
+        expect(mockServiceInstance.updateAuthToken).toHaveBeenLastCalledWith('new-token');
       });
     });
 
@@ -687,12 +687,19 @@ describe('useWebSocket', () => {
 
       // Capture references from the first render
       const firstDisconnect = result.current.disconnect;
+      const firstConnect = result.current.connect;
 
       // Re-render with the same callback
       rerender({ callback: onMessage });
 
       // disconnect has an empty useCallback dep array and must remain stable across re-renders
       expect(result.current.disconnect).toBe(firstDisconnect);
+
+      // connect depends on accessToken; verify it remains a callable function after rerender
+      // (the hook recreates connect when config changes, so reference equality is not guaranteed,
+      // but the function must always be defined and callable)
+      expect(firstConnect).toEqual(expect.any(Function));
+      expect(result.current.connect).toEqual(expect.any(Function));
     });
 
     it('should not recreate service instance unnecessarily', () => {
