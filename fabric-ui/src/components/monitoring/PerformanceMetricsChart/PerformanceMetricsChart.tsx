@@ -41,9 +41,9 @@ import {
   TableHead,
   TableRow,
   useTheme,
-  useMediaQuery
+  useMediaQuery,
+  SelectChangeEvent
 } from '@mui/material';
-import { SelectChangeEvent } from '@mui/material';
 import {
   LineChart,
   Line,
@@ -607,7 +607,7 @@ export const PerformanceMetricsChart: React.FC<PerformanceChartProps> = ({
       </Box>
 
       {/* Live region for screen reader announcements */}
-      <Box role="status" aria-live="polite" sx={{ position: 'absolute', left: -9999 }}>
+      <Box role="status" aria-live="polite" sx={{ position: 'absolute', width: 1, height: 1, overflow: 'hidden', clip: 'rect(0,0,0,0)', whiteSpace: 'nowrap' }}>
         {realTime && autoRefresh ? 'Chart data is updating in real time.' : ''}
       </Box>
     </Box>
