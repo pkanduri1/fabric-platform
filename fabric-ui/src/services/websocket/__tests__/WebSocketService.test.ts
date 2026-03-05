@@ -208,15 +208,6 @@ describe('WebSocketService', () => {
     });
 
     it('should handle connection timeout', async () => {
-      // Use a WebSocket that never fires the open event (simulates unresponsive server)
-      class NeverOpeningWebSocket extends MockWebSocket {
-        constructor(url: string, protocols?: string | string[]) {
-          super(url, protocols);
-          // Override: do not auto-open (clear the timer set by parent)
-          // by replacing onopen with a no-op before it fires
-        }
-        // simulateOpen is not called, so the connection never opens
-      }
       // Replace the auto-opening with a stub that doesn't open
       const OriginalWebSocket = global.WebSocket;
       global.WebSocket = class extends MockWebSocket {
@@ -249,9 +240,9 @@ describe('WebSocketService', () => {
         await connectPromise;
       } catch (error) {
         // Connection should timeout
+      } finally {
+        global.WebSocket = OriginalWebSocket;
       }
-
-      global.WebSocket = OriginalWebSocket;
 
       expect(errorCaught).toBe(true);
     });
