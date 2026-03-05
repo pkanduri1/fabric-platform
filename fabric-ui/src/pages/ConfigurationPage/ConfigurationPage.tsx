@@ -157,21 +157,21 @@ const ConfigurationPage: React.FC = () => {
         {/* 3-Panel Layout */}
         <Box sx={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
           {/* Left Panel - Source Fields */}
-          <Paper sx={{ width: '300px', display: 'flex', flexDirection: 'column' }}>
+          <Paper data-testid="source-field-panel" sx={{ width: '300px', display: 'flex', flexDirection: 'column' }}>
             <SourceFieldList sourceFields={sourceFields} />
           </Paper>
 
           <Divider orientation="vertical" flexItem />
 
           {/* Center Panel - Field Mappings */}
-          <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+          <Box data-testid="mapping-panel" sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
             <MappingArea onMappingSelect={setSelectedMapping} />
           </Box>
 
           <Divider orientation="vertical" flexItem />
 
           {/* Right Panel - Field Configuration */}
-          <Paper sx={{ width: '400px', display: 'flex', flexDirection: 'column' }}>
+          <Paper data-testid="field-config-panel" sx={{ width: '400px', display: 'flex', flexDirection: 'column' }}>
             <FieldConfig 
               selectedMapping={selectedMapping}
               onClose={() => setSelectedMapping(null)}
