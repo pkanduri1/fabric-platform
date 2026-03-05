@@ -43,8 +43,6 @@ import {
   Avatar,
   useTheme,
   useMediaQuery,
-  CircularProgress,
-  Badge,
   Menu,
   MenuItem,
   Dialog,
@@ -62,14 +60,7 @@ import {
   Visibility,
   MoreVert,
   Error as ErrorIcon,
-  Warning,
-  CheckCircle,
-  Schedule,
   Speed,
-  Memory,
-  Timeline,
-  FilterList,
-  GetApp,
   TrendingUp,
   TrendingDown,
   TrendingFlat
@@ -218,7 +209,6 @@ export const JobStatusGrid: React.FC<JobGridProps> = ({
 }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
-  const isTablet = useMediaQuery(theme.breakpoints.down('lg'));
 
   // Component state
   const [page, setPage] = useState(0);
@@ -375,7 +365,6 @@ export const JobStatusGrid: React.FC<JobGridProps> = ({
   const confirmJobAction = useCallback(() => {
     if (selectedJob && pendingAction) {
       // Implementation would call appropriate API methods
-      console.log(`Executing ${pendingAction} on job ${selectedJob}`);
     }
 
     setConfirmDialogOpen(false);
@@ -399,7 +388,7 @@ export const JobStatusGrid: React.FC<JobGridProps> = ({
     <>
       {[...Array(5)].map((_, i) => (
         <TableRow key={`skeleton-${i}`}>
-          {[...Array(7)].map((__, j) => (
+          {[...Array(compactView ? 6 : 8)].map((__, j) => (
             <TableCell key={j}>
               <Skeleton data-testid={`skeleton-cell-${i}-${j}`} variant="text" />
             </TableCell>
@@ -520,6 +509,7 @@ export const JobStatusGrid: React.FC<JobGridProps> = ({
                   role="button"
                   tabIndex={0}
                   data-testid="job-row"
+                  aria-label={`Select job ${job.jobName}`}
                   sx={{ cursor: 'pointer' }}
                   className={recentlyUpdated ? 'recently-updated' : undefined}
                   onClick={() => handleJobClick(job.executionId)}
@@ -647,6 +637,7 @@ export const JobStatusGrid: React.FC<JobGridProps> = ({
             <Card
               role="button"
               tabIndex={0}
+              aria-label={`Select job ${job.jobName}`}
               sx={{ cursor: 'pointer', height: '100%' }}
               className={recentlyUpdated ? 'recently-updated' : undefined}
               onClick={() => handleJobClick(job.executionId)}
@@ -739,8 +730,8 @@ export const JobStatusGrid: React.FC<JobGridProps> = ({
     </Grid>
   );
 
-  // Status summary for screen readers
-  const statusSummary = buildStatusSummary(jobs);
+  // Status summary for screen readers (based on filtered jobs)
+  const statusSummary = buildStatusSummary(processedJobs);
 
   return (
     <Box
@@ -765,7 +756,7 @@ export const JobStatusGrid: React.FC<JobGridProps> = ({
         aria-live="polite"
         sx={{ px: 1, mb: 0.5, color: 'text.secondary' }}
       >
-        {jobs.length} jobs total
+        {processedJobs.length} jobs total
         {statusSummary ? ` — ${statusSummary}` : ''}
       </Typography>
 
@@ -832,7 +823,15 @@ export const JobStatusGrid: React.FC<JobGridProps> = ({
         <DialogTitle>Confirm Action</DialogTitle>
         <DialogContent>
           <Typography>
-            Are you sure you want to {pendingAction} this job?
+            Are you sure you want to {
+              ({
+                pause: 'pause',
+                resume: 'resume',
+                cancel: 'cancel',
+                retry: 'restart',
+                view: 'view'
+              } as Record<string, string>)[pendingAction ?? ''] ?? pendingAction
+            } this job?
           </Typography>
         </DialogContent>
         <DialogActions>
