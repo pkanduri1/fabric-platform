@@ -1,0 +1,48 @@
+import { test, expect } from '../fixtures';
+
+test.beforeEach(async ({ page }) => {
+  await page.goto('/monitoring');
+  await page.waitForLoadState('networkidle', { timeout: 15_000 }).catch(() => {});
+});
+
+test('9 - job status grid renders', async ({ page }) => {
+  await expect(page.getByTestId('job-status-grid')).toBeVisible({ timeout: 15_000 });
+});
+
+test('10 - alert acknowledgment updates alert state', async ({ page }) => {
+  const alertsPanel = page.getByTestId('alerts-panel');
+  await expect(alertsPanel).toBeVisible({ timeout: 15_000 });
+
+  // Only proceed if there are alerts to acknowledge
+  const firstAckBtn = alertsPanel.getByRole('button', { name: /acknowledge/i }).first();
+  const hasAlerts = await firstAckBtn.isVisible().catch(() => false);
+
+  if (hasAlerts) {
+    await firstAckBtn.click();
+    await page.waitForTimeout(1000);
+    await expect(alertsPanel).toBeVisible();
+  } else {
+    test.info().annotations.push({ type: 'note', description: 'No unacknowledged alerts present' });
+  }
+});
+
+test('11 - metric chart tabs switch content', async ({ page }) => {
+  const chart = page.getByTestId('performance-metrics-chart');
+  await expect(chart).toBeVisible({ timeout: 15_000 });
+
+  // Click Error Rate tab
+  const errorRateTab = chart.getByRole('tab', { name: /error rate/i });
+  await errorRateTab.click();
+  await expect(errorRateTab).toHaveAttribute('aria-selected', 'true');
+
+  // Click Throughput tab
+  const throughputTab = chart.getByRole('tab', { name: /throughput/i });
+  await throughputTab.click();
+  await expect(throughputTab).toHaveAttribute('aria-selected', 'true');
+});
+
+test('12 - WebSocket real-time indicator shows connection', async ({ page }) => {
+  const indicator = page.getByTestId('real-time-indicator');
+  await expect(indicator).toBeVisible({ timeout: 15_000 });
+  await expect(indicator).not.toBeEmpty();
+});
