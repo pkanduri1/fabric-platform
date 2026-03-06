@@ -40,12 +40,14 @@ spring:
       - org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration
 
   # Primary Database Configuration (Read-Write Operations)
+  # Credentials MUST be supplied via environment variables — no defaults here.
+  # For local dev, set values in application-local.properties (gitignored).
   datasource:
     primary:
-      url: ${DB_URL:jdbc:oracle:thin:@localhost:1521/ORCLPDB1}
+      url: ${DB_URL}
       driver-class-name: oracle.jdbc.OracleDriver
-      username: ${DB_USERNAME:cm3int}
-      password: ${DB_PASSWORD:MySecurePass123}
+      username: ${DB_USERNAME}
+      password: ${DB_PASSWORD}
       hikari:
         pool-name: PrimaryConnectionPool
         maximum-pool-size: 20
@@ -78,7 +80,7 @@ spring:
       
   # Liquibase Configuration for Enterprise Database Change Management
   liquibase:
-    enabled: false
+    enabled: true
     change-log: classpath:db/changelog/db.changelog-master.xml
     contexts: development,test
     drop-first: false

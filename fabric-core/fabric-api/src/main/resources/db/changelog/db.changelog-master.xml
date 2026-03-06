@@ -132,6 +132,10 @@
     <!-- US035: Job Execution REST API — APPROVED FOR IMPLEMENTATION -->
     <include file="releases/us035/us035-001-job-execution-api-columns.xml" relativeToChangelogFile="true"/>
 
+    <!-- Issue #45: Missing Liquibase changesets for WEBSOCKET_AUDIT_LOG and DASHBOARD_METRICS_TIMESERIES -->
+    <include file="releases/us046/us046-001-websocket-audit-log.xml" relativeToChangelogFile="true"/>
+    <include file="releases/us046/us046-002-dashboard-metrics-timeseries.xml" relativeToChangelogFile="true"/>
+
     <!-- Database Tagging for Release Management - Phase 2 Implementation -->
     <changeSet id="tag-us001-phase2-release-2.0" author="Senior Full Stack Developer Agent" context="development,test,staging,production">
         <comment>Release tag for US001 Phase 2 Manual Job Configuration Interface v2.0 - Complete enterprise schema with execution tracking, parameter templates, and SOX-compliant audit framework</comment>

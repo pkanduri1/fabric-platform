@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="
+        http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <!-- Issue #45: DASHBOARD_METRICS_TIMESERIES was in schema-h2.sql but missing from Liquibase -->
+    <changeSet id="us046-002-create-dashboard-metrics-timeseries" author="claude" context="development,test,staging,production">
+        <preConditions onFail="MARK_RAN">
+            <not><tableExists tableName="DASHBOARD_METRICS_TIMESERIES"/></not>
+        </preConditions>
+        <createTable tableName="DASHBOARD_METRICS_TIMESERIES">
+            <column name="METRICS_ID" type="NUMBER" autoIncrement="true">
+                <constraints primaryKey="true" primaryKeyName="PK_DASHBOARD_METRICS" nullable="false"/>
+            </column>
+            <column name="EXECUTION_ID" type="VARCHAR2(100)"/>
+            <column name="METRIC_NAME" type="VARCHAR2(100)"/>
+            <column name="METRIC_TYPE" type="VARCHAR2(50)"/>
+            <column name="METRIC_VALUE" type="NUMBER(19,4)"/>
+            <column name="METRIC_UNIT" type="VARCHAR2(20)"/>
+            <column name="METRIC_STATUS" type="VARCHAR2(20)"/>
+            <column name="METRIC_TIMESTAMP" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="CPU_USAGE_PERCENT" type="NUMBER(5,2)"/>
+            <column name="MEMORY_USAGE_MB" type="NUMBER(19)"/>
+            <column name="PROCESSING_DURATION_MS" type="NUMBER(19)"/>
+            <column name="THROUGHPUT_PER_SECOND" type="NUMBER(19,4)"/>
+            <column name="SUCCESS_RATE_PERCENT" type="NUMBER(5,2)"/>
+            <column name="CORRELATION_ID" type="VARCHAR2(100)"/>
+            <column name="SOURCE_SYSTEM" type="VARCHAR2(100)"/>
+            <column name="USER_ID" type="VARCHAR2(100)"/>
+            <column name="THREAD_ID" type="VARCHAR2(100)"/>
+            <column name="AUDIT_HASH" type="VARCHAR2(256)"/>
+            <column name="COMPLIANCE_FLAGS" type="VARCHAR2(500)"/>
+            <column name="SECURITY_CLASSIFICATION" type="VARCHAR2(50)"/>
+            <column name="DATA_QUALITY_SCORE" type="NUMBER(5,2)"/>
+            <column name="CREATED_DATE" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP"/>
+            <column name="PARTITION_ID" type="VARCHAR2(50)"/>
+        </createTable>
+        <rollback>
+            <dropTable tableName="DASHBOARD_METRICS_TIMESERIES"/>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="us046-002-dashboard-metrics-indexes" author="claude" context="development,test,staging,production">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="DASHBOARD_METRICS_TIMESERIES"/>
+        </preConditions>
+        <createIndex indexName="IDX_DMT_EXECUTION_ID" tableName="DASHBOARD_METRICS_TIMESERIES">
+            <column name="EXECUTION_ID"/>
+        </createIndex>
+        <createIndex indexName="IDX_DMT_METRIC_TIMESTAMP" tableName="DASHBOARD_METRICS_TIMESERIES">
+            <column name="METRIC_TIMESTAMP"/>
+        </createIndex>
+        <rollback>
+            <dropIndex indexName="IDX_DMT_METRIC_TIMESTAMP" tableName="DASHBOARD_METRICS_TIMESERIES"/>
+            <dropIndex indexName="IDX_DMT_EXECUTION_ID" tableName="DASHBOARD_METRICS_TIMESERIES"/>
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>

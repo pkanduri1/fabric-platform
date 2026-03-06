@@ -7,7 +7,7 @@ Enterprise-grade Spring Boot batch processing platform for financial data pipeli
 **GitHub:** `pkanduri1/fabric-platform`
 **Main application:** `fabric-core/fabric-api` (Spring Boot, port 8080)
 **Frontend:** `fabric-ui/` (React 18, port 3000)
-**Active branches:** `batch-enhancements` (main dev branch), feature branches off it
+**Active branches:** `main` (primary), feature branches off it
 
 ---
 
@@ -15,16 +15,21 @@ Enterprise-grade Spring Boot batch processing platform for financial data pipeli
 
 Follow these steps in order for every feature or bug fix:
 
-| # | Step | What happens |
-|---|------|--------------|
-| 1 | **Explore** | Read relevant source files — understand existing patterns before touching code |
-| 2 | **Task list** | Break issue into concrete subtasks using TodoWrite |
-| 3 | **Tests first** | Write failing tests before writing implementation |
-| 4 | **Implement** | Write minimal code to make the tests pass |
-| 5 | **Test run** | `mvn test -pl fabric-api` — all tests must pass |
-| 6 | **Spec review** | Tick off every acceptance criterion from the issue |
-| 7 | **Code review** | No SQL injection, no hardcoded credentials, follows patterns below |
-| 8 | **Commit** | Conventional commit message with issue number |
+| #  | Step | What happens |
+|----|------|--------------|
+| 1  | **Explore** | Read relevant source files — understand existing patterns before touching code |
+| 2  | **Task list** | Break issue into concrete subtasks using TodoWrite |
+| 3  | **Tests first** | Write failing tests before writing implementation |
+| 4  | **Implement** | Write minimal code to make the tests pass |
+| 5  | **Unit/integration test run** | `mvn test -pl fabric-api` — all tests must pass against Oracle |
+| 6  | **Coverage check** | `mvn verify -pl fabric-api` — JaCoCo gate ≥80% line coverage must pass |
+| 7  | **Spec review** | Tick off every acceptance criterion from the issue |
+| 8  | **Architecture review** | Verify change against the 5 Architecture Principles below |
+| 9  | **Code review** | No SQL injection, no hardcoded credentials, no mock/stub data left in |
+| 10 | **Documentation update** | Update OpenAPI annotations, README/docs if behaviour changed |
+| 11 | **E2E test** | Add/update Playwright test in `fabric-ui/e2e/` covering the feature |
+| 12 | **Regression suite** | Run full Playwright suite (`npx playwright test`) — all tests must pass |
+| 13 | **Commit** | Conventional commit message with issue number |
 
 ---
 
@@ -38,9 +43,9 @@ Check every change against these:
 
 3. **Thin controllers** — Controllers only validate input (`@Valid`), call a service method, and return `ResponseEntity`. No business logic in controllers.
 
-4. **Profile separation** — `@Profile("local")` code never runs in production. `@Profile("!local")` code (including `SecurityConfig`, `QuerySecurityConfig`) is always active in tests unless explicitly overridden.
+4. **Profile separation** — `@Profile("local")` code never runs in production. `@Profile("!local")` code (including `SecurityConfig`, `QuerySecurityConfig`) is always active in tests. Tests connect to the real Oracle test schema — no H2, no mocks.
 
-5. **Liquibase for all schema changes** — Never modify `schema.sql` for production changes. Every column, table, or index goes through a new Liquibase changeset in `releases/usXXX/`.
+5. **Liquibase for all schema changes** — Never modify existing changeset files. Every column, table, or index goes through a new Liquibase changeset in `releases/usXXX/`. Liquibase must be enabled (`spring.liquibase.enabled=true`) in all non-local profiles.
 
 ---
 
@@ -49,7 +54,7 @@ Check every change against these:
 All Maven commands run from `fabric-core/` directory:
 
 ```bash
-# Run all tests (main command)
+# Run all tests (Oracle must be running on port 1522)
 mvn test -pl fabric-api
 
 # Run a specific test class
@@ -58,14 +63,26 @@ mvn test -pl fabric-api -Dtest="ClassName"
 # Run a specific test method
 mvn test -pl fabric-api -Dtest="ClassName#methodName"
 
+# Full build + coverage gate (≥80% required)
+mvn verify -pl fabric-api
+
 # Full build (skip tests)
 mvn clean install -DskipTests -pl fabric-api
 
 # Run application locally
 mvn spring-boot:run -pl fabric-api -Dspring-boot.run.profiles=local
+
+# Run E2E tests (frontend + backend must be running)
+cd fabric-ui && npx playwright test
+
+# Run a specific Playwright spec
+cd fabric-ui && npx playwright test e2e/job-execution.spec.ts
+
+# Run Playwright with headed browser (for debugging)
+cd fabric-ui && npx playwright test --headed
 ```
 
-**Test target:** All tests pass, 0 failures. Coverage ≥80%.
+**Test targets:** All unit/integration tests pass, 0 failures. JaCoCo coverage ≥80%. All Playwright E2E tests pass.
 
 ---
 
@@ -81,27 +98,175 @@ fabric-core/
     entity/              # DB row → Java object POJOs (no @Entity)
     dto/                 # Request/Response DTOs (Lombok + validation)
     config/              # Spring @Configuration classes
-    security/            # JWT filter, entry point, SecurityConfig
+    security/            # JWT filter, LDAP provider, SecurityConfig
+      config/            # SecurityConfig, QuerySecurityConfig
+      jwt/               # JwtAuthenticationFilter, JwtTokenProvider
+      ldap/              # LdapAuthenticationProvider, FabricUserDetails, LdapUserDetails
+      service/           # UserSecurityService, SecurityAuditService
     exception/           # Custom exception hierarchy
 
   fabric-api/src/main/resources/
-    application.yml                    # Main config
-    application-local.properties       # Local dev overrides
+    application.yml                    # Main config (no hardcoded credentials)
+    application-local.properties       # Local dev overrides (gitignored)
     db/changelog/db.changelog-master.xml  # Liquibase root
-    db/changelog/releases/             # Migrations by user story
-
-  fabric-api/src/test/resources/
-    schema-h2.sql        # H2-compatible table definitions (add new tables here)
-    data-h2.sql          # Seed data for integration tests
+    db/changelog/releases/             # Migrations by user story (usXXX folders)
 
   fabric-api/src/test/java/com/fabric/batch/
-    integration/         # @SpringBootTest + H2 integration tests
+    integration/         # @SpringBootTest + Oracle integration tests
     service/             # Mockito unit tests
-    controller/          # Security slice tests
+    controller/          # Security slice tests (also @SpringBootTest + Oracle)
 
 fabric-ui/               # React frontend (separate npm project)
+  e2e/                   # Playwright E2E tests
+  .env.playwright         # Playwright config (BASE_URL, E2E_USERNAME, E2E_PASSWORD)
 docs/plans/              # Feature plans (YYYY-MM-DD-feature.md)
 ```
+
+---
+
+## Oracle Database
+
+### Local Development
+
+| Property | Value |
+|----------|-------|
+| Container | `fabric-oracle-free` (Docker) |
+| Port | `1522` (mapped from container 1521) |
+| Service | `FREEPDB1` |
+| Username | `cm3int` |
+| JDBC URL | `jdbc:oracle:thin:@localhost:1522/FREEPDB1` |
+| Driver | `ojdbc11` (thin mode, no Instant Client needed) |
+| Credentials | `application-local.properties` (gitignored) — **never commit passwords** |
+
+### Environment Variables (required for non-local profiles)
+
+```
+DB_URL=jdbc:oracle:thin:@localhost:1522/FREEPDB1
+DB_USERNAME=cm3int
+DB_PASSWORD=<from vault/secrets>
+```
+
+`application.yml` must reference these as `${DB_URL}`, `${DB_USERNAME}`, `${DB_PASSWORD}` with **no default values**.
+
+### Oracle SQL conventions
+
+- Use `FETCH FIRST ? ROWS ONLY` for pagination (Oracle syntax)
+- Use `SYSDATE` or `CURRENT_TIMESTAMP` for timestamps
+- Use `MERGE INTO table USING DUAL ON (key = ?) WHEN MATCHED ... WHEN NOT MATCHED ...` for upsert
+- `QuerySecurityConfig` health check: `SELECT 1 FROM DUAL`
+
+---
+
+## Integration Test Pattern
+
+Tests connect to **real Oracle** (not H2). The Oracle container must be running on port 1522.
+
+Use `@TestPropertySource` to point at the test Oracle schema, then clean up test data in `@AfterEach`:
+
+```java
+@SpringBootTest
+@AutoConfigureMockMvc
+@TestPropertySource(properties = {
+    "spring.datasource.url=jdbc:oracle:thin:@localhost:1522/FREEPDB1",
+    "spring.datasource.driver-class-name=oracle.jdbc.OracleDriver",
+    "spring.datasource.username=cm3int",
+    "spring.datasource.password=MySecurePass123",
+    "spring.datasource.primary.url=jdbc:oracle:thin:@localhost:1522/FREEPDB1",
+    "spring.datasource.primary.driver-class-name=oracle.jdbc.OracleDriver",
+    "spring.datasource.primary.username=cm3int",
+    "spring.datasource.primary.password=MySecurePass123",
+    "spring.datasource.readonly.url=jdbc:oracle:thin:@localhost:1522/FREEPDB1",
+    "spring.datasource.readonly.driver-class-name=oracle.jdbc.OracleDriver",
+    "spring.datasource.readonly.username=cm3int",
+    "spring.datasource.readonly.password=MySecurePass123",
+    "spring.liquibase.enabled=false",
+    "fabric.security.csrf.enabled=false",
+    "fabric.security.ldap.enabled=false"
+})
+class MyFeatureIntegrationTest {
+
+    @Autowired @Qualifier("jdbcTemplate") JdbcTemplate jdbcTemplate;
+
+    private static final String TEST_ID = "TEST-IT-001";
+
+    @BeforeEach
+    void seed() {
+        jdbcTemplate.update("DELETE FROM MY_TABLE WHERE ID LIKE 'TEST-%'");
+        jdbcTemplate.update("INSERT INTO MY_TABLE (ID, ...) VALUES (?, ...)", TEST_ID, ...);
+    }
+
+    @AfterEach
+    void cleanup() {
+        jdbcTemplate.update("DELETE FROM MY_TABLE WHERE ID LIKE 'TEST-%'");
+    }
+}
+```
+
+**Key rules:**
+- Always prefix test data IDs with `TEST-` so cleanup is safe (`DELETE WHERE ID LIKE 'TEST-%'`)
+- Never share test data between test classes without a different prefix
+- `spring.liquibase.enabled=false` in integration tests (schema already exists in Oracle)
+
+---
+
+## LDAP / Authentication
+
+### Local LDAP Setup (Docker)
+
+Run OpenLDAP with TLS locally:
+
+```bash
+# Start OpenLDAP (from project root)
+docker run -d \
+  --name fabric-ldap \
+  -p 389:389 -p 636:636 \
+  -e LDAP_ORGANISATION="Fabric Platform" \
+  -e LDAP_DOMAIN="fabric.local" \
+  -e LDAP_ADMIN_PASSWORD="FabricAdmin123" \
+  -e LDAP_TLS=true \
+  osixia/openldap:1.5.0
+
+# Load test users (after container is ready)
+docker exec fabric-ldap ldapadd -x -H ldap://localhost \
+  -D "cn=admin,dc=fabric,dc=local" -w FabricAdmin123 \
+  -f /path/to/test-users.ldif
+```
+
+### Application Configuration (non-local profiles)
+
+```yaml
+fabric:
+  security:
+    ldap:
+      enabled: true
+      url: ldap://localhost:389
+      base-dn: dc=fabric,dc=local
+      user-search-base: ou=users,dc=fabric,dc=local
+      user-search-filter: uid={0}
+      group-search-base: ou=groups,dc=fabric,dc=local
+      manager-dn: cn=admin,dc=fabric,dc=local
+      manager-password: ${LDAP_ADMIN_PASSWORD}
+```
+
+### LDAP User → Fabric Role Mapping
+
+| LDAP group CN | Fabric role |
+|---------------|------------|
+| `fabric-admins` | `ROLE_ADMIN` |
+| `fabric-managers` | `ROLE_MANAGER` |
+| `fabric-job-viewers` | `ROLE_JOB_VIEWER` |
+| `fabric-job-creators` | `ROLE_JOB_CREATOR` |
+| `fabric-job-modifiers` | `ROLE_JOB_MODIFIER` |
+| `fabric-job-executors` | `ROLE_JOB_EXECUTOR` |
+| `fabric-api-executors` | `ROLE_API_EXECUTOR` |
+| `fabric-monitoring` | `ROLE_OPERATIONS_MANAGER` |
+
+### JWT flow
+
+1. `POST /api/auth/login` → validates against LDAP, issues JWT
+2. All subsequent requests: `Authorization: Bearer <token>` header
+3. `JwtAuthenticationFilter` validates token on every request
+4. Roles embedded in JWT claims from LDAP group membership
 
 ---
 
@@ -151,12 +316,6 @@ public class ManualJobConfigRepositoryImpl implements ManualJobConfigRepository 
 }
 ```
 
-**Oracle vs H2 SQL notes:**
-- Use `LIMIT ?` not `FETCH FIRST ? ROWS ONLY` (H2 tests use `LIMIT`)
-- Use `CURRENT_TIMESTAMP` not `SYSDATE`
-- H2 `MERGE INTO table KEY (col) VALUES (...)` for upsert in tests
-- New columns added via Liquibase, not by modifying existing XML changesets
-
 ---
 
 ## Liquibase Migration Convention
@@ -185,90 +344,11 @@ Register in `db.changelog-master.xml`:
 <include file="releases/usXXX/usXXX-NNN-description.xml" relativeToChangelogFile="true"/>
 ```
 
-Always include a `<rollback>` section. Always add `IF NOT EXISTS` to H2 `schema-h2.sql` when adding new tables.
-
----
-
-## Integration Test Pattern
-
-The `@WebMvcTest` slice CANNOT be used — `QuerySecurityConfig` (`@Profile("!local")`) eagerly connects to Oracle at context startup. All controller/security tests must use `@SpringBootTest` + `@TestConfiguration` providing H2 datasource beans.
-
-**Use a unique H2 database name per test class** to avoid `DataSourceInitializer` PK conflicts when multiple tests share `data-h2.sql` inserts.
-
-```java
-@SpringBootTest
-@AutoConfigureMockMvc
-@TestPropertySource(properties = {
-    "spring.datasource.url=jdbc:h2:mem:mytest;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE",
-    "spring.datasource.driver-class-name=org.h2.Driver",
-    "spring.datasource.username=sa",
-    "spring.datasource.password=password",
-    "spring.datasource.primary.url=jdbc:h2:mem:mytest;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE",
-    "spring.datasource.primary.driver-class-name=org.h2.Driver",
-    "spring.datasource.primary.username=sa",
-    "spring.datasource.primary.password=password",
-    "spring.datasource.readonly.url=jdbc:h2:mem:mytest;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE",
-    "spring.datasource.readonly.driver-class-name=org.h2.Driver",
-    "spring.datasource.readonly.username=sa",
-    "spring.datasource.readonly.password=password",
-    "spring.jpa.hibernate.ddl-auto=none",
-    "spring.liquibase.enabled=false",
-    "spring.sql.init.mode=never",
-    "fabric.security.csrf.enabled=false"
-})
-class MyFeatureIntegrationTest {
-
-    @TestConfiguration
-    static class H2TestDataSourceConfig {
-
-        @Bean(name = "dataSource") @Primary
-        public DataSource dataSource() {
-            return DataSourceBuilder.create().driverClassName("org.h2.Driver")
-                .url("jdbc:h2:mem:mytest;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE")
-                .username("sa").password("password").build();
-        }
-
-        @Bean(name = "readOnlyDataSource")
-        public DataSource readOnlyDataSource() {
-            return DataSourceBuilder.create().driverClassName("org.h2.Driver")
-                .url("jdbc:h2:mem:mytest;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE")
-                .username("sa").password("password").build();
-        }
-
-        @Bean(name = "jdbcTemplate") @Primary
-        public JdbcTemplate jdbcTemplate(@Qualifier("dataSource") DataSource ds) {
-            return new JdbcTemplate(ds);
-        }
-
-        @Bean(name = "readOnlyJdbcTemplate")
-        public JdbcTemplate readOnlyJdbcTemplate(@Qualifier("readOnlyDataSource") DataSource ds) {
-            return new JdbcTemplate(ds);
-        }
-
-        @Bean(name = "readOnlyDataSourceHealthIndicator")
-        public QuerySecurityConfig.ReadOnlyDataSourceHealthIndicator healthIndicator(
-                @Qualifier("readOnlyDataSource") DataSource ds) {
-            return new QuerySecurityConfig.ReadOnlyDataSourceHealthIndicator(ds);
-        }
-
-        @Bean
-        public DataSourceInitializer dataSourceInitializer(@Qualifier("dataSource") DataSource ds) {
-            DataSourceInitializer init = new DataSourceInitializer();
-            init.setDataSource(ds);
-            ResourceDatabasePopulator pop = new ResourceDatabasePopulator();
-            pop.addScript(new ClassPathResource("schema-h2.sql"));
-            pop.addScript(new ClassPathResource("data-h2.sql"));
-            init.setDatabasePopulator(pop);
-            return init;
-        }
-    }
-}
-```
-
-**Existing H2 DB names in use** (don't reuse these):
-- `testdb` — `SourceSystemValidationIntegrationTest`
-- `execdb` — `JobExecutionApiIntegrationTest`
-- `sectest` — `JobExecutionApiControllerSecurityTest`
+**Rules:**
+- Always include a `<rollback>` section
+- Never modify existing changeset XML files — add new changesets only
+- New tables: use Oracle-compatible DDL (`VARCHAR2`, `NUMBER`, `CLOB`, `DATE`)
+- Liquibase must be **enabled** in all non-local profiles (`spring.liquibase.enabled=true`)
 
 ---
 
@@ -283,12 +363,91 @@ class MyFeatureIntegrationTest {
 | `ROLE_JOB_MODIFIER` | Update/delete job configs |
 | `ROLE_JOB_EXECUTOR` | Execute jobs via UI (`/api/v2/job-execution/`) |
 | `ROLE_API_EXECUTOR` | Execute jobs via REST API (`/api/v1/jobs/`) |
+| `ROLE_OPERATIONS_MANAGER` | Access monitoring dashboard |
 
 **Adding a new secured endpoint:**
 1. Add `@PreAuthorize("hasRole('ROLE_NAME')")` on the controller method
 2. Add `requestMatchers("/api/path/**").hasRole("ROLE_NAME")` in `SecurityConfig.filterChain()`
 
 **Local dev** (`-Dspring-boot.run.profiles=local`): `LocalSecurityConfig` disables all auth.
+
+---
+
+## E2E Testing (Playwright)
+
+All features must have Playwright coverage. Tests live in `fabric-ui/e2e/`.
+
+### Setup
+
+```bash
+# Required env file: fabric-ui/.env.playwright
+BASE_URL=http://localhost:3000
+E2E_USERNAME=testuser
+E2E_PASSWORD=testpass1234
+
+# Install deps (one-time)
+cd fabric-ui && npm install && npx playwright install chromium
+```
+
+### Test structure
+
+```typescript
+// fabric-ui/e2e/feature-name.spec.ts
+import { test, expect } from '@playwright/test';
+
+test.describe('Feature Name', () => {
+  test.beforeEach(async ({ page }) => {
+    // Auth state is loaded from e2e/.auth/user.json (global-setup.ts)
+    await page.goto('/feature-path');
+  });
+
+  test('should do expected thing', async ({ page }) => {
+    await page.click('[data-testid="action-button"]');
+    await expect(page.locator('[data-testid="result"]')).toBeVisible();
+  });
+});
+```
+
+**Rules:**
+- Use `data-testid` attributes — never rely on CSS classes or text for selectors
+- Add `data-testid` to new components as you build them
+- Each new API-backed feature needs at least: happy path + unauthenticated (401) + wrong role (403)
+- Regression suite runs after every issue: `npx playwright test` must pass 100%
+
+---
+
+## Coverage (JaCoCo)
+
+Target: **≥80% line coverage** enforced by `mvn verify`.
+
+```xml
+<!-- fabric-api/pom.xml -->
+<plugin>
+    <groupId>org.jacoco</groupId>
+    <artifactId>jacoco-maven-plugin</artifactId>
+    <executions>
+        <execution>
+            <id>check</id>
+            <goals><goal>check</goal></goals>
+            <configuration>
+                <rules>
+                    <rule>
+                        <limits>
+                            <limit>
+                                <counter>LINE</counter>
+                                <value>COVEREDRATIO</value>
+                                <minimum>0.80</minimum>
+                            </limit>
+                        </limits>
+                    </rule>
+                </rules>
+            </configuration>
+        </execution>
+    </executions>
+</plugin>
+```
+
+Coverage report: `fabric-api/target/site/jacoco/index.html`
 
 ---
 
@@ -335,32 +494,27 @@ feat(scope): short description
 fix(scope): short description
 test(scope): short description
 refactor(scope): short description
+docs(scope): short description
 ```
 
 Examples:
 - `feat(#35): add Job Execution REST API with webhook callbacks`
-- `fix(#42): resolve LIMIT vs FETCH FIRST H2 compatibility`
+- `fix(#44): align JOB_PARAMETER_TEMPLATE table name between Liquibase and Java`
 - `test(#43): integration tests for all 6 job execution endpoints`
-- `feat(us036): add batch retry configuration endpoint`
+- `docs(#46): remove hardcoded DB password, use env var injection`
 
-Always reference the issue number. Closes go in the commit body: `Closes #35`.
-
----
-
-## Oracle DB (Local Dev)
-
-- Driver: `ojdbc11`, thin mode (no Instant Client needed)
-- DSN: `jdbc:oracle:thin:@localhost:1521/ORCLPDB1`
-- Schema: configured via `spring.datasource.primary.username`
-- Credentials: `application-local.properties` (gitignored)
-- `QuerySecurityConfig` test: `SELECT 1 FROM DUAL` (Oracle-only — don't use in H2 tests)
+Always reference the issue number. Closes go in the commit body: `Closes #44`.
 
 ---
 
 ## Known Pitfalls
 
-- **`@WebMvcTest` fails** — `QuerySecurityConfig` (`@Profile("!local")`) eagerly connects to Oracle. Always use `@SpringBootTest` + `H2TestDataSourceConfig` (see pattern above).
-- **H2 `data-h2.sql` PK conflicts** — Each test class needs its own H2 database name. The `DataSourceInitializer` re-runs `data-h2.sql` on every context load, causing PK violations if shared.
+- **No H2 in integration tests** — Tests connect to real Oracle on port 1522. H2 is removed. Start `fabric-oracle-free` Docker container before running tests.
+- **Oracle pagination** — Use `FETCH FIRST ? ROWS ONLY`, not `LIMIT ?`. Oracle does not support `LIMIT`.
+- **Test data isolation** — Prefix all test IDs with `TEST-` and use `DELETE WHERE ID LIKE 'TEST-%'` in `@AfterEach`. Never truncate shared tables.
+- **`@WebMvcTest` fails** — `QuerySecurityConfig` (`@Profile("!local")`) eagerly connects to Oracle. Always use `@SpringBootTest` for controller/security tests.
 - **`save()` returns entity, not void** — Use `when(repo.save(any())).thenReturn(null)` in Mockito, not `doNothing()`.
-- **`findRecentApiExecutions` uses `LIMIT ?`** — H2-compatible. Oracle uses `FETCH FIRST ? ROWS ONLY` but tests run against H2.
 - **`MONITORING_ALERTS_SENT` is `CHAR(1)`** — Default `'N'` must be set before insert or a null constraint fires.
+- **Liquibase must be enabled** — `spring.liquibase.enabled=true` for non-local profiles. Integration tests set it to `false` (schema already in Oracle).
+- **No hardcoded credentials anywhere** — Use `${ENV_VAR}` with no default value in `application.yml`. Put defaults only in `application-local.properties` (gitignored).
+- **LDAP disabled by default** — `fabric.security.ldap.enabled=false`. Set to `true` only when local OpenLDAP is running. Integration tests always set it to `false`.

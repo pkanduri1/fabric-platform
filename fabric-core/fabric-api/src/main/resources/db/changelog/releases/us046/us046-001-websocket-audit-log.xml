@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="
+        http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <!-- Issue #45 / #46: WEBSOCKET_AUDIT_LOG was in schema-h2.sql but missing from Liquibase -->
+    <changeSet id="us046-001-create-websocket-audit-log" author="claude" context="development,test,staging,production">
+        <preConditions onFail="MARK_RAN">
+            <not><tableExists tableName="WEBSOCKET_AUDIT_LOG"/></not>
+        </preConditions>
+        <createTable tableName="WEBSOCKET_AUDIT_LOG">
+            <column name="AUDIT_ID" type="NUMBER" autoIncrement="true">
+                <constraints primaryKey="true" primaryKeyName="PK_WEBSOCKET_AUDIT_LOG" nullable="false"/>
+            </column>
+            <column name="EVENT_TYPE" type="VARCHAR2(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="EVENT_SUBTYPE" type="VARCHAR2(50)"/>
+            <column name="EVENT_DESCRIPTION" type="VARCHAR2(500)"/>
+            <column name="SESSION_ID" type="VARCHAR2(100)"/>
+            <column name="USER_ID" type="VARCHAR2(100)"/>
+            <column name="CLIENT_IP" type="VARCHAR2(50)"/>
+            <column name="USER_AGENT" type="VARCHAR2(500)"/>
+            <column name="ORIGIN_URL" type="VARCHAR2(200)"/>
+            <column name="EVENT_TIMESTAMP" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="SECURITY_EVENT_FLAG" type="CHAR(1)" defaultValue="N"/>
+            <column name="COMPLIANCE_EVENT_FLAG" type="CHAR(1)" defaultValue="N"/>
+            <column name="EVENT_SEVERITY" type="VARCHAR2(20)"/>
+            <column name="RISK_LEVEL" type="VARCHAR2(20)"/>
+            <column name="BUSINESS_FUNCTION" type="VARCHAR2(100)"/>
+            <column name="CORRELATION_ID" type="VARCHAR2(100)"/>
+            <column name="AUDIT_HASH" type="VARCHAR2(256)"/>
+            <column name="PREVIOUS_AUDIT_HASH" type="VARCHAR2(256)"/>
+            <column name="DIGITAL_SIGNATURE" type="VARCHAR2(1000)"/>
+            <column name="SECURITY_CLASSIFICATION" type="VARCHAR2(50)"/>
+            <column name="SOURCE_SYSTEM" type="VARCHAR2(100)"/>
+            <column name="THREAD_ID" type="VARCHAR2(100)"/>
+            <column name="SERVER_HOSTNAME" type="VARCHAR2(100)"/>
+            <column name="CREATED_DATE" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP"/>
+        </createTable>
+        <rollback>
+            <dropTable tableName="WEBSOCKET_AUDIT_LOG"/>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="us046-001-websocket-audit-log-indexes" author="claude" context="development,test,staging,production">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="WEBSOCKET_AUDIT_LOG"/>
+        </preConditions>
+        <createIndex indexName="IDX_WAL_USER_ID" tableName="WEBSOCKET_AUDIT_LOG">
+            <column name="USER_ID"/>
+        </createIndex>
+        <createIndex indexName="IDX_WAL_EVENT_TYPE" tableName="WEBSOCKET_AUDIT_LOG">
+            <column name="EVENT_TYPE"/>
+        </createIndex>
+        <createIndex indexName="IDX_WAL_EVENT_TIMESTAMP" tableName="WEBSOCKET_AUDIT_LOG">
+            <column name="EVENT_TIMESTAMP"/>
+        </createIndex>
+        <rollback>
+            <dropIndex indexName="IDX_WAL_EVENT_TIMESTAMP" tableName="WEBSOCKET_AUDIT_LOG"/>
+            <dropIndex indexName="IDX_WAL_EVENT_TYPE" tableName="WEBSOCKET_AUDIT_LOG"/>
+            <dropIndex indexName="IDX_WAL_USER_ID" tableName="WEBSOCKET_AUDIT_LOG"/>
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>

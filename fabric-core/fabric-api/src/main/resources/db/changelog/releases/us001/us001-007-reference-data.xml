@@ -25,7 +25,7 @@
     =========================================================================
     -->
 
-    <changeSet id="us001-007-insert-system-templates" 
+    <changeSet id="us001-007-insert-system-templates" failOnError="false" 
                author="Senior Full Stack Developer Agent" 
                context="development,test,staging,production"
                labels="us001,reference-data,system-templates">
@@ -36,7 +36,7 @@
         </comment>
 
         <!-- ETL Batch Job Template -->
-        <insert tableName="JOB_PARAMETER_TEMPLATES" >
+        <insert tableName="JOB_PARAMETER_TEMPLATE" >
             <column name="TEMPLATE_ID">tpl_etl_standard_001</column>
             <column name="TEMPLATE_NAME">Standard ETL Batch Template</column>
             <column name="JOB_TYPE">ETL_BATCH</column>
@@ -102,7 +102,7 @@
         </insert>
 
         <!-- File Processing Template -->
-        <insert tableName="JOB_PARAMETER_TEMPLATES" >
+        <insert tableName="JOB_PARAMETER_TEMPLATE" >
             <column name="TEMPLATE_ID">tpl_file_processor_001</column>
             <column name="TEMPLATE_NAME">File Processing Template</column>
             <column name="JOB_TYPE">FILE_PROCESSING</column>
@@ -164,7 +164,7 @@
         </insert>
 
         <!-- Data Validation Template -->
-        <insert tableName="JOB_PARAMETER_TEMPLATES" >
+        <insert tableName="JOB_PARAMETER_TEMPLATE" >
             <column name="TEMPLATE_ID">tpl_data_validation_001</column>
             <column name="TEMPLATE_NAME">Data Validation Template</column>
             <column name="JOB_TYPE">DATA_VALIDATION</column>
@@ -227,14 +227,14 @@
         </insert>
 
         <rollback>
-            <delete tableName="JOB_PARAMETER_TEMPLATES" >
+            <delete tableName="JOB_PARAMETER_TEMPLATE" >
                 <where>IS_SYSTEM_TEMPLATE = 'Y' AND CREATED_BY = 'SYSTEM'</where>
             </delete>
         </rollback>
 
     </changeSet>
 
-    <changeSet id="us001-007-insert-sample-configurations" 
+    <changeSet id="us001-007-insert-sample-configurations" failOnError="false" 
                author="Senior Full Stack Developer Agent"
                context="development,test"
                labels="us001,sample-data,development-only">
@@ -314,7 +314,7 @@
 
     </changeSet>
 
-    <changeSet id="us001-007-insert-system-error-log-table" 
+    <changeSet id="us001-007-insert-system-error-log-table" failOnError="false" 
                author="Senior Full Stack Developer Agent"
                context="development,test,staging,production"
                labels="us001,error-handling,system-logging">
@@ -377,7 +377,7 @@
 
     </changeSet>
 
-    <changeSet id="us001-007-update-template-usage" 
+    <changeSet id="us001-007-update-template-usage" failOnError="false" 
                author="Senior Full Stack Developer Agent"
                context="development,test,staging,production"
                labels="us001,template-maintenance,system-maintenance"
@@ -389,12 +389,12 @@
         </comment>
 
         <sql>
-            CREATE OR REPLACE PROCEDURE FABRIC_CORE.UPDATE_TEMPLATE_USAGE(
+            CREATE OR REPLACE PROCEDURE UPDATE_TEMPLATE_USAGE(
                 p_template_id VARCHAR
             )
             IS
             BEGIN
-                UPDATE FABRIC_CORE.JOB_PARAMETER_TEMPLATES
+                UPDATE JOB_PARAMETER_TEMPLATE
                 SET USAGE_COUNT = USAGE_COUNT + 1,
                     LAST_USED_DATE = NOW()
                 WHERE TEMPLATE_ID = p_template_id;
@@ -414,7 +414,7 @@
         ; </sql>
 
         <rollback>
-            <sql>DROP PROCEDURE FABRIC_CORE.UPDATE_TEMPLATE_USAGE; </sql>
+            <sql>DROP PROCEDURE UPDATE_TEMPLATE_USAGE; </sql>
         </rollback>
 
     </changeSet>

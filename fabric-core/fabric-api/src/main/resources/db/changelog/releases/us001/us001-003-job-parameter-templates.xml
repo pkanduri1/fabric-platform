@@ -34,14 +34,14 @@
                labels="us001,parameter-templates,configuration-management">
         
         <comment>
-            Create JOB_PARAMETER_TEMPLATES table for storing reusable parameter templates.
+            Create JOB_PARAMETER_TEMPLATE table for storing reusable parameter templates.
             Templates define the structure, validation rules, and default values for job parameters.
         </comment>
 
-        <createTable tableName="JOB_PARAMETER_TEMPLATES" >
+        <createTable tableName="JOB_PARAMETER_TEMPLATE" >
             <!-- Primary Key and Identification -->
             <column name="TEMPLATE_ID" type="VARCHAR(50)">
-                <constraints primaryKey="true" primaryKeyName="PK_JOB_PARAMETER_TEMPLATES"/>
+                <constraints primaryKey="true" primaryKeyName="PK_JOB_PARAMETER_TEMPLATE"/>
             </column>
             
             <!-- Template Metadata -->
@@ -146,58 +146,58 @@
         </createTable>
 
         <!-- Add Self-Referencing Foreign Keys -->
-        <addForeignKeyConstraint baseTableName="JOB_PARAMETER_TEMPLATES" 
+        <addForeignKeyConstraint baseTableName="JOB_PARAMETER_TEMPLATE" 
                                 baseColumnNames="PARENT_TEMPLATE_ID"
                                 constraintName="FK_JOB_TEMPLATE_PARENT"
-                                referencedTableName="JOB_PARAMETER_TEMPLATES"
+                                referencedTableName="JOB_PARAMETER_TEMPLATE"
                                 referencedColumnNames="TEMPLATE_ID"
                                 onDelete="SET NULL"
                                 onUpdate="RESTRICT"/>
 
-        <addForeignKeyConstraint baseTableName="JOB_PARAMETER_TEMPLATES" 
+        <addForeignKeyConstraint baseTableName="JOB_PARAMETER_TEMPLATE" 
                                 baseColumnNames="EXTENDS_TEMPLATE_ID"
                                 constraintName="FK_JOB_TEMPLATE_EXTENDS"
-                                referencedTableName="JOB_PARAMETER_TEMPLATES"
+                                referencedTableName="JOB_PARAMETER_TEMPLATE"
                                 referencedColumnNames="TEMPLATE_ID"
                                 onDelete="SET NULL"
                                 onUpdate="RESTRICT"/>
 
         <!-- Add Check Constraints -->
         <sql>
-            ALTER TABLE JOB_PARAMETER_TEMPLATES 
+            ALTER TABLE JOB_PARAMETER_TEMPLATE 
             ADD CONSTRAINT CHK_JOB_TEMPLATE_STATUS 
             CHECK (STATUS IN ('ACTIVE', 'INACTIVE', 'DEPRECATED', 'DRAFT'))
         ; </sql>
 
         <sql>
-            ALTER TABLE JOB_PARAMETER_TEMPLATES 
+            ALTER TABLE JOB_PARAMETER_TEMPLATE 
             ADD CONSTRAINT CHK_JOB_TEMPLATE_SYSTEM 
             CHECK (IS_SYSTEM_TEMPLATE IN ('Y', 'N'))
         ; </sql>
 
         <sql>
-            ALTER TABLE JOB_PARAMETER_TEMPLATES 
+            ALTER TABLE JOB_PARAMETER_TEMPLATE 
             ADD CONSTRAINT CHK_JOB_TEMPLATE_DEPRECATED 
             CHECK (IS_DEPRECATED IN ('Y', 'N'))
         ; </sql>
 
         <sql>
-            ALTER TABLE JOB_PARAMETER_TEMPLATES 
+            ALTER TABLE JOB_PARAMETER_TEMPLATE 
             ADD CONSTRAINT CHK_JOB_TEMPLATE_USAGE_COUNT 
             CHECK (USAGE_COUNT >= 0)
         ; </sql>
 
         <!-- Add Table Comments -->
-        <setTableRemarks tableName="JOB_PARAMETER_TEMPLATES" 
+        <setTableRemarks tableName="JOB_PARAMETER_TEMPLATE" 
                         remarks="Job Parameter Templates - defines reusable templates for job configuration parameters with validation and default values"
                         />
 
-        <setColumnRemarks tableName="JOB_PARAMETER_TEMPLATES" columnName="TEMPLATE_SCHEMA" 
+        <setColumnRemarks tableName="JOB_PARAMETER_TEMPLATE" columnName="TEMPLATE_SCHEMA" 
                          remarks="JSON Schema defining the parameter structure and validation rules"
                          />
 
         <rollback>
-            <dropTable tableName="JOB_PARAMETER_TEMPLATES" />
+            <dropTable tableName="JOB_PARAMETER_TEMPLATE" />
         </rollback>
 
     </changeSet>
@@ -213,35 +213,35 @@
         </comment>
 
         <!-- Index for job type queries -->
-        <createIndex tableName="JOB_PARAMETER_TEMPLATES" 
+        <createIndex tableName="JOB_PARAMETER_TEMPLATE" 
                      indexName="IDX_JOB_TEMPLATE_TYPE"
                      >
             <column name="JOB_TYPE"/>
         </createIndex>
 
         <!-- Index for status queries -->
-        <createIndex tableName="JOB_PARAMETER_TEMPLATES" 
+        <createIndex tableName="JOB_PARAMETER_TEMPLATE" 
                      indexName="IDX_JOB_TEMPLATE_STATUS"
                      >
             <column name="STATUS"/>
         </createIndex>
 
         <!-- Index for category queries -->
-        <createIndex tableName="JOB_PARAMETER_TEMPLATES" 
+        <createIndex tableName="JOB_PARAMETER_TEMPLATE" 
                      indexName="IDX_JOB_TEMPLATE_CATEGORY"
                      >
             <column name="CATEGORY"/>
         </createIndex>
 
         <!-- Index for system template queries -->
-        <createIndex tableName="JOB_PARAMETER_TEMPLATES" 
+        <createIndex tableName="JOB_PARAMETER_TEMPLATE" 
                      indexName="IDX_JOB_TEMPLATE_SYSTEM"
                      >
             <column name="IS_SYSTEM_TEMPLATE"/>
         </createIndex>
 
         <!-- Composite index for active templates by job type -->
-        <createIndex tableName="JOB_PARAMETER_TEMPLATES" 
+        <createIndex tableName="JOB_PARAMETER_TEMPLATE" 
                      indexName="IDX_JOB_TEMPLATE_ACTIVE_TYPE"
                      >
             <column name="JOB_TYPE"/>
@@ -250,19 +250,19 @@
         </createIndex>
 
         <!-- Index for usage statistics -->
-        <createIndex tableName="JOB_PARAMETER_TEMPLATES" 
+        <createIndex tableName="JOB_PARAMETER_TEMPLATE" 
                      indexName="IDX_JOB_TEMPLATE_USAGE"
                      >
             <column name="USAGE_COUNT" type="DESC"/>
         </createIndex>
 
         <rollback>
-            <dropIndex tableName="JOB_PARAMETER_TEMPLATES" indexName="IDX_JOB_TEMPLATE_TYPE" />
-            <dropIndex tableName="JOB_PARAMETER_TEMPLATES" indexName="IDX_JOB_TEMPLATE_STATUS" />
-            <dropIndex tableName="JOB_PARAMETER_TEMPLATES" indexName="IDX_JOB_TEMPLATE_CATEGORY" />
-            <dropIndex tableName="JOB_PARAMETER_TEMPLATES" indexName="IDX_JOB_TEMPLATE_SYSTEM" />
-            <dropIndex tableName="JOB_PARAMETER_TEMPLATES" indexName="IDX_JOB_TEMPLATE_ACTIVE_TYPE" />
-            <dropIndex tableName="JOB_PARAMETER_TEMPLATES" indexName="IDX_JOB_TEMPLATE_USAGE" />
+            <dropIndex tableName="JOB_PARAMETER_TEMPLATE" indexName="IDX_JOB_TEMPLATE_TYPE" />
+            <dropIndex tableName="JOB_PARAMETER_TEMPLATE" indexName="IDX_JOB_TEMPLATE_STATUS" />
+            <dropIndex tableName="JOB_PARAMETER_TEMPLATE" indexName="IDX_JOB_TEMPLATE_CATEGORY" />
+            <dropIndex tableName="JOB_PARAMETER_TEMPLATE" indexName="IDX_JOB_TEMPLATE_SYSTEM" />
+            <dropIndex tableName="JOB_PARAMETER_TEMPLATE" indexName="IDX_JOB_TEMPLATE_ACTIVE_TYPE" />
+            <dropIndex tableName="JOB_PARAMETER_TEMPLATE" indexName="IDX_JOB_TEMPLATE_USAGE" />
         </rollback>
 
     </changeSet>
