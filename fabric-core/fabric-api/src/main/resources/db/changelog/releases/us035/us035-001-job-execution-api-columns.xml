@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <changeSet id="us035-001-add-api-execution-columns" author="claude">
+        <comment>Issue #36 — Add columns for Job Execution REST API (callback URL, headers, status, trigger source)</comment>
+
+        <addColumn tableName="MANUAL_JOB_EXECUTION">
+            <column name="CALLBACK_URL" type="VARCHAR2(2000)">
+                <constraints nullable="true"/>
+            </column>
+        </addColumn>
+
+        <addColumn tableName="MANUAL_JOB_EXECUTION">
+            <column name="CALLBACK_HEADERS" type="CLOB">
+                <constraints nullable="true"/>
+            </column>
+        </addColumn>
+
+        <addColumn tableName="MANUAL_JOB_EXECUTION">
+            <column name="CALLBACK_STATUS" type="VARCHAR2(20)" defaultValue="SKIPPED">
+                <constraints nullable="true"/>
+            </column>
+        </addColumn>
+
+        <addColumn tableName="MANUAL_JOB_EXECUTION">
+            <column name="API_SOURCE" type="VARCHAR2(10)" defaultValue="UI">
+                <constraints nullable="true"/>
+            </column>
+        </addColumn>
+
+        <rollback>
+            <dropColumn tableName="MANUAL_JOB_EXECUTION" columnName="CALLBACK_URL"/>
+            <dropColumn tableName="MANUAL_JOB_EXECUTION" columnName="CALLBACK_HEADERS"/>
+            <dropColumn tableName="MANUAL_JOB_EXECUTION" columnName="CALLBACK_STATUS"/>
+            <dropColumn tableName="MANUAL_JOB_EXECUTION" columnName="API_SOURCE"/>
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>

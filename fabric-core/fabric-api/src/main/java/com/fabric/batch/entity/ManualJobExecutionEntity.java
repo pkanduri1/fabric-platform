@@ -193,6 +193,20 @@ public class ManualJobExecutionEntity {
      */
     private String executionEnvironment;
 
+    // ── US035: Job Execution REST API fields ─────────────────────────────────
+
+    /** Optional callback URL to POST when job completes or fails. */
+    private String callbackUrl;
+
+    /** JSON-serialized Map<String,String> of extra headers for the callback POST. */
+    private String callbackHeaders;
+
+    /** Callback delivery status: PENDING | SENT | FAILED | SKIPPED. */
+    private String callbackStatus;
+
+    /** Trigger origin: API (REST caller) | UI (browser). */
+    private String apiSource;
+
     /**
      * Record creation timestamp.
      * Audit timestamp for record lifecycle tracking.

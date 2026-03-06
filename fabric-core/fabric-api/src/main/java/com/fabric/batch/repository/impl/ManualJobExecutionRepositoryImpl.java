@@ -104,8 +104,9 @@ public class ManualJobExecutionRepositoryImpl implements ManualJobExecutionRepos
                 STATUS, START_TIME, END_TIME, DURATION_SECONDS, RECORDS_PROCESSED,
                 RECORDS_SUCCESS, RECORDS_ERROR, ERROR_PERCENTAGE, ERROR_MESSAGE, ERROR_STACK_TRACE,
                 RETRY_COUNT, EXECUTION_PARAMETERS, EXECUTION_LOG, OUTPUT_LOCATION, CORRELATION_ID,
-                MONITORING_ALERTS_SENT, EXECUTED_BY, EXECUTION_HOST, EXECUTION_ENVIRONMENT, CREATED_DATE
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                MONITORING_ALERTS_SENT, EXECUTED_BY, EXECUTION_HOST, EXECUTION_ENVIRONMENT, CREATED_DATE,
+                CALLBACK_URL, CALLBACK_HEADERS, CALLBACK_STATUS, API_SOURCE
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """;
 
         LocalDateTime now = LocalDateTime.now();
@@ -151,7 +152,11 @@ public class ManualJobExecutionRepositoryImpl implements ManualJobExecutionRepos
             entity.getExecutedBy(),
             entity.getExecutionHost(),
             entity.getExecutionEnvironment(),
-            Timestamp.valueOf(now)
+            Timestamp.valueOf(now),
+            entity.getCallbackUrl(),
+            entity.getCallbackHeaders(),
+            entity.getCallbackStatus(),
+            entity.getApiSource()
         );
 
         return entity;
@@ -670,12 +675,18 @@ public class ManualJobExecutionRepositoryImpl implements ManualJobExecutionRepos
             entity.setExecutedBy(rs.getString("EXECUTED_BY"));
             entity.setExecutionHost(rs.getString("EXECUTION_HOST"));
             entity.setExecutionEnvironment(rs.getString("EXECUTION_ENVIRONMENT"));
-            
+
             Timestamp createdDate = rs.getTimestamp("CREATED_DATE");
             if (createdDate != null) {
                 entity.setCreatedDate(createdDate.toLocalDateTime());
             }
-            
+
+            // US035: Job Execution REST API columns (nullable — may not exist on older rows)
+            try { entity.setCallbackUrl(rs.getString("CALLBACK_URL")); } catch (Exception ignored) {}
+            try { entity.setCallbackHeaders(rs.getString("CALLBACK_HEADERS")); } catch (Exception ignored) {}
+            try { entity.setCallbackStatus(rs.getString("CALLBACK_STATUS")); } catch (Exception ignored) {}
+            try { entity.setApiSource(rs.getString("API_SOURCE")); } catch (Exception ignored) {}
+
             return entity;
         }
     }
