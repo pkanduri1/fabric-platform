@@ -114,6 +114,9 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.DELETE, "/api/v2/manual-job-config/**").hasRole("JOB_MODIFIER")
                 .requestMatchers(HttpMethod.GET, "/api/v2/manual-job-config/**").hasAnyRole("JOB_VIEWER", "JOB_CREATOR", "JOB_MODIFIER", "JOB_EXECUTOR")
                 
+                // Job Execution REST API (US035)
+                .requestMatchers("/api/v1/jobs/**").hasRole("API_EXECUTOR")
+
                 // Job Execution API
                 .requestMatchers("/api/v2/job-execution/execute").hasRole("JOB_EXECUTOR")
                 .requestMatchers("/api/v2/job-execution/cancel/**").hasAnyRole("JOB_EXECUTOR", "JOB_MODIFIER")
