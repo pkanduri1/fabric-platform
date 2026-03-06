@@ -114,6 +114,12 @@ public class ManualJobExecutionRepositoryImpl implements ManualJobExecutionRepos
         entity.setRetryCount(entity.getRetryCount() != null ? entity.getRetryCount() : 0);
 
         // Provide default values for NOT NULL columns
+        if (entity.getStartTime() == null) {
+            entity.setStartTime(now);
+        }
+        if (entity.getExecutionEnvironment() == null) {
+            entity.setExecutionEnvironment("API");
+        }
         if (entity.getMonitoringAlertsSent() == null) {
             entity.setMonitoringAlertsSent('N');
         }
@@ -656,7 +662,7 @@ public class ManualJobExecutionRepositoryImpl implements ManualJobExecutionRepos
         if (status != null)       { sql.append(" AND STATUS = ?");         params.add(status); }
         if (fromDate != null)     { sql.append(" AND START_TIME >= ?");     params.add(Timestamp.from(fromDate)); }
         if (toDate != null)       { sql.append(" AND START_TIME <= ?");     params.add(Timestamp.from(toDate)); }
-        sql.append(" ORDER BY START_TIME DESC LIMIT ?");
+        sql.append(" ORDER BY START_TIME DESC FETCH FIRST ? ROWS ONLY");
         params.add(limit);
         return jdbcTemplate.query(sql.toString(), new ManualJobExecutionRowMapper(), params.toArray());
     }

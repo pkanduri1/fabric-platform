@@ -52,7 +52,7 @@ class JobExecutionApiServiceTest {
         JobExecutionResponse resp = service.submitJob(validRequest, "file-watcher");
 
         // Then
-        assertThat(resp.getStatus()).isEqualTo("SUBMITTED");
+        assertThat(resp.getStatus()).isEqualTo("STARTED");
         assertThat(resp.getExecutionId()).startsWith("EXEC-");
         assertThat(resp.getJobConfigId()).isEqualTo("JC-1042");
         assertThat(resp.getStatusUrl()).contains(resp.getExecutionId());
@@ -101,7 +101,7 @@ class JobExecutionApiServiceTest {
     @Test
     void cancelJob_submittedJob_cancelsSuccessfully() {
         ManualJobExecutionEntity entity = ManualJobExecutionEntity.builder()
-                .executionId("EXEC-8821").status("SUBMITTED").build();
+                .executionId("EXEC-8821").status("STARTED").build();
         when(executionRepository.findById("EXEC-8821")).thenReturn(Optional.of(entity));
 
         JobExecutionResponse resp = service.cancelJob("EXEC-8821");

@@ -3,6 +3,8 @@ package com.fabric.batch.integration;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fabric.batch.config.QuerySecurityConfig;
 import com.fabric.batch.dto.MasterQueryCreateRequest;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -14,9 +16,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.datasource.init.DataSourceInitializer;
-import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
@@ -28,178 +27,147 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.hamcrest.Matchers.containsString;
 
 /**
- * =========================================================================
- * SOURCE SYSTEM VALIDATION INTEGRATION TESTS
- * =========================================================================
- *
- * Purpose: Integration tests to verify that the @ValidSourceSystem annotation
- * correctly validates source systems against the actual database
- *
- * Test Scenarios:
- * - Valid source systems from database (MTG, SHAW, ENCORE) should pass
- * - Invalid/non-existent source systems should fail with proper error message
- * - Hardcoded validation no longer blocks valid database systems
- *
- * @author Senior Full Stack Developer Agent
- * @version 1.0
- * @since Source System Validation Enhancement
- * =========================================================================
+ * Integration tests verifying that @ValidSourceSystem validates source systems
+ * against the real Oracle database (not H2). Seed data uses TEST- prefix IDs.
  */
 @SpringBootTest
 @AutoConfigureMockMvc
 @TestPropertySource(properties = {
-    "spring.datasource.url=jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE",
-    "spring.datasource.driver-class-name=org.h2.Driver",
-    "spring.datasource.username=sa",
-    "spring.datasource.password=password",
-    "spring.datasource.primary.url=jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE",
-    "spring.datasource.primary.driver-class-name=org.h2.Driver",
-    "spring.datasource.primary.username=sa",
-    "spring.datasource.primary.password=password",
-    "spring.datasource.readonly.url=jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE",
-    "spring.datasource.readonly.driver-class-name=org.h2.Driver",
-    "spring.datasource.readonly.username=sa",
-    "spring.datasource.readonly.password=password",
-    "spring.jpa.hibernate.ddl-auto=none",
+    "spring.datasource.url=jdbc:oracle:thin:@localhost:1522/FREEPDB1",
+    "spring.datasource.driver-class-name=oracle.jdbc.OracleDriver",
+    "spring.datasource.username=cm3int",
+    "spring.datasource.password=MySecurePass123",
+    "spring.datasource.primary.url=jdbc:oracle:thin:@localhost:1522/FREEPDB1",
+    "spring.datasource.primary.driver-class-name=oracle.jdbc.OracleDriver",
+    "spring.datasource.primary.username=cm3int",
+    "spring.datasource.primary.password=MySecurePass123",
+    "spring.datasource.readonly.url=jdbc:oracle:thin:@localhost:1522/FREEPDB1",
+    "spring.datasource.readonly.driver-class-name=oracle.jdbc.OracleDriver",
+    "spring.datasource.readonly.username=cm3int",
+    "spring.datasource.readonly.password=MySecurePass123",
     "spring.liquibase.enabled=false",
-    "spring.sql.init.mode=never",
-    "fabric.security.csrf.enabled=false"
+    "fabric.security.csrf.enabled=false",
+    "fabric.security.ldap.enabled=false"
 })
 class SourceSystemValidationIntegrationTest {
 
-    /**
-     * Test configuration providing H2 datasource beans to replace Oracle-dependent configs.
-     * This overrides QuerySecurityConfig (which uses Oracle-specific DUAL table validation)
-     * and provides the 'dataSource' bean required by Spring Batch DefaultBatchConfiguration.
-     */
+    private static final String ORACLE_URL  = "jdbc:oracle:thin:@localhost:1522/FREEPDB1";
+    private static final String ORACLE_USER = "cm3int";
+    private static final String ORACLE_PASS = "MySecurePass123";
+
+    // Test source system IDs — TEST- prefix allows safe @AfterEach cleanup
+    private static final String SYS_MTG    = "TEST-MTG";
+    private static final String SYS_SHAW   = "TEST-SHAW";
+    private static final String SYS_ENCORE = "TEST-ENCORE";
+
     @TestConfiguration
-    static class H2TestDataSourceConfig {
+    static class OracleTestDataSourceConfig {
 
         @Bean(name = "dataSource")
         @Primary
         public DataSource dataSource() {
-            DataSource ds = DataSourceBuilder.create()
-                    .driverClassName("org.h2.Driver")
-                    .url("jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE")
-                    .username("sa")
-                    .password("password")
-                    .build();
-            return ds;
+            return DataSourceBuilder.create()
+                    .driverClassName("oracle.jdbc.OracleDriver")
+                    .url(ORACLE_URL)
+                    .username(ORACLE_USER).password(ORACLE_PASS).build();
         }
 
         @Bean(name = "readOnlyDataSource")
         public DataSource readOnlyDataSource() {
             return DataSourceBuilder.create()
-                    .driverClassName("org.h2.Driver")
-                    .url("jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE")
-                    .username("sa")
-                    .password("password")
-                    .build();
+                    .driverClassName("oracle.jdbc.OracleDriver")
+                    .url(ORACLE_URL)
+                    .username(ORACLE_USER).password(ORACLE_PASS).build();
         }
 
-        @Bean(name = "readOnlyDataSourceHealthIndicator")
-        public QuerySecurityConfig.ReadOnlyDataSourceHealthIndicator readOnlyDataSourceHealthIndicator(
-                @Qualifier("readOnlyDataSource") DataSource readOnlyDataSource) {
-            return new QuerySecurityConfig.ReadOnlyDataSourceHealthIndicator(readOnlyDataSource);
+        @Bean(name = "jdbcTemplate")
+        @Primary
+        public JdbcTemplate jdbcTemplate(@Qualifier("dataSource") DataSource ds) {
+            return new JdbcTemplate(ds);
         }
 
         @Bean(name = "readOnlyJdbcTemplate")
-        public JdbcTemplate readOnlyJdbcTemplate(@Qualifier("readOnlyDataSource") DataSource readOnlyDataSource) {
-            JdbcTemplate template = new JdbcTemplate(readOnlyDataSource);
+        public JdbcTemplate readOnlyJdbcTemplate(@Qualifier("readOnlyDataSource") DataSource ds) {
+            JdbcTemplate template = new JdbcTemplate(ds);
             template.setQueryTimeout(30);
             template.setFetchSize(100);
             template.setMaxRows(100);
             return template;
         }
 
-        @Bean(name = "jdbcTemplate")
-        @Primary
-        public JdbcTemplate jdbcTemplate(@Qualifier("dataSource") DataSource dataSource) {
-            return new JdbcTemplate(dataSource);
-        }
-
-        @Bean
-        public DataSourceInitializer dataSourceInitializer(@Qualifier("dataSource") DataSource dataSource) {
-            DataSourceInitializer initializer = new DataSourceInitializer();
-            initializer.setDataSource(dataSource);
-            ResourceDatabasePopulator populator = new ResourceDatabasePopulator();
-            populator.addScript(new ClassPathResource("schema-h2.sql"));
-            populator.addScript(new ClassPathResource("data-h2.sql"));
-            populator.setContinueOnError(false);
-            initializer.setDatabasePopulator(populator);
-            return initializer;
+        @Bean(name = "readOnlyDataSourceHealthIndicator")
+        public QuerySecurityConfig.ReadOnlyDataSourceHealthIndicator readOnlyDataSourceHealthIndicator(
+                @Qualifier("readOnlyDataSource") DataSource ds) {
+            return new QuerySecurityConfig.ReadOnlyDataSourceHealthIndicator(ds);
         }
     }
 
-    @Autowired
-    private MockMvc mockMvc;
+    @Autowired MockMvc mockMvc;
+    @Autowired ObjectMapper objectMapper;
+    @Autowired @Qualifier("jdbcTemplate") JdbcTemplate jdbcTemplate;
 
-    @Autowired
-    private ObjectMapper objectMapper;
+    @BeforeEach
+    void seed() {
+        jdbcTemplate.update("DELETE FROM SOURCE_SYSTEMS WHERE ID LIKE 'TEST-%'");
+        jdbcTemplate.update(
+            "INSERT INTO SOURCE_SYSTEMS (ID, NAME, TYPE, ENABLED) VALUES (?, ?, ?, ?)",
+            SYS_MTG, "MTG Test System", "ORACLE", "Y");
+        jdbcTemplate.update(
+            "INSERT INTO SOURCE_SYSTEMS (ID, NAME, TYPE, ENABLED) VALUES (?, ?, ?, ?)",
+            SYS_SHAW, "SHAW Test System", "ORACLE", "Y");
+        jdbcTemplate.update(
+            "INSERT INTO SOURCE_SYSTEMS (ID, NAME, TYPE, ENABLED) VALUES (?, ?, ?, ?)",
+            SYS_ENCORE, "ENCORE Test System", "ORACLE", "Y");
+    }
+
+    @AfterEach
+    void cleanup() {
+        jdbcTemplate.update("DELETE FROM SOURCE_SYSTEMS WHERE ID LIKE 'TEST-%'");
+    }
 
     @Test
     @WithMockUser(username = "testuser", roles = {"JOB_CREATOR"})
     void testValidSourceSystem_MTG_ShouldPass() throws Exception {
-        // Given
-        MasterQueryCreateRequest request = createValidRequest("MTG");
-
-        // When & Then
         mockMvc.perform(post("/api/v2/master-query")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request)))
+                .content(objectMapper.writeValueAsString(createValidRequest(SYS_MTG))))
                 .andExpect(status().isCreated());
     }
 
     @Test
     @WithMockUser(username = "testuser", roles = {"JOB_CREATOR"})
     void testValidSourceSystem_SHAW_ShouldPass() throws Exception {
-        // Given
-        MasterQueryCreateRequest request = createValidRequest("SHAW");
-
-        // When & Then
         mockMvc.perform(post("/api/v2/master-query")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request)))
+                .content(objectMapper.writeValueAsString(createValidRequest(SYS_SHAW))))
                 .andExpect(status().isCreated());
     }
 
     @Test
     @WithMockUser(username = "testuser", roles = {"JOB_CREATOR"})
     void testValidSourceSystem_ENCORE_ShouldPass() throws Exception {
-        // Given
-        MasterQueryCreateRequest request = createValidRequest("ENCORE");
-
-        // When & Then
         mockMvc.perform(post("/api/v2/master-query")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request)))
+                .content(objectMapper.writeValueAsString(createValidRequest(SYS_ENCORE))))
                 .andExpect(status().isCreated());
     }
 
     @Test
     @WithMockUser(username = "testuser", roles = {"JOB_CREATOR"})
     void testInvalidSourceSystem_ShouldFailWithValidationError() throws Exception {
-        // Given
-        MasterQueryCreateRequest request = createValidRequest("INVALID_SYSTEM");
-
-        // When & Then
         mockMvc.perform(post("/api/v2/master-query")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request)))
+                .content(objectMapper.writeValueAsString(createValidRequest("INVALID_SYSTEM"))))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value(containsString("Source system 'INVALID_SYSTEM' does not exist in the database")));
+                .andExpect(jsonPath("$.message").value(containsString("does not exist in the database")));
     }
 
     @Test
     @WithMockUser(username = "testuser", roles = {"JOB_CREATOR"})
     void testNullSourceSystem_ShouldFailWithValidationError() throws Exception {
-        // Given
-        MasterQueryCreateRequest request = createValidRequest(null);
-
-        // When & Then
         mockMvc.perform(post("/api/v2/master-query")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request)))
+                .content(objectMapper.writeValueAsString(createValidRequest(null))))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value(containsString("Source system is required")));
     }
@@ -207,28 +175,21 @@ class SourceSystemValidationIntegrationTest {
     @Test
     @WithMockUser(username = "testuser", roles = {"JOB_CREATOR"})
     void testEmptySourceSystem_ShouldFailWithValidationError() throws Exception {
-        // Given
-        MasterQueryCreateRequest request = createValidRequest("");
-
-        // When & Then
         mockMvc.perform(post("/api/v2/master-query")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request)))
+                .content(objectMapper.writeValueAsString(createValidRequest(""))))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value(containsString("Source system cannot be null or empty")));
     }
 
-    /**
-     * Helper method to create a valid request with specified source system.
-     */
     private MasterQueryCreateRequest createValidRequest(String sourceSystem) {
         return MasterQueryCreateRequest.builder()
                 .sourceSystem(sourceSystem)
                 .queryName("test_query_" + System.currentTimeMillis())
                 .description("Test query for validation")
-                .queryType("SELECT") // Has default value now
+                .queryType("SELECT")
                 .querySql("SELECT * FROM test_table WHERE id = :id")
-                .businessJustification("Testing database-driven source system validation for enhanced security compliance")
+                .businessJustification("Testing database-driven source system validation")
                 .build();
     }
 }

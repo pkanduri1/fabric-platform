@@ -12,11 +12,8 @@ import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.datasource.init.DataSourceInitializer;
-import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
@@ -29,49 +26,52 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @TestPropertySource(properties = {
-    "spring.datasource.url=jdbc:h2:mem:sectest;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE",
-    "spring.datasource.driver-class-name=org.h2.Driver",
-    "spring.datasource.username=sa",
-    "spring.datasource.password=password",
-    "spring.datasource.primary.url=jdbc:h2:mem:sectest;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE",
-    "spring.datasource.primary.driver-class-name=org.h2.Driver",
-    "spring.datasource.primary.username=sa",
-    "spring.datasource.primary.password=password",
-    "spring.datasource.readonly.url=jdbc:h2:mem:sectest;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE",
-    "spring.datasource.readonly.driver-class-name=org.h2.Driver",
-    "spring.datasource.readonly.username=sa",
-    "spring.datasource.readonly.password=password",
-    "spring.jpa.hibernate.ddl-auto=none",
+    "spring.datasource.url=jdbc:oracle:thin:@localhost:1522/FREEPDB1",
+    "spring.datasource.driver-class-name=oracle.jdbc.OracleDriver",
+    "spring.datasource.username=cm3int",
+    "spring.datasource.password=MySecurePass123",
+    "spring.datasource.primary.url=jdbc:oracle:thin:@localhost:1522/FREEPDB1",
+    "spring.datasource.primary.driver-class-name=oracle.jdbc.OracleDriver",
+    "spring.datasource.primary.username=cm3int",
+    "spring.datasource.primary.password=MySecurePass123",
+    "spring.datasource.readonly.url=jdbc:oracle:thin:@localhost:1522/FREEPDB1",
+    "spring.datasource.readonly.driver-class-name=oracle.jdbc.OracleDriver",
+    "spring.datasource.readonly.username=cm3int",
+    "spring.datasource.readonly.password=MySecurePass123",
     "spring.liquibase.enabled=false",
-    "spring.sql.init.mode=never",
-    "fabric.security.csrf.enabled=false"
+    "fabric.security.csrf.enabled=false",
+    "fabric.security.ldap.enabled=false"
 })
 class JobExecutionApiControllerSecurityTest {
 
+    private static final String ORACLE_URL  = "jdbc:oracle:thin:@localhost:1522/FREEPDB1";
+    private static final String ORACLE_USER = "cm3int";
+    private static final String ORACLE_PASS = "MySecurePass123";
+
     @TestConfiguration
-    static class H2TestDataSourceConfig {
+    static class OracleTestDataSourceConfig {
 
         @Bean(name = "dataSource")
         @Primary
         public DataSource dataSource() {
             return DataSourceBuilder.create()
-                    .driverClassName("org.h2.Driver")
-                    .url("jdbc:h2:mem:sectest;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE")
-                    .username("sa").password("password").build();
+                    .driverClassName("oracle.jdbc.OracleDriver")
+                    .url(ORACLE_URL)
+                    .username(ORACLE_USER).password(ORACLE_PASS).build();
         }
 
         @Bean(name = "readOnlyDataSource")
         public DataSource readOnlyDataSource() {
             return DataSourceBuilder.create()
-                    .driverClassName("org.h2.Driver")
-                    .url("jdbc:h2:mem:sectest;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE")
-                    .username("sa").password("password").build();
+                    .driverClassName("oracle.jdbc.OracleDriver")
+                    .url(ORACLE_URL)
+                    .username(ORACLE_USER).password(ORACLE_PASS).build();
         }
 
         @Bean(name = "jdbcTemplate")
         @Primary
-        public JdbcTemplate jdbcTemplate(@Qualifier("dataSource") DataSource dataSource) {
-            return new JdbcTemplate(dataSource);
+        public JdbcTemplate jdbcTemplate(@Qualifier("dataSource") DataSource ds) {
+            return new JdbcTemplate(ds);
         }
 
         @Bean(name = "readOnlyJdbcTemplate")
@@ -83,18 +83,6 @@ class JobExecutionApiControllerSecurityTest {
         public QuerySecurityConfig.ReadOnlyDataSourceHealthIndicator readOnlyDataSourceHealthIndicator(
                 @Qualifier("readOnlyDataSource") DataSource ds) {
             return new QuerySecurityConfig.ReadOnlyDataSourceHealthIndicator(ds);
-        }
-
-        @Bean
-        public DataSourceInitializer dataSourceInitializer(@Qualifier("dataSource") DataSource dataSource) {
-            DataSourceInitializer initializer = new DataSourceInitializer();
-            initializer.setDataSource(dataSource);
-            ResourceDatabasePopulator populator = new ResourceDatabasePopulator();
-            populator.addScript(new ClassPathResource("schema-h2.sql"));
-            populator.addScript(new ClassPathResource("data-h2.sql"));
-            populator.setContinueOnError(false);
-            initializer.setDatabasePopulator(populator);
-            return initializer;
         }
     }
 

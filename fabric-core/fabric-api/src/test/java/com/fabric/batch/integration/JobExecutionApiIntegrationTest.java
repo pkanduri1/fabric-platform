@@ -3,6 +3,7 @@ package com.fabric.batch.integration;
 import com.fabric.batch.config.QuerySecurityConfig;
 import com.fabric.batch.dto.jobexecution.JobExecutionRequest;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,11 +14,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.datasource.init.DataSourceInitializer;
-import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
@@ -33,49 +31,52 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @TestPropertySource(properties = {
-    "spring.datasource.url=jdbc:h2:mem:execdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE",
-    "spring.datasource.driver-class-name=org.h2.Driver",
-    "spring.datasource.username=sa",
-    "spring.datasource.password=password",
-    "spring.datasource.primary.url=jdbc:h2:mem:execdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE",
-    "spring.datasource.primary.driver-class-name=org.h2.Driver",
-    "spring.datasource.primary.username=sa",
-    "spring.datasource.primary.password=password",
-    "spring.datasource.readonly.url=jdbc:h2:mem:execdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE",
-    "spring.datasource.readonly.driver-class-name=org.h2.Driver",
-    "spring.datasource.readonly.username=sa",
-    "spring.datasource.readonly.password=password",
-    "spring.jpa.hibernate.ddl-auto=none",
+    "spring.datasource.url=jdbc:oracle:thin:@localhost:1522/FREEPDB1",
+    "spring.datasource.driver-class-name=oracle.jdbc.OracleDriver",
+    "spring.datasource.username=cm3int",
+    "spring.datasource.password=MySecurePass123",
+    "spring.datasource.primary.url=jdbc:oracle:thin:@localhost:1522/FREEPDB1",
+    "spring.datasource.primary.driver-class-name=oracle.jdbc.OracleDriver",
+    "spring.datasource.primary.username=cm3int",
+    "spring.datasource.primary.password=MySecurePass123",
+    "spring.datasource.readonly.url=jdbc:oracle:thin:@localhost:1522/FREEPDB1",
+    "spring.datasource.readonly.driver-class-name=oracle.jdbc.OracleDriver",
+    "spring.datasource.readonly.username=cm3int",
+    "spring.datasource.readonly.password=MySecurePass123",
     "spring.liquibase.enabled=false",
-    "spring.sql.init.mode=never",
-    "fabric.security.csrf.enabled=false"
+    "fabric.security.csrf.enabled=false",
+    "fabric.security.ldap.enabled=false"
 })
 class JobExecutionApiIntegrationTest {
 
+    private static final String ORACLE_URL  = "jdbc:oracle:thin:@localhost:1522/FREEPDB1";
+    private static final String ORACLE_USER = "cm3int";
+    private static final String ORACLE_PASS = "MySecurePass123";
+
     @TestConfiguration
-    static class H2TestDataSourceConfig {
+    static class OracleTestDataSourceConfig {
 
         @Bean(name = "dataSource")
         @Primary
         public DataSource dataSource() {
             return DataSourceBuilder.create()
-                    .driverClassName("org.h2.Driver")
-                    .url("jdbc:h2:mem:execdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE")
-                    .username("sa").password("password").build();
+                    .driverClassName("oracle.jdbc.OracleDriver")
+                    .url(ORACLE_URL)
+                    .username(ORACLE_USER).password(ORACLE_PASS).build();
         }
 
         @Bean(name = "readOnlyDataSource")
         public DataSource readOnlyDataSource() {
             return DataSourceBuilder.create()
-                    .driverClassName("org.h2.Driver")
-                    .url("jdbc:h2:mem:execdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE")
-                    .username("sa").password("password").build();
+                    .driverClassName("oracle.jdbc.OracleDriver")
+                    .url(ORACLE_URL)
+                    .username(ORACLE_USER).password(ORACLE_PASS).build();
         }
 
         @Bean(name = "jdbcTemplate")
         @Primary
-        public JdbcTemplate jdbcTemplate(@Qualifier("dataSource") DataSource dataSource) {
-            return new JdbcTemplate(dataSource);
+        public JdbcTemplate jdbcTemplate(@Qualifier("dataSource") DataSource ds) {
+            return new JdbcTemplate(ds);
         }
 
         @Bean(name = "readOnlyJdbcTemplate")
@@ -88,32 +89,29 @@ class JobExecutionApiIntegrationTest {
                 @Qualifier("readOnlyDataSource") DataSource ds) {
             return new QuerySecurityConfig.ReadOnlyDataSourceHealthIndicator(ds);
         }
-
-        @Bean
-        public DataSourceInitializer dataSourceInitializer(@Qualifier("dataSource") DataSource dataSource) {
-            DataSourceInitializer initializer = new DataSourceInitializer();
-            initializer.setDataSource(dataSource);
-            ResourceDatabasePopulator populator = new ResourceDatabasePopulator();
-            populator.addScript(new ClassPathResource("schema-h2.sql"));
-            populator.addScript(new ClassPathResource("data-h2.sql"));
-            populator.setContinueOnError(false);
-            initializer.setDatabasePopulator(populator);
-            return initializer;
-        }
     }
 
     @Autowired MockMvc mockMvc;
     @Autowired ObjectMapper objectMapper;
     @Autowired @Qualifier("jdbcTemplate") JdbcTemplate jdbcTemplate;
 
-    private static final String KNOWN_CONFIG_ID = "JC-IT-001";
+    private static final String KNOWN_CONFIG_ID = "TEST-JC-IT-001";
 
     @BeforeEach
     void seed() {
+        jdbcTemplate.update("DELETE FROM MANUAL_JOB_EXECUTION WHERE CONFIG_ID = ?", KNOWN_CONFIG_ID);
+        jdbcTemplate.update("DELETE FROM MANUAL_JOB_CONFIG WHERE CONFIG_ID = ?", KNOWN_CONFIG_ID);
         jdbcTemplate.update(
-            "MERGE INTO MANUAL_JOB_CONFIG (CONFIG_ID, JOB_NAME, SOURCE_SYSTEM, STATUS) " +
-            "KEY (CONFIG_ID) VALUES (?, ?, ?, ?)",
-            KNOWN_CONFIG_ID, "IT Test Job", "TEST_SYS", "ACTIVE");
+            "INSERT INTO MANUAL_JOB_CONFIG " +
+            "(CONFIG_ID, JOB_NAME, JOB_TYPE, SOURCE_SYSTEM, TARGET_SYSTEM, JOB_PARAMETERS, CREATED_BY) " +
+            "VALUES (?, ?, ?, ?, ?, ?, ?)",
+            KNOWN_CONFIG_ID, "IT Test Job", "BATCH", "TEST_SYS", "TEST_TARGET", "{}", "test-it");
+    }
+
+    @AfterEach
+    void cleanup() {
+        jdbcTemplate.update("DELETE FROM MANUAL_JOB_EXECUTION WHERE CONFIG_ID LIKE 'TEST-%'");
+        jdbcTemplate.update("DELETE FROM MANUAL_JOB_CONFIG WHERE CONFIG_ID LIKE 'TEST-%'");
     }
 
     // ── POST /execute ─────────────────────────────────────────────────────────
@@ -132,7 +130,7 @@ class JobExecutionApiIntegrationTest {
                 .content(objectMapper.writeValueAsString(req)))
                 .andExpect(status().isAccepted())
                 .andExpect(jsonPath("$.executionId").exists())
-                .andExpect(jsonPath("$.status").value("SUBMITTED"))
+                .andExpect(jsonPath("$.status").value("STARTED"))
                 .andExpect(jsonPath("$.statusUrl").exists())
                 .andReturn();
 

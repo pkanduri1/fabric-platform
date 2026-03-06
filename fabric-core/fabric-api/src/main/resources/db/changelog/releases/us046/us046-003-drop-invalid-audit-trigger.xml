@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="
+        http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <!-- Drop TRG_MANUAL_JOB_CONFIG_AUDIT — created by us001-004 with invalid FABRIC_CORE. schema
+         prefix; the trigger references FABRIC_CORE.MANUAL_JOB_AUDIT which does not exist.
+         Any DML on MANUAL_JOB_CONFIG causes ORA-04098 until this is dropped.
+         failOnError=false in case it was already dropped or never successfully created. -->
+    <changeSet id="us046-003-drop-invalid-audit-trigger" author="claude"
+               context="development,test,staging,production" failOnError="false">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM ALL_TRIGGERS
+                WHERE TRIGGER_NAME = 'TRG_MANUAL_JOB_CONFIG_AUDIT'
+                AND OWNER = 'CM3INT'
+            </sqlCheck>
+        </preConditions>
+        <sql>DROP TRIGGER TRG_MANUAL_JOB_CONFIG_AUDIT</sql>
+        <rollback><!-- Cannot restore an invalid trigger --></rollback>
+    </changeSet>
+
+</databaseChangeLog>

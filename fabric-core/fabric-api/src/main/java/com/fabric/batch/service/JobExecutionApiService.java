@@ -24,7 +24,7 @@ public class JobExecutionApiService {
     private final ManualJobExecutionRepository executionRepository;
 
     // States that allow CANCELLED transition
-    private static final Set<String> CANCELLABLE = Set.of("SUBMITTED", "RUNNING");
+    private static final Set<String> CANCELLABLE = Set.of("STARTED", "RUNNING");
     // States that allow RETRY
     private static final Set<String> RETRYABLE = Set.of("FAILED");
 
@@ -39,9 +39,9 @@ public class JobExecutionApiService {
                 .executionId(execId)
                 .configId(req.getJobConfigId())
                 .jobName(req.getJobConfigId())
-                .status("SUBMITTED")
+                .status("STARTED")
                 .triggerSource(req.getSourceSystem())
-                .executionType("API")
+                .executionType("TRIGGERED")
                 .apiSource("API")
                 .callbackUrl(req.getCallbackUrl())
                 .callbackHeaders(serializeHeaders(req.getCallbackHeaders()))
@@ -58,7 +58,7 @@ public class JobExecutionApiService {
                 .executionId(execId)
                 .jobConfigId(req.getJobConfigId())
                 .sourceSystem(req.getSourceSystem())
-                .status("SUBMITTED")
+                .status("STARTED")
                 .submittedAt(Instant.now())
                 .statusUrl("/api/v1/jobs/" + execId + "/status")
                 .auditTrailUrl("/api/v1/jobs/" + execId + "/audit")
@@ -122,9 +122,9 @@ public class JobExecutionApiService {
                 .executionId(newId)
                 .configId(original.getConfigId())
                 .jobName(original.getJobName())
-                .status("SUBMITTED")
+                .status("STARTED")
                 .triggerSource(original.getTriggerSource())
-                .executionType("API")
+                .executionType("RETRY")
                 .apiSource("API")
                 .callbackUrl(original.getCallbackUrl())
                 .callbackHeaders(original.getCallbackHeaders())
@@ -138,7 +138,7 @@ public class JobExecutionApiService {
                 .originalExecutionId(executionId)
                 .newExecutionId(newId)
                 .executionId(newId)
-                .status("SUBMITTED")
+                .status("STARTED")
                 .submittedAt(Instant.now())
                 .statusUrl("/api/v1/jobs/" + newId + "/status")
                 .auditTrailUrl("/api/v1/jobs/" + newId + "/audit")
