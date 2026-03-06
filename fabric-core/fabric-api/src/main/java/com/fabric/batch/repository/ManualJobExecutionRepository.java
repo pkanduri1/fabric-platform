@@ -378,9 +378,43 @@ public interface ManualJobExecutionRepository {
 
     /**
      * Archive old execution logs by moving detailed data to archive storage.
-     * 
+     *
      * @param executionIds list of execution IDs to archive
      * @return number of executions archived
      */
     int archiveExecutionDetails(List<String> executionIds);
+
+    // =========================================================================
+    // US035: JOB EXECUTION REST API OPERATIONS
+    // =========================================================================
+
+    /**
+     * Update status for a given execution ID (sets END_TIME to now).
+     *
+     * @param executionId the execution ID
+     * @param status      the new status
+     */
+    void updateStatus(String executionId, String status);
+
+    /**
+     * Update the callback_status column for a given execution.
+     *
+     * @param executionId    the execution ID
+     * @param callbackStatus PENDING | SENT | FAILED | SKIPPED
+     */
+    void updateCallbackStatus(String executionId, String callbackStatus);
+
+    /**
+     * Query recent executions where API_SOURCE = 'API', with optional filters.
+     *
+     * @param sourceSystem filter by TRIGGER_SOURCE (nullable)
+     * @param status       filter by STATUS (nullable)
+     * @param fromDate     filter START_TIME >= fromDate (nullable)
+     * @param toDate       filter START_TIME <= toDate (nullable)
+     * @param limit        max rows to return (capped at 100 by service)
+     * @return list of matching executions ordered by START_TIME DESC
+     */
+    List<ManualJobExecutionEntity> findRecentApiExecutions(
+            String sourceSystem, String status,
+            java.time.Instant fromDate, java.time.Instant toDate, int limit);
 }

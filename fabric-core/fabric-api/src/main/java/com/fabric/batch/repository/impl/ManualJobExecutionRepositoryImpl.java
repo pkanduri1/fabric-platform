@@ -629,6 +629,39 @@ public class ManualJobExecutionRepositoryImpl implements ManualJobExecutionRepos
     }
 
     // =========================================================================
+    // US035: JOB EXECUTION REST API OPERATIONS
+    // =========================================================================
+
+    @Override
+    public void updateStatus(String executionId, String newStatus) {
+        jdbcTemplate.update(
+            "UPDATE MANUAL_JOB_EXECUTION SET STATUS = ?, END_TIME = CURRENT_TIMESTAMP WHERE EXECUTION_ID = ?",
+            newStatus, executionId);
+    }
+
+    @Override
+    public void updateCallbackStatus(String executionId, String callbackStatus) {
+        jdbcTemplate.update(
+            "UPDATE MANUAL_JOB_EXECUTION SET CALLBACK_STATUS = ? WHERE EXECUTION_ID = ?",
+            callbackStatus, executionId);
+    }
+
+    @Override
+    public List<ManualJobExecutionEntity> findRecentApiExecutions(
+            String sourceSystem, String status, java.time.Instant fromDate, java.time.Instant toDate, int limit) {
+        StringBuilder sql = new StringBuilder(
+            "SELECT * FROM MANUAL_JOB_EXECUTION WHERE API_SOURCE = 'API'");
+        List<Object> params = new ArrayList<>();
+        if (sourceSystem != null) { sql.append(" AND TRIGGER_SOURCE = ?"); params.add(sourceSystem); }
+        if (status != null)       { sql.append(" AND STATUS = ?");         params.add(status); }
+        if (fromDate != null)     { sql.append(" AND START_TIME >= ?");     params.add(Timestamp.from(fromDate)); }
+        if (toDate != null)       { sql.append(" AND START_TIME <= ?");     params.add(Timestamp.from(toDate)); }
+        sql.append(" ORDER BY START_TIME DESC LIMIT ?");
+        params.add(limit);
+        return jdbcTemplate.query(sql.toString(), new ManualJobExecutionRowMapper(), params.toArray());
+    }
+
+    // =========================================================================
     // ROW MAPPER FOR RESULT SET MAPPING
     // =========================================================================
 

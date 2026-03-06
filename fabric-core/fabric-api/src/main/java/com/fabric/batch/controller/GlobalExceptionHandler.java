@@ -1,5 +1,6 @@
 package com.fabric.batch.controller;
 
+import com.fabric.batch.exception.JobExecutionApiException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -60,5 +61,17 @@ public class GlobalExceptionHandler {
         body.put("timestamp", Instant.now().toString());
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
+    }
+
+    @ExceptionHandler(JobExecutionApiException.class)
+    public ResponseEntity<Map<String, Object>> handleJobExecutionApiException(
+            JobExecutionApiException ex) {
+
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("errorCode", ex.getErrorCode());
+        body.put("message", ex.getMessage());
+        body.put("timestamp", Instant.now().toString());
+
+        return ResponseEntity.status(ex.getHttpStatus()).body(body);
     }
 }
