@@ -1,0 +1,181 @@
+# =====================================================================
+# Fabric Platform — Local LDAP Test Users
+# =====================================================================
+
+# USERS — password for all: Fabric123!  (testuser: testpass1234)
+
+dn: uid=admin,ou=users,dc=fabric,dc=local
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+uid: admin
+sn: Admin
+givenName: Fabric
+cn: Fabric Admin
+displayName: Fabric Admin
+uidNumber: 1001
+gidNumber: 1001
+userPassword: Fabric123!
+loginShell: /bin/bash
+homeDirectory: /home/admin
+mail: admin@fabric.local
+
+dn: uid=jobviewer,ou=users,dc=fabric,dc=local
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+uid: jobviewer
+sn: Viewer
+givenName: Job
+cn: Job Viewer
+displayName: Job Viewer
+uidNumber: 1002
+gidNumber: 1002
+userPassword: Fabric123!
+loginShell: /bin/bash
+homeDirectory: /home/jobviewer
+mail: jobviewer@fabric.local
+
+dn: uid=jobcreator,ou=users,dc=fabric,dc=local
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+uid: jobcreator
+sn: Creator
+givenName: Job
+cn: Job Creator
+displayName: Job Creator
+uidNumber: 1003
+gidNumber: 1003
+userPassword: Fabric123!
+loginShell: /bin/bash
+homeDirectory: /home/jobcreator
+mail: jobcreator@fabric.local
+
+dn: uid=jobexecutor,ou=users,dc=fabric,dc=local
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+uid: jobexecutor
+sn: Executor
+givenName: Job
+cn: Job Executor
+displayName: Job Executor
+uidNumber: 1004
+gidNumber: 1004
+userPassword: Fabric123!
+loginShell: /bin/bash
+homeDirectory: /home/jobexecutor
+mail: jobexecutor@fabric.local
+
+dn: uid=apiexecutor,ou=users,dc=fabric,dc=local
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+uid: apiexecutor
+sn: Executor
+givenName: API
+cn: API Executor
+displayName: API Executor
+uidNumber: 1005
+gidNumber: 1005
+userPassword: Fabric123!
+loginShell: /bin/bash
+homeDirectory: /home/apiexecutor
+mail: apiexecutor@fabric.local
+
+dn: uid=opsmanager,ou=users,dc=fabric,dc=local
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+uid: opsmanager
+sn: Manager
+givenName: Ops
+cn: Operations Manager
+displayName: Operations Manager
+uidNumber: 1006
+gidNumber: 1006
+userPassword: Fabric123!
+loginShell: /bin/bash
+homeDirectory: /home/opsmanager
+mail: opsmanager@fabric.local
+
+dn: uid=testuser,ou=users,dc=fabric,dc=local
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+uid: testuser
+sn: User
+givenName: Test
+cn: Test User
+displayName: Test User
+uidNumber: 1007
+gidNumber: 1007
+userPassword: testpass1234
+loginShell: /bin/bash
+homeDirectory: /home/testuser
+mail: testuser@fabric.local
+
+# =====================================================================
+# GROUPS — map to Fabric roles
+# =====================================================================
+
+dn: cn=fabric-admins,ou=groups,dc=fabric,dc=local
+objectClass: groupOfNames
+cn: fabric-admins
+description: Maps to ROLE_ADMIN
+member: uid=admin,ou=users,dc=fabric,dc=local
+
+dn: cn=fabric-managers,ou=groups,dc=fabric,dc=local
+objectClass: groupOfNames
+cn: fabric-managers
+description: Maps to ROLE_MANAGER
+member: uid=opsmanager,ou=users,dc=fabric,dc=local
+
+dn: cn=fabric-job-viewers,ou=groups,dc=fabric,dc=local
+objectClass: groupOfNames
+cn: fabric-job-viewers
+description: Maps to ROLE_JOB_VIEWER
+member: uid=jobviewer,ou=users,dc=fabric,dc=local
+member: uid=jobcreator,ou=users,dc=fabric,dc=local
+member: uid=jobexecutor,ou=users,dc=fabric,dc=local
+member: uid=admin,ou=users,dc=fabric,dc=local
+member: uid=testuser,ou=users,dc=fabric,dc=local
+
+dn: cn=fabric-job-creators,ou=groups,dc=fabric,dc=local
+objectClass: groupOfNames
+cn: fabric-job-creators
+description: Maps to ROLE_JOB_CREATOR
+member: uid=jobcreator,ou=users,dc=fabric,dc=local
+member: uid=admin,ou=users,dc=fabric,dc=local
+member: uid=testuser,ou=users,dc=fabric,dc=local
+
+dn: cn=fabric-job-modifiers,ou=groups,dc=fabric,dc=local
+objectClass: groupOfNames
+cn: fabric-job-modifiers
+description: Maps to ROLE_JOB_MODIFIER
+member: uid=admin,ou=users,dc=fabric,dc=local
+member: uid=testuser,ou=users,dc=fabric,dc=local
+
+dn: cn=fabric-job-executors,ou=groups,dc=fabric,dc=local
+objectClass: groupOfNames
+cn: fabric-job-executors
+description: Maps to ROLE_JOB_EXECUTOR
+member: uid=jobexecutor,ou=users,dc=fabric,dc=local
+member: uid=admin,ou=users,dc=fabric,dc=local
+member: uid=testuser,ou=users,dc=fabric,dc=local
+
+dn: cn=fabric-api-executors,ou=groups,dc=fabric,dc=local
+objectClass: groupOfNames
+cn: fabric-api-executors
+description: Maps to ROLE_API_EXECUTOR
+member: uid=apiexecutor,ou=users,dc=fabric,dc=local
+member: uid=admin,ou=users,dc=fabric,dc=local
+
+dn: cn=fabric-monitoring,ou=groups,dc=fabric,dc=local
+objectClass: groupOfNames
+cn: fabric-monitoring
+description: Maps to ROLE_OPERATIONS_MANAGER
+member: uid=opsmanager,ou=users,dc=fabric,dc=local
+member: uid=admin,ou=users,dc=fabric,dc=local
+member: uid=testuser,ou=users,dc=fabric,dc=local

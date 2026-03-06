@@ -101,6 +101,15 @@ fabric:
   security:
     ldap:
       enabled: false
+      url: ${LDAP_URL:ldap://localhost:389}
+      base-dn: ${LDAP_BASE_DN:dc=fabric,dc=local}
+      user-search-base: ${LDAP_USER_SEARCH_BASE:ou=users,dc=fabric,dc=local}
+      user-search-filter: ${LDAP_USER_SEARCH_FILTER:uid={0}}
+      group-search-base: ${LDAP_GROUP_SEARCH_BASE:ou=groups,dc=fabric,dc=local}
+      manager-dn: ${LDAP_MANAGER_DN:cn=admin,dc=fabric,dc=local}
+      manager-password: ${LDAP_ADMIN_PASSWORD:FabricAdmin123}
+      connection-timeout: 5000
+      read-timeout: 10000
     redis:
       enabled: false
       

@@ -1,8 +1,9 @@
 package com.fabric.batch.security.config;
 
 import com.fabric.batch.security.jwt.JwtAuthenticationFilter;
-// import com.fabric.batch.security.ldap.LdapAuthenticationProvider; // Temporarily disabled for demo
+import com.fabric.batch.security.ldap.LdapAuthenticationProvider;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -55,8 +56,10 @@ import java.util.List;
 public class SecurityConfig {
     
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
-    // private final LdapAuthenticationProvider ldapAuthenticationProvider; // Temporarily disabled for demo
     private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
+
+    @Autowired(required = false)
+    private LdapAuthenticationProvider ldapAuthenticationProvider;
     
     @Value("${fabric.security.cors.allowed-origins:http://localhost:3000,https://localhost:3000}")
     private String[] allowedOrigins;
@@ -164,11 +167,13 @@ public class SecurityConfig {
      */
     @Bean
     public AuthenticationManager authenticationManager(HttpSecurity http) throws Exception {
-        AuthenticationManagerBuilder authBuilder = 
+        AuthenticationManagerBuilder authBuilder =
             http.getSharedObject(AuthenticationManagerBuilder.class);
-        
-        // authBuilder.authenticationProvider(ldapAuthenticationProvider); // Temporarily disabled for demo
-        
+
+        if (ldapAuthenticationProvider != null) {
+            authBuilder.authenticationProvider(ldapAuthenticationProvider);
+        }
+
         return authBuilder.build();
     }
     
