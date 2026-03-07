@@ -284,7 +284,7 @@ export const MonitoringDashboard: React.FC = () => {
       URL.revokeObjectURL(url);
       showNotificationMessage('Export downloaded successfully', 'success');
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Export failed — please try again';
+      const message = (error as any)?.message ?? 'Export failed — please try again';
       showNotificationMessage(message, 'error');
     }
   }, [showNotificationMessage]);

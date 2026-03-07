@@ -26,6 +26,7 @@ jest.mock('@mui/material', () => ({
 import { MonitoringDashboard } from '../MonitoringDashboard';
 import { useAuth } from '../../../contexts/AuthContext';
 import { useRealTimeMonitoring } from '../../../hooks/useRealTimeMonitoring';
+import { monitoringApi } from '../../../services/api/monitoringApi';
 import { 
   DashboardData, 
   ActiveJob, 
@@ -41,6 +42,7 @@ import {
 // Mock dependencies
 jest.mock('../../../contexts/AuthContext');
 jest.mock('../../../hooks/useRealTimeMonitoring');
+jest.mock('../../../services/api/monitoringApi');
 jest.mock('../../../components/monitoring/JobStatusGrid/JobStatusGrid', () => ({
   JobStatusGrid: ({ jobs, onJobSelect }: any) => (
     <div data-testid="job-status-grid">
@@ -104,6 +106,11 @@ jest.mock('../../../components/monitoring/JobDetailsModal/JobDetailsModal', () =
 }));
 const mockUseAuth = useAuth as jest.MockedFunction<typeof useAuth>;
 const mockUseRealTimeMonitoring = useRealTimeMonitoring as jest.MockedFunction<typeof useRealTimeMonitoring>;
+const mockMonitoringApi = monitoringApi as jest.Mocked<typeof monitoringApi>;
+
+// Stub URL methods used by the export handler
+URL.createObjectURL = jest.fn(() => 'blob:mock-url');
+URL.revokeObjectURL = jest.fn();
 // Test data factories
 const createMockJob = (overrides: Partial<ActiveJob> = {}): ActiveJob => ({
   executionId: 'job-123',
@@ -446,7 +453,7 @@ describe('MonitoringDashboard', () => {
     });
     it('should open and close settings menu', async () => {
       const user = userEvent.setup();
-      
+
       render(
         <TestWrapper>
           <MonitoringDashboard />
@@ -462,6 +469,53 @@ describe('MonitoringDashboard', () => {
       await user.keyboard('{Escape}');
       await waitFor(() => {
         expect(screen.queryByText('Settings')).not.toBeInTheDocument();
+      });
+    });
+
+    it('should show success notification after successful export', async () => {
+      const mockBlob = new Blob(['col1,col2\nval1,val2'], { type: 'text/csv' });
+      mockMonitoringApi.exportDashboardData = jest.fn().mockResolvedValue(mockBlob);
+
+      const user = userEvent.setup();
+
+      render(
+        <TestWrapper>
+          <MonitoringDashboard />
+        </TestWrapper>
+      );
+
+      // Open options menu then click Export Data
+      const settingsButton = screen.getByLabelText('More Options');
+      await user.click(settingsButton);
+      const exportItem = screen.getByText('Export Data');
+      await user.click(exportItem);
+
+      await waitFor(() => {
+        expect(screen.getByText('Export downloaded successfully')).toBeInTheDocument();
+      });
+      expect(mockMonitoringApi.exportDashboardData).toHaveBeenCalledWith('CSV');
+    });
+
+    it('should show API error message when export fails', async () => {
+      const apiError = { message: 'Export service unavailable', code: 'EXPORT_FAILED' };
+      mockMonitoringApi.exportDashboardData = jest.fn().mockRejectedValue(apiError);
+
+      const user = userEvent.setup();
+
+      render(
+        <TestWrapper>
+          <MonitoringDashboard />
+        </TestWrapper>
+      );
+
+      // Open options menu then click Export Data
+      const settingsButton = screen.getByLabelText('More Options');
+      await user.click(settingsButton);
+      const exportItem = screen.getByText('Export Data');
+      await user.click(exportItem);
+
+      await waitFor(() => {
+        expect(screen.getByText('Export service unavailable')).toBeInTheDocument();
       });
     });
   });
