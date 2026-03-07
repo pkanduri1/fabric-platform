@@ -434,7 +434,7 @@ export const MonitoringDashboard: React.FC = () => {
           </Tooltip>
           
           <Tooltip title="More Options">
-            <IconButton onClick={(e) => setMenuAnchor(e.currentTarget)}>
+            <IconButton data-testid="monitoring-menu-btn" onClick={(e) => setMenuAnchor(e.currentTarget)}>
               <Settings />
             </IconButton>
           </Tooltip>
@@ -563,7 +563,7 @@ export const MonitoringDashboard: React.FC = () => {
           <Settings sx={{ mr: 1 }} />
           Settings
         </MenuItem>
-        <MenuItem onClick={() => {
+        <MenuItem data-testid="monitoring-export-btn" onClick={() => {
           handleExport();
           setMenuAnchor(null);
         }}>

@@ -48,3 +48,19 @@ test('12 - WebSocket real-time indicator shows connection', async ({ page }) => 
   await expect(indicator).toBeVisible({ timeout: 15_000 });
   await expect(indicator).toHaveText('LIVE');
 });
+
+// #49 — Export button calls API (not a stub)
+test('19 - Export button triggers API call to export endpoint', async ({ page }) => {
+  const exportRequest = page.waitForRequest(
+    (req) => req.url().includes('/monitoring/export') && req.method() === 'GET',
+    { timeout: 10_000 }
+  );
+
+  // Open the More Options menu and click Export Data
+  await page.getByTestId('monitoring-menu-btn').click();
+  await page.getByTestId('monitoring-export-btn').click();
+
+  // Verify the export API was called (may 404 in dev — what matters is it was called)
+  const req = await exportRequest;
+  expect(req.url()).toContain('/monitoring/export');
+});
