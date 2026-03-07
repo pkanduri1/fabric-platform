@@ -92,7 +92,7 @@ export const authApi = {
           username: credentials.username,
           email: credentials.username + '@example.com',
           fullName: 'Test User',
-          roles: ['JOB_CREATOR', 'JOB_MODIFIER', 'JOB_EXECUTOR', 'JOB_VIEWER'],
+          roles: ['JOB_CREATOR', 'JOB_MODIFIER', 'JOB_EXECUTOR', 'JOB_VIEWER', 'OPERATIONS_MANAGER'],
           permissions: ['READ_CONFIGS', 'WRITE_CONFIGS', 'DELETE_CONFIGS'],
           department: 'Engineering',
           title: 'Senior Developer',
@@ -170,7 +170,7 @@ export const authApi = {
       const mockProfile: UserProfile = {
         userId: 'test-user-001',
         username: 'testuser',
-        roles: ['JOB_CREATOR', 'JOB_MODIFIER', 'JOB_EXECUTOR', 'JOB_VIEWER'],
+        roles: ['JOB_CREATOR', 'JOB_MODIFIER', 'JOB_EXECUTOR', 'JOB_VIEWER', 'OPERATIONS_MANAGER'],
         permissions: ['READ_CONFIGS', 'WRITE_CONFIGS', 'DELETE_CONFIGS'],
         mfaVerified: true,
         sessionId: 'mock-session-' + Date.now(),
