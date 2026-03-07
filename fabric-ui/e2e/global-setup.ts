@@ -34,7 +34,7 @@ async function globalSetup(_config: FullConfig) {
       const raw = localStorage.getItem('fabric_user');
       if (raw) {
         const user = JSON.parse(raw);
-        const requiredRoles = ['MONITORING_USER', 'JOB_CREATOR'];
+        const requiredRoles = ['MONITORING_USER', 'JOB_CREATOR', 'OPERATIONS_MANAGER'];
         for (const role of requiredRoles) {
           if (!user.roles.includes(role)) {
             user.roles.push(role);
