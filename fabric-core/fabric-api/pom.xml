@@ -369,7 +369,34 @@
 				</executions>
 			</plugin>
 
-			<!-- Liquibase Maven Plugin for Database Change Management -->
+			<!-- OWASP Dependency-Check: SCA vulnerability gate.
+		     Fails mvn verify when any dependency has CVSS >= 7.0 (HIGH or CRITICAL).
+		     Run: mvn verify -pl fabric-api (includes this check alongside JaCoCo).
+		     Skip in fast local loops: mvn verify -Ddependency-check.skip=true
+		     First run downloads the NVD database (~5 min); subsequent runs use the cache. -->
+		<plugin>
+			<groupId>org.owasp</groupId>
+			<artifactId>dependency-check-maven</artifactId>
+			<version>11.1.1</version>
+			<configuration>
+				<failBuildOnCVSS>7</failBuildOnCVSS>
+				<suppressionFile>src/main/resources/owasp-suppressions.xml</suppressionFile>
+				<formats>HTML,JSON</formats>
+				<outputDirectory>${project.build.directory}/dependency-check-report</outputDirectory>
+				<!-- Skip test-scoped dependencies (test frameworks, WireMock) -->
+				<skipTestScope>true</skipTestScope>
+				<!-- NVD API key speeds up database refresh; set via env var -->
+				<nvdApiKey>${env.NVD_API_KEY}</nvdApiKey>
+			</configuration>
+			<executions>
+				<execution>
+					<id>owasp-check</id>
+					<goals><goal>check</goal></goals>
+				</execution>
+			</executions>
+		</plugin>
+
+		<!-- Liquibase Maven Plugin for Database Change Management -->
 			<plugin>
 				<groupId>org.liquibase</groupId>
 				<artifactId>liquibase-maven-plugin</artifactId>

@@ -45,7 +45,9 @@
   },
   "scripts": {
     "start": "react-scripts start",
+    "prebuild": "npm audit --audit-level=high",
     "build": "react-scripts build",
+    "pretest": "npm audit --audit-level=high",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "type-check": "tsc --noEmit",

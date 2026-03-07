@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  OWASP Dependency-Check Suppressions
+  =====================================
+  Each suppression MUST have:
+    1. A <notes> element explaining WHY the CVE is suppressed
+    2. A <until> date if there is an expected fix date
+    3. The affected cpe or cve identifier
+
+  Template for adding a new suppression:
+  <suppress>
+    <notes><![CDATA[
+      CVE-YYYY-NNNN: <reason>
+      Accepted risk: <justification>
+      Owner: <team>
+      Reviewed: <YYYY-MM-DD>
+    ]]></notes>
+    <cve>CVE-YYYY-NNNN</cve>
+    <!-- or: <cpe>cpe:/a:vendor:product</cpe> -->
+  </suppress>
+-->
+<suppressions xmlns="https://jeremylong.github.io/DependencyCheck/dependency-suppression.1.3.xsd">
+
+  <!--
+    H2 Database — CVE-2022-45868 (CVSS 8.2)
+    Notes: H2 is included ONLY for test scope. The vulnerability affects the
+    web console feature which is disabled by default and never enabled in our
+    test configuration. Production uses Oracle, not H2.
+    Risk: ACCEPTED — test-only dependency, no production exposure.
+    Reviewed: 2026-03-07
+  -->
+  <!-- Uncomment if H2 triggers a false positive in the future:
+  <suppress>
+    <notes><![CDATA[
+      H2 web console CVE — test scope only, console feature not used.
+    ]]></notes>
+    <cve>CVE-2022-45868</cve>
+  </suppress>
+  -->
+
+</suppressions>
