@@ -1,5 +1,6 @@
 package com.fabric.batch.dto.jobexecution;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -12,6 +13,7 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class JobAuditResponse {
     private String executionId;
     private List<AuditEntry> auditEntries;
@@ -20,6 +22,7 @@ public class JobAuditResponse {
     @Builder
     @NoArgsConstructor
     @AllArgsConstructor
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     public static class AuditEntry {
         private Instant timestamp;
         private String action;

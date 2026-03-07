@@ -4,7 +4,6 @@ import com.fabric.batch.dto.jobexecution.*;
 import com.fabric.batch.entity.ManualJobConfigEntity;
 import com.fabric.batch.entity.ManualJobExecutionEntity;
 import com.fabric.batch.exception.JobExecutionApiException;
-import com.fabric.batch.dto.jobexecution.JobAuditResponse;
 import com.fabric.batch.repository.ManualJobConfigRepository;
 import com.fabric.batch.repository.ManualJobExecutionRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -221,6 +220,7 @@ class JobExecutionApiServiceTest {
                 .executedBy("scheduler")
                 .triggerSource("COLLECTIONS")
                 .correlationId("corr-001")
+                .startTime(java.time.LocalDateTime.now())
                 .build();
         when(executionRepository.findById("EXEC-8821")).thenReturn(Optional.of(entity));
 
@@ -229,6 +229,9 @@ class JobExecutionApiServiceTest {
         assertThat(resp.getExecutionId()).isEqualTo("EXEC-8821");
         assertThat(resp.getAuditEntries()).isNotEmpty();
         assertThat(resp.getAuditEntries().get(0).getActor()).isEqualTo("scheduler");
+        assertThat(resp.getAuditEntries().get(0).getAction()).isEqualTo("SUBMITTED");
+        assertThat(resp.getAuditEntries().get(0).getCorrelationId()).isEqualTo("corr-001");
+        assertThat(resp.getAuditEntries().get(0).getDetails()).contains("COLLECTIONS");
     }
 
     @Test

@@ -1,7 +1,6 @@
 package com.fabric.batch.service;
 
 import com.fabric.batch.dto.jobexecution.*;
-import com.fabric.batch.dto.jobexecution.JobAuditResponse;
 import com.fabric.batch.entity.ManualJobConfigEntity;
 import com.fabric.batch.entity.ManualJobExecutionEntity;
 import com.fabric.batch.exception.JobExecutionApiException;
@@ -14,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -207,7 +207,10 @@ public class JobExecutionApiService {
         // Entry 1: submission event
         entries.add(JobAuditResponse.AuditEntry.builder()
                 .timestamp(e.getStartTime() != null
-                        ? e.getStartTime().toInstant(java.time.ZoneOffset.UTC) : Instant.now())
+                        ? e.getStartTime().toInstant(ZoneOffset.UTC)
+                        : e.getCreatedDate() != null
+                            ? e.getCreatedDate().toInstant(ZoneOffset.UTC)
+                            : Instant.now())
                 .action("SUBMITTED")
                 .actor(e.getExecutedBy() != null ? e.getExecutedBy() : "SYSTEM")
                 .correlationId(e.getCorrelationId())
@@ -217,7 +220,7 @@ public class JobExecutionApiService {
         // Entry 2: terminal status event (if finished)
         if (e.getEndTime() != null) {
             entries.add(JobAuditResponse.AuditEntry.builder()
-                    .timestamp(e.getEndTime().toInstant(java.time.ZoneOffset.UTC))
+                    .timestamp(e.getEndTime().toInstant(ZoneOffset.UTC))
                     .action(e.getStatus())
                     .actor("SYSTEM")
                     .correlationId(e.getCorrelationId())
