@@ -180,7 +180,7 @@ public class TransformationConfigRepositoryImpl implements TransformationConfigR
 
         log.debug("update: id={}", entity.getId());
 
-        jdbcTemplate.update(sql,
+        int rows = jdbcTemplate.update(sql,
                 entity.getFileType(),
                 entity.getTransactionType(),
                 entity.getFieldName(),
@@ -200,6 +200,11 @@ public class TransformationConfigRepositoryImpl implements TransformationConfigR
                 entity.getSourceField(),
                 entity.getId());
 
+        if (rows == 0) {
+            throw new org.springframework.dao.EmptyResultDataAccessException(
+                    "No FIELD_TEMPLATES row found for ID: " + entity.getId(), 1);
+        }
+
         return entity;
     }
 
@@ -210,7 +215,11 @@ public class TransformationConfigRepositoryImpl implements TransformationConfigR
     public void softDelete(String id) {
         String sql = "UPDATE FIELD_TEMPLATES SET ENABLED = 'N', MODIFIED_DATE = ? WHERE ID = ?";
         log.debug("softDelete: id={}", id);
-        jdbcTemplate.update(sql, Timestamp.valueOf(LocalDateTime.now()), id);
+        int rows = jdbcTemplate.update(sql, Timestamp.valueOf(LocalDateTime.now()), id);
+        if (rows == 0) {
+            throw new org.springframework.dao.EmptyResultDataAccessException(
+                    "No FIELD_TEMPLATES row found for ID: " + id, 1);
+        }
     }
 
     // -------------------------------------------------------------------------
@@ -220,9 +229,10 @@ public class TransformationConfigRepositoryImpl implements TransformationConfigR
     /**
      * Maps a FIELD_TEMPLATES result-set row to a {@link FieldTemplateEntity}.
      * <p>
-     * Optional columns (those added by phase2 migrations) are wrapped in
-     * try/catch so the mapper works against both the base schema and the
-     * extended schema.
+     * All columns — including those added by the phase2-001 migration
+     * (SOURCE_FIELD, TRANSFORMATION_TYPE, VALUE, TRANSFORMATION_CONFIG) — are
+     * mapped directly. The phase2-001 migration has run against all schema
+     * versions, so no defensive try/catch around individual columns is needed.
      */
     private static class FieldTemplateRowMapper implements RowMapper<FieldTemplateEntity> {
 
@@ -259,30 +269,11 @@ public class TransformationConfigRepositoryImpl implements TransformationConfigR
 
             entity.setVersion(rs.getInt("VERSION"));
 
-            // phase2-001 optional columns
-            try {
-                entity.setTransformationType(rs.getString("TRANSFORMATION_TYPE"));
-            } catch (SQLException e) {
-                // column not present in this schema version
-            }
-
-            try {
-                entity.setTransformationConfig(rs.getString("TRANSFORMATION_CONFIG"));
-            } catch (SQLException e) {
-                // column not present in this schema version
-            }
-
-            try {
-                entity.setValue(rs.getString("VALUE"));
-            } catch (SQLException e) {
-                // column not present in this schema version
-            }
-
-            try {
-                entity.setSourceField(rs.getString("SOURCE_FIELD"));
-            } catch (SQLException e) {
-                // column not present in this schema version
-            }
+            // phase2-001 columns — present in all schema versions since the migration ran
+            entity.setTransformationType(rs.getString("TRANSFORMATION_TYPE"));
+            entity.setTransformationConfig(rs.getString("TRANSFORMATION_CONFIG"));
+            entity.setValue(rs.getString("VALUE"));
+            entity.setSourceField(rs.getString("SOURCE_FIELD"));
 
             return entity;
         }

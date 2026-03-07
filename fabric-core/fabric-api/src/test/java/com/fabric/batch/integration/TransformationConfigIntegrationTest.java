@@ -259,4 +259,45 @@ class TransformationConfigIntegrationTest {
         mockMvc.perform(delete("/v1/transformation/configs/DEFINITELY-DOES-NOT-EXIST"))
                 .andExpect(status().isNotFound());
     }
+
+    // ── PUT /v1/transformation/configs/{configId} ──────────────────────────────
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void update_seededId_returns200() throws Exception {
+        String id = jdbcTemplate.queryForObject(
+                "SELECT ID FROM FIELD_TEMPLATES WHERE FILE_TYPE = ?", String.class, TEST_FILE_TYPE);
+
+        String body = String.format("""
+                {
+                    "id": "%s",
+                    "fileType": "TEST_FT",
+                    "transactionType": "TEST_TX",
+                    "fieldName": "TEST_FLD",
+                    "targetPosition": 99,
+                    "createdBy": "upd"
+                }
+                """, id);
+
+        mockMvc.perform(put("/v1/transformation/configs/" + id)
+                        .contentType(MediaType.APPLICATION_JSON).content(body))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void update_unknownId_returns404() throws Exception {
+        mockMvc.perform(put("/v1/transformation/configs/DEFINITELY-DOES-NOT-EXIST")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"fieldName\":\"x\",\"fileType\":\"x\",\"transactionType\":\"x\"}"))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void update_unauthenticated_returns401() throws Exception {
+        mockMvc.perform(put("/v1/transformation/configs/any-id")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{}"))
+                .andExpect(status().isUnauthorized());
+    }
 }
