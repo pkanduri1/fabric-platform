@@ -256,15 +256,17 @@ export const HomePage: React.FC = () => {
                 </CardContent>
 
                 <CardActions>
-                  <Button 
-                    size="small" 
+                  <Button
+                    size="small"
                     startIcon={<Settings />}
                     onClick={() => {
                       if (system.jobs.length > 0) {
                         handleConfigureSystem(system.id, system.jobs[0].jobName);
+                      } else {
+                        navigate(`/configuration/${system.id}`);
                       }
                     }}
-                    disabled={system.jobs.length === 0}
+                    disabled={system.jobs.length === 0 && !(system.jobCount && system.jobCount > 0)}
                   >
                     Configure
                   </Button>
