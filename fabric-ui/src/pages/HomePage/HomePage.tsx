@@ -28,6 +28,7 @@ import { useSourceSystemsState } from '../../contexts/ConfigurationContext';
 import { AddSourceSystemDialog } from '../../components/configuration/AddSourceSystemDialog/AddSourceSystemDialog';
 import { SourceSystem } from '../../types/configuration';
 import { configApi } from '../../services/api/configApi';
+import { httpClient } from '../../services/httpClient';
 
 export const HomePage: React.FC = () => {
   const navigate = useNavigate();
@@ -106,16 +107,16 @@ export const HomePage: React.FC = () => {
     if (!selectedSourceForRunAll) return;
     setRunAllLoading(true);
     try {
-      const response = await fetch(
-        `/api/v1/jobs/run-all?sourceSystem=${encodeURIComponent(selectedSourceForRunAll)}`,
-        { method: 'POST', headers: { 'Content-Type': 'application/json' } }
+      const response = await httpClient.post(
+        `/api/v1/jobs/run-all?sourceSystem=${encodeURIComponent(selectedSourceForRunAll)}`
       );
-      const data = await response.json();
+      const data = response.data;
       setShowRunAllDialog(false);
       setSelectedSourceForRunAll(null);
       alert(`${data.submittedCount} job(s) submitted for ${selectedSourceForRunAll}`);
-    } catch (err) {
-      alert('Failed to run jobs. Please try again.');
+    } catch (err: any) {
+      const message = err?.response?.data?.message || err?.message || 'Failed to run jobs. Please try again.';
+      alert(message);
     } finally {
       setRunAllLoading(false);
     }
@@ -358,6 +359,7 @@ export const HomePage: React.FC = () => {
               variant="outlined"
               fullWidth
               startIcon={<Settings />}
+              data-testid="btn-system-settings"
               onClick={() => navigate('/configuration')}
             >
               System Settings
@@ -368,6 +370,7 @@ export const HomePage: React.FC = () => {
               variant="outlined"
               fullWidth
               startIcon={<PlayArrow />}
+              data-testid="btn-run-all-jobs"
               onClick={() => setShowRunAllDialog(true)}
             >
               Run All Jobs
@@ -378,6 +381,7 @@ export const HomePage: React.FC = () => {
               variant="outlined"
               fullWidth
               startIcon={<Description />}
+              data-testid="btn-export-config"
               onClick={() => navigate('/configuration')}
             >
               Export Configuration
@@ -405,7 +409,15 @@ export const HomePage: React.FC = () => {
       />
 
       {/* Run All Jobs Dialog */}
-      <Dialog open={showRunAllDialog} onClose={() => setShowRunAllDialog(false)} maxWidth="sm" fullWidth>
+      <Dialog
+        open={showRunAllDialog}
+        onClose={() => {
+          setShowRunAllDialog(false);
+          setSelectedSourceForRunAll(null);
+        }}
+        maxWidth="sm"
+        fullWidth
+      >
         <DialogTitle>Run All Jobs</DialogTitle>
         <DialogContent>
           <FormControl fullWidth sx={{ mt: 1 }}>
@@ -414,6 +426,7 @@ export const HomePage: React.FC = () => {
               value={selectedSourceForRunAll ?? ''}
               label="Source System"
               onChange={(e) => setSelectedSourceForRunAll(e.target.value)}
+              inputProps={{ 'data-testid': 'run-all-source-select' }}
             >
               {sourceSystems.map((ss) => (
                 <MenuItem key={ss.id} value={ss.id}>{ss.name || ss.id}</MenuItem>
@@ -427,6 +440,7 @@ export const HomePage: React.FC = () => {
             variant="contained"
             disabled={!selectedSourceForRunAll || runAllLoading}
             onClick={handleRunAll}
+            data-testid="run-all-submit"
           >
             {runAllLoading ? 'Running...' : 'Run All Jobs'}
           </Button>
