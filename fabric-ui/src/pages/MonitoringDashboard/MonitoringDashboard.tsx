@@ -62,6 +62,7 @@ import {
 
 import { useRealTimeMonitoring } from '../../hooks/useRealTimeMonitoring';
 import { useAuth } from '../../contexts/AuthContext';
+import { monitoringApi } from '../../services/api/monitoringApi';
 import { 
   DashboardData, 
   MonitoringError, 
@@ -272,10 +273,18 @@ export const MonitoringDashboard: React.FC = () => {
    */
   const handleExport = useCallback(async () => {
     try {
-      // Implementation would call monitoringApi.exportDashboardData
-      showNotificationMessage('Export started', 'info');
+      const blob = await monitoringApi.exportDashboardData('CSV');
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `monitoring-export-${new Date().toISOString().slice(0, 10)}.csv`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      showNotificationMessage('Export downloaded successfully', 'success');
     } catch (error) {
-      showNotificationMessage('Export failed', 'error');
+      showNotificationMessage('Export failed — please try again', 'error');
     }
   }, [showNotificationMessage]);
   
