@@ -53,7 +53,7 @@ import MasterQuerySelector from '../../components/masterQuery/MasterQuerySelecto
 import { MasterQuery } from '../../types/masterQuery';
 import { configApi } from '../../services/api/configApi';
 import { SourceSystem } from '../../types/configuration';
-import * as XLSX from 'xlsx';
+import ExcelJS from 'exceljs';
 
 // Local interface for DataGrid
 interface GridFieldTemplate extends FieldTemplate {
@@ -740,7 +740,7 @@ const TemplateStudioPageContent: React.FC = () => {
     };
 
     // Feature 3: Export to Excel
-    const handleExportExcel = useCallback(() => {
+    const handleExportExcel = useCallback(async () => {
         try {
             const exportData = templateFields.map(field => ({
                 'Field Name': field.fieldName,
@@ -754,14 +754,30 @@ const TemplateStudioPageContent: React.FC = () => {
                 'Description': field.description || ''
             }));
 
-            const worksheet = XLSX.utils.json_to_sheet(exportData);
-            const workbook = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(workbook, worksheet, 'Template Fields');
+            const workbook = new ExcelJS.Workbook();
+            const worksheet = workbook.addWorksheet('Template Fields');
+
+            // Add header row
+            const headers = Object.keys(exportData[0] || {});
+            worksheet.addRow(headers);
+
+            // Add data rows
+            exportData.forEach(row => {
+                worksheet.addRow(headers.map(h => (row as Record<string, unknown>)[h]));
+            });
 
             const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
             const filename = `template-fields-${jobName || 'export'}-${timestamp}.xlsx`;
 
-            XLSX.writeFile(workbook, filename);
+            // Write to buffer and trigger download
+            const buffer = await workbook.xlsx.writeBuffer();
+            const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            a.click();
+            URL.revokeObjectURL(url);
             showNotification('Excel file exported successfully', 'success');
         } catch (error) {
             console.error('Export error:', error);
@@ -775,12 +791,28 @@ const TemplateStudioPageContent: React.FC = () => {
         if (!file) return;
 
         const reader = new FileReader();
-        reader.onload = (e) => {
+        reader.onload = async (e) => {
             try {
                 const data = new Uint8Array(e.target?.result as ArrayBuffer);
-                const workbook = XLSX.read(data, { type: 'array' });
-                const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-                const jsonData = XLSX.utils.sheet_to_json(worksheet) as any[];
+                const workbook = new ExcelJS.Workbook();
+                await workbook.xlsx.load(data.buffer);
+                const worksheet = workbook.worksheets[0];
+                if (!worksheet) throw new Error('No worksheet found');
+
+                // Convert worksheet to JSON: first row is headers
+                const headers: string[] = [];
+                worksheet.getRow(1).eachCell((cell, colNumber) => {
+                    headers[colNumber - 1] = String(cell.value || '');
+                });
+                const jsonData: Record<string, any>[] = [];
+                worksheet.eachRow((row, rowNumber) => {
+                    if (rowNumber === 1) return; // skip header
+                    const rowObj: Record<string, unknown> = {};
+                    row.eachCell((cell, colNumber) => {
+                        rowObj[headers[colNumber - 1]] = cell.value;
+                    });
+                    jsonData.push(rowObj);
+                });
 
                 const importedFields: GridFieldTemplate[] = jsonData.map((row, index) => ({
                     id: `imported_${Date.now()}_${index}`,

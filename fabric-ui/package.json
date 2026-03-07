@@ -11,8 +11,8 @@
     "@mui/material": "^6.5.0",
     "@mui/x-data-grid": "^7.29.11",
     "@testing-library/dom": "^8.20.1",
-    "@types/xlsx": "^0.0.35",
     "axios": "^1.9.0",
+    "exceljs": "^4.4.0",
     "js-yaml": "^4.1.0",
     "monaco-editor": "^0.37.1",
     "react": "^18.2.0",
@@ -22,8 +22,7 @@
     "react-router-dom": "^6.30.1",
     "react-scripts": "^5.0.1",
     "recharts": "^2.15.4",
-    "web-vitals": "^3.5.2",
-    "xlsx": "^0.18.5"
+    "web-vitals": "^3.5.2"
   },
   "devDependencies": {
     "@emotion/jest": "^11.13.0",
@@ -84,5 +83,14 @@
       "<rootDir>/src/**/*.{spec,test}.{js,jsx,ts,tsx}"
     ]
   },
-  "proxy": "http://localhost:8080"
+  "proxy": "http://localhost:8080",
+  "overrides": {
+    "nth-check": ">=2.0.1",
+    "postcss": ">=8.4.31",
+    "serialize-javascript": ">=7.0.3",
+    "svgo": ">=3.0.0",
+    "webpack-dev-server": ">=5.2.1",
+    "@tootallnate/once": ">=3.0.1",
+    "underscore": ">=1.13.8"
+  }
 }
