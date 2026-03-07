@@ -111,6 +111,9 @@
     <!-- US001 Batch Step Audit Table - APPROVED FOR IMPLEMENTATION -->
     <include file="releases/us001/us001-011-batch-step-audit-table.xml" relativeToChangelogFile="true"/>
 
+    <!-- Phase 2: Create FIELD_TEMPLATES base table (prerequisite for phase2-001 and us051) -->
+    <include file="releases/phase2/phase2-000-create-field-templates-table.xml" relativeToChangelogFile="true"/>
+
     <!-- Phase 2: Template Studio Field Transformation Enhancements - APPROVED FOR IMPLEMENTATION -->
     <include file="releases/phase2/phase2-001-template-studio-field-transformations.xml" relativeToChangelogFile="true"/>
 
@@ -126,11 +129,15 @@
     <!-- Issue #27: Missing SOURCE_SYSTEMS and BATCH_CONFIGURATIONS tables -->
     <include file="releases/phase2/phase2-005-source-systems-and-batch-configs.xml" relativeToChangelogFile="true"/>
 
+    <!-- Phase 2: File Type Templates table for Template Admin page -->
+    <include file="releases/phase2/phase2-007-create-file-type-templates-table.xml" relativeToChangelogFile="true"/>
+
     <!-- Issue #31: Seed default transaction types so the UI dropdown is not empty -->
     <include file="releases/phase2/phase2-006-seed-transaction-types.xml" relativeToChangelogFile="true"/>
 
     <!-- US035: Job Execution REST API — APPROVED FOR IMPLEMENTATION -->
     <include file="releases/us035/us035-001-job-execution-api-columns.xml" relativeToChangelogFile="true"/>
+    <include file="releases/us035/us035-002-add-batch-config-id-column.xml" relativeToChangelogFile="true"/>
 
     <!-- Issue #45: Missing Liquibase changesets for WEBSOCKET_AUDIT_LOG and DASHBOARD_METRICS_TIMESERIES -->
     <include file="releases/us046/us046-001-websocket-audit-log.xml" relativeToChangelogFile="true"/>

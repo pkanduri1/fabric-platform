@@ -22,7 +22,7 @@ import java.time.Instant;
 @RequestMapping("/api/v1/jobs")
 @RequiredArgsConstructor
 @Slf4j
-@CrossOrigin(origins = "*")
+@CrossOrigin(origins = {"http://localhost:3000", "http://localhost:3001"})
 @Tag(name = "Job Execution API", description = "Programmatic job execution for external integrations")
 public class JobExecutionApiController {
 

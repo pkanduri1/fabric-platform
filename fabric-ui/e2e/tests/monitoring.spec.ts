@@ -49,6 +49,25 @@ test('12 - WebSocket real-time indicator shows connection', async ({ page }) => 
   await expect(indicator).toHaveText('LIVE');
 });
 
+// Verify dashboard API returns real data from backend
+test('56 - monitoring dashboard API returns valid response', async ({ page }) => {
+  // Intercept the dashboard API call
+  const dashboardResponse = await page.waitForResponse(
+    (res) => res.url().includes('/api/monitoring/dashboard') && res.status() === 200,
+    { timeout: 20_000 }
+  );
+
+  const json = await dashboardResponse.json();
+  expect(json.success).toBe(true);
+  expect(json.data).toBeDefined();
+  expect(json.data.systemHealth).toBeDefined();
+  expect(json.data.systemHealth.database.status).toBe('HEALTHY');
+  expect(json.data.performanceMetrics).toBeDefined();
+  expect(json.data.alerts).toBeDefined();
+  expect(json.data.trends).toBeDefined();
+  expect(json.correlationId).toBeTruthy();
+});
+
 // #49 — Export button calls API (not a stub)
 test('19 - Export button triggers API call to export endpoint', async ({ page }) => {
   const exportRequest = page.waitForRequest(

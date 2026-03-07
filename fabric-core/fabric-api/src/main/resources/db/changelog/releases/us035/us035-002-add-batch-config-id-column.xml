@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <changeSet id="us035-002-add-batch-config-id" author="claude">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="MANUAL_JOB_CONFIG" columnName="BATCH_CONFIG_ID"/>
+            </not>
+        </preConditions>
+        <comment>Add BATCH_CONFIG_ID column to MANUAL_JOB_CONFIG for linking to BATCH_CONFIGURATIONS</comment>
+        <addColumn tableName="MANUAL_JOB_CONFIG">
+            <column name="BATCH_CONFIG_ID" type="VARCHAR2(50)"/>
+        </addColumn>
+        <rollback>
+            <dropColumn tableName="MANUAL_JOB_CONFIG" columnName="BATCH_CONFIG_ID"/>
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>

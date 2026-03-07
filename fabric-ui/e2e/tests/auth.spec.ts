@@ -2,7 +2,7 @@ import { test, expect } from '../fixtures';
 
 // These 2 tests need an UNAUTHENTICATED context (override storageState)
 test.describe('Auth — unauthenticated', () => {
-  test.use({ storageState: undefined });
+  test.use({ storageState: { cookies: [], origins: [] } });
 
   test('1 - login redirects to dashboard', async ({ page }) => {
     await page.goto('/login');

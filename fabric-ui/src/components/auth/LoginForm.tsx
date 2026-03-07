@@ -168,7 +168,7 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
               helperText={validationErrors.username}
               disabled={loading}
               sx={{ mb: 2 }}
-              inputProps={{ 'data-testid': 'username-input' }}
+              slotProps={{ htmlInput: { 'data-testid': 'username-input' } }}
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
@@ -189,7 +189,7 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
               helperText={validationErrors.password}
               disabled={loading}
               sx={{ mb: 3 }}
-              inputProps={{ 'data-testid': 'password-input' }}
+              slotProps={{ htmlInput: { 'data-testid': 'password-input' } }}
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">

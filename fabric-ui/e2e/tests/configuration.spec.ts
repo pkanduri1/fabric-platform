@@ -5,7 +5,7 @@ import { test, expect } from '../fixtures';
 // NOTE: 'HR' must match a source system ID in the database.
 // This system was seeded in test setup. If it disappears, tests 6 and 7 will show
 // the "Select a source system" alert instead of the 3-panel layout.
-const CONFIG_URL = '/configuration/HR/default-job';
+const CONFIG_URL = '/configuration/hr/default-job';
 
 test('6 - /configuration/:systemId/:jobName route renders', async ({ page }) => {
   await page.goto(CONFIG_URL);

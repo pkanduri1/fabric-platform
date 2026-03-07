@@ -149,13 +149,9 @@ public class TransformationConfigRepositoryImpl implements TransformationConfigR
 
     /**
      * Updates all mutable fields for the row identified by ID.
-     * Sets MODIFIED_DATE on the entity.
      */
     @Override
     public FieldTemplateEntity update(FieldTemplateEntity entity) {
-        LocalDateTime now = LocalDateTime.now();
-        entity.setModifiedDate(now);
-
         String sql = """
                 UPDATE FIELD_TEMPLATES SET
                     FILE_TYPE             = ?,
@@ -169,7 +165,6 @@ public class TransformationConfigRepositoryImpl implements TransformationConfigR
                     DESCRIPTION           = ?,
                     ENABLED               = ?,
                     MODIFIED_BY           = ?,
-                    MODIFIED_DATE         = ?,
                     VERSION               = ?,
                     TRANSFORMATION_TYPE   = ?,
                     TRANSFORMATION_CONFIG = ?,
@@ -192,7 +187,6 @@ public class TransformationConfigRepositoryImpl implements TransformationConfigR
                 entity.getDescription(),
                 entity.getEnabled(),
                 entity.getModifiedBy(),
-                Timestamp.valueOf(now),
                 entity.getVersion(),
                 entity.getTransformationType(),
                 entity.getTransformationConfig(),
@@ -213,9 +207,9 @@ public class TransformationConfigRepositoryImpl implements TransformationConfigR
      */
     @Override
     public void softDelete(String id) {
-        String sql = "UPDATE FIELD_TEMPLATES SET ENABLED = 'N', MODIFIED_DATE = ? WHERE ID = ?";
+        String sql = "UPDATE FIELD_TEMPLATES SET ENABLED = 'N' WHERE ID = ?";
         log.debug("softDelete: id={}", id);
-        int rows = jdbcTemplate.update(sql, Timestamp.valueOf(LocalDateTime.now()), id);
+        int rows = jdbcTemplate.update(sql, id);
         if (rows == 0) {
             throw new org.springframework.dao.EmptyResultDataAccessException(
                     "No FIELD_TEMPLATES row found for ID: " + id, 1);
@@ -262,10 +256,7 @@ public class TransformationConfigRepositoryImpl implements TransformationConfigR
 
             entity.setModifiedBy(rs.getString("MODIFIED_BY"));
 
-            Timestamp modifiedDate = rs.getTimestamp("MODIFIED_DATE");
-            if (modifiedDate != null) {
-                entity.setModifiedDate(modifiedDate.toLocalDateTime());
-            }
+            // MODIFIED_DATE column does not exist in FIELD_TEMPLATES table
 
             entity.setVersion(rs.getInt("VERSION"));
 

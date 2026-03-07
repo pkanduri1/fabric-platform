@@ -131,6 +131,9 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.PUT, "/api/v2/parameter-templates/**").hasRole("JOB_MODIFIER")
                 .requestMatchers("/api/v2/parameter-templates/**").hasAnyRole("JOB_VIEWER", "JOB_CREATOR", "JOB_MODIFIER")
                 
+                // Monitoring Dashboard API
+                .requestMatchers("/api/monitoring/**").hasAnyRole("OPERATIONS_MANAGER", "ADMIN", "JOB_VIEWER", "JOB_EXECUTOR")
+
                 // Legacy API endpoints
                 .requestMatchers("/api/configurations/create").hasAuthority("CONFIG_CREATE")
                 .requestMatchers("/api/configurations/update/**").hasAuthority("CONFIG_UPDATE")

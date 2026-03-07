@@ -1,8 +1,11 @@
-import { useState, useCallback, useEffect, useMemo } from 'react';
+import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import { SourceSystem, JobConfig, SourceField } from '../types/configuration';
 import { configApi } from '../services/api/configApi';
 import { mockSourceSystems, mockSourceFields } from '../data/mockData';
 
+// Stable empty array to avoid new references
+const EMPTY_SYSTEMS: SourceSystem[] = [];
+const EMPTY_FIELDS: SourceField[] = [];
 
 export interface UseSourceSystemsReturn {
   // State
@@ -52,6 +55,9 @@ export const useSourceSystems = (
     lastUpdated: 0
   });
 
+  // Track last loaded data to avoid setting identical state
+  const lastLoadedRef = useRef<string>('');
+
   // Check if cache is valid
   const isCacheValid = useCallback(() => {
     if (!cacheEnabled) return false;
@@ -71,24 +77,29 @@ export const useSourceSystems = (
 
     try {
       const systems = await configApi.getSourceSystems();
-      
+
       // Convert to expected format if needed
       const normalizedSystems: SourceSystem[] = systems.map(system => ({
         ...system,
-        jobs: Array.isArray(system.jobs) 
-          ? system.jobs.map(job => typeof job === 'string' 
-              ? { 
-                  name: job, 
-                  sourceSystem: system.id, 
+        jobs: Array.isArray(system.jobs)
+          ? system.jobs.map(job => typeof job === 'string'
+              ? {
+                  name: job,
+                  sourceSystem: system.id,
                   jobName: job,
                   files: [] // Required property
-                } 
+                }
               : job)
           : []
       }));
-      
-      setSourceSystems(normalizedSystems);
-      
+
+      // Only update state if data actually changed
+      const newDataJson = JSON.stringify(normalizedSystems);
+      if (newDataJson !== lastLoadedRef.current) {
+        lastLoadedRef.current = newDataJson;
+        setSourceSystems(normalizedSystems.length > 0 ? normalizedSystems : EMPTY_SYSTEMS);
+      }
+
       // Update cache
       if (cacheEnabled) {
         setCache(prev => ({
@@ -103,7 +114,7 @@ export const useSourceSystems = (
         setError(errorMessage);
         // Temporarily falling back to mock data
         setSourceSystems(mockSourceSystems);
-      
+
     } finally {
       setIsLoading(false);
     }
@@ -115,7 +126,7 @@ export const useSourceSystems = (
     if (system) {
       setSelectedSystem(system);
       setSelectedJob(null); // Reset job selection
-      setSourceFields([]); // Clear fields
+      setSourceFields(EMPTY_FIELDS); // Clear fields
       
       // Auto-load fields for the selected system
       loadSourceFields(systemId);
@@ -269,12 +280,14 @@ const loadJobsForSystem = useCallback(async (systemId: string) => {
     }));
   }, [getAvailableJobs]);
 
-  // Auto-load systems on mount
+  // Auto-load systems on mount (once only)
+  const hasLoadedRef = useRef(false);
   useEffect(() => {
-    if (autoLoad) {
+    if (autoLoad && !hasLoadedRef.current) {
+      hasLoadedRef.current = true;
       loadSourceSystems();
     }
-  }, [autoLoad, loadSourceSystems]);
+  }, [autoLoad]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Auto-select first system if only one exists
   useEffect(() => {

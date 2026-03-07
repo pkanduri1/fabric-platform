@@ -7,12 +7,13 @@
 ## 📋 Table of Contents
 
 1. [Getting Started](#getting-started)
-2. [Platform Overview](#platform-overview)  
+2. [Platform Overview](#platform-overview)
 3. [SQL*Loader Configuration Walkthrough](#sqlloader-configuration-walkthrough)
-4. [Advanced Features](#advanced-features)
-5. [Troubleshooting](#troubleshooting)
-6. [Best Practices](#best-practices)
-7. [FAQ](#faq)
+4. [Monitoring Dashboard](#monitoring-dashboard)
+5. [Advanced Features](#advanced-features)
+6. [Troubleshooting](#troubleshooting)
+7. [Best Practices](#best-practices)
+8. [FAQ](#faq)
 
 ---
 
@@ -58,10 +59,14 @@ The Fabric Platform consists of several key sections:
 - **SQL*Loader Configuration**: Configure SQL*Loader settings (NEW)
 - **Source System Management**: Manage source system definitions
 
-#### 📈 Monitoring
-- **Job Execution**: Monitor batch job status and performance
-- **System Health**: View platform health and performance metrics
-- **Audit Logs**: Access comprehensive audit trails
+#### 📈 Monitoring Dashboard (`/monitoring`)
+- **Active Jobs Grid**: Real-time view of running batch jobs with progress bars, throughput, and error counts
+- **Performance Metrics**: CPU usage, memory usage, success/error rates, system health score
+- **System Health Panel**: Database connectivity status, JVM memory, batch processing subsystem health
+- **Alerts Panel**: Auto-generated alerts from failed or long-running jobs; acknowledge alerts inline
+- **Historical Trends**: 24-hour hourly charts for job executions, throughput, error rates, and performance scores
+- **Real-time Indicator**: LIVE badge showing the dashboard polls the backend every 15 seconds
+- **Export**: Export monitoring data via the More Options menu
 
 #### 👥 Administration
 - **User Management**: Manage user accounts and permissions
@@ -287,6 +292,71 @@ TRAILING NULLCOLS
 2. Click "Copy" button
 3. Modify copied configuration as needed
 4. Save with new name
+
+---
+
+## 📈 Monitoring Dashboard
+
+The Monitoring Dashboard provides real-time visibility into batch job execution, system health, and performance metrics. Navigate to `/monitoring` in the sidebar.
+
+### Accessing the Dashboard
+
+**Required Roles:** `OPERATIONS_MANAGER`, `ADMIN`, `JOB_VIEWER`, or `JOB_EXECUTOR`
+
+1. Click **Monitoring** in the left sidebar
+2. The dashboard loads automatically and refreshes every 15 seconds
+3. A green **LIVE** indicator in the top-right confirms real-time data is flowing
+
+### Active Jobs Grid
+
+Displays all currently running batch jobs with:
+- **Job Name** and **Source System**
+- **Status** (STARTED, RUNNING, COMPLETED, FAILED)
+- **Progress** bar showing percentage complete
+- **Records Processed** and **Throughput** (records/second)
+- **Error Count** for the current execution
+
+### Performance Metrics
+
+Real-time system performance indicators:
+- **CPU Usage**: Current JVM CPU utilization percentage
+- **Memory Usage**: JVM heap memory used vs. available
+- **Success Rate**: Percentage of jobs completing without errors (last 24h)
+- **Error Rate**: Percentage of failed executions (last 24h)
+- **Throughput**: Total records processed per second across all jobs
+
+### System Health Panel
+
+Component-level health status:
+- **Database**: Connection status, response time, pool size
+- **Batch Processing**: Active jobs count, queue length
+- **Memory**: JVM heap usage with WARNING/CRITICAL thresholds
+- **Overall Score**: Weighted health score (0-100)
+
+Health statuses: `HEALTHY` (green), `DEGRADED` (yellow), `DOWN` (red)
+
+### Alerts Panel
+
+Automatically generated alerts from:
+- **Failed Jobs**: Jobs that terminated with errors
+- **Long-Running Jobs**: Executions exceeding expected duration
+- **Threshold Breaches**: Error rates or resource usage exceeding limits
+
+Each alert shows severity (INFO, WARNING, ERROR, CRITICAL), description, and an **Acknowledge** button.
+
+### Historical Trends
+
+24-hour trend charts with hourly aggregation:
+- **Job Executions**: Number of jobs run per hour
+- **Throughput**: Records processed per hour
+- **Error Rate**: Failure percentage per hour
+
+Switch between tabs to view different metric trends.
+
+### Exporting Data
+
+1. Click the **menu icon** (three dots) in the top-right corner
+2. Select **Export Data** to download monitoring data
 
 ---
 

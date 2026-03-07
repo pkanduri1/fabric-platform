@@ -5,7 +5,7 @@
 | Field | Value |
 |-------|--------|
 | Document Title | FABRIC Platform Enterprise Architecture |
-| Version | 1.0 |
+| Version | 1.1 |
 | Date | 2025-07-29 |
 | Author | Senior Software Architect |
 | Status | DRAFT |
@@ -17,6 +17,7 @@
 | Date | Version | Description | Author |
 |------|---------|-------------|---------|
 | 2025-07-29 | 1.0 | Initial architecture document creation | Senior Software Architect |
+| 2026-03-07 | 1.1 | Added Monitoring Dashboard architecture section | Claude Code |
 
 ---
 
@@ -765,6 +766,80 @@ public class DatabaseService {
 | **Data Loss** | High | Low | Regular backups, point-in-time recovery |
 | **Security Breach** | High | Low | Defense-in-depth, security monitoring |
 | **Skills Gap** | Medium | Medium | Training, documentation, knowledge transfer |
+
+---
+
+## 12.5 Monitoring Dashboard Architecture
+
+The Monitoring Dashboard provides real-time operational visibility into the FABRIC Platform, enabling operations teams to track job executions, system health, and performance metrics from a single interface.
+
+### 12.5.1 Architecture Overview
+
+The dashboard follows the same layered architecture and patterns used throughout the platform:
+
+```
+React Frontend (polling at 15-second intervals)
+       │
+       │  GET /api/monitoring/dashboard
+       ▼
+MonitoringController  (@PreAuthorize, @RestController)
+       │
+       ▼
+MonitoringService  (@Service — aggregates data from multiple sources)
+       │
+       ├──► MonitoringRepository (Interface)
+       │        └── MonitoringRepositoryImpl (JdbcTemplate — Oracle queries)
+       │
+       ├──► JVM MXBeans (OperatingSystemMXBean, MemoryMXBean)
+       │
+       └──► Alert generation logic (failed/long-running job detection)
+```
+
+**Key design decisions:**
+- **REST polling over WebSocket**: The frontend polls `GET /api/monitoring/dashboard` every 15 seconds. This avoids a WebSocket dependency and keeps the monitoring path stateless, making it compatible with load-balanced deployments without sticky sessions.
+- **Repository Interface + Impl pattern**: `MonitoringRepository` / `MonitoringRepositoryImpl` follows the same JdbcTemplate-based repository pattern as all other features (no JPA/Hibernate).
+- **Single aggregated endpoint**: One API call returns all dashboard data, reducing HTTP overhead and simplifying frontend state management.
+
+### 12.5.2 Data Model (DTOs)
+
+All DTOs are annotated with `@Schema` for OpenAPI documentation:
+
+| DTO | Purpose |
+|-----|---------|
+| `MonitoringDashboardResponse` | Top-level response wrapping all dashboard data |
+| `ActiveJobDto` | Currently running or recently completed job executions |
+| `PerformanceMetricsDto` | CPU usage, memory utilization, and throughput statistics |
+| `SystemHealthDto` | Database connectivity, memory stats, batch processing status |
+| `AlertDto` | Alerts generated from failed or long-running job executions |
+| `HistoricalMetricsDto` | Hourly aggregation of execution data over the past 24 hours |
+
+### 12.5.3 Data Sources
+
+| Dashboard Section | Data Source | Details |
+|-------------------|------------|---------|
+| **Active Jobs** | Oracle DB | `MANUAL_JOB_EXECUTION` joined with `MANUAL_JOB_CONFIG` for job names and statuses |
+| **Performance Metrics** | JVM MXBeans | `OperatingSystemMXBean` for CPU load; `MemoryMXBean` for heap/non-heap memory usage |
+| **System Health** | Oracle DB + JVM | Database ping query, JVM memory stats, batch processing queue status |
+| **Alerts** | Oracle DB | Generated from failed executions and jobs exceeding expected duration thresholds |
+| **Trends (Historical)** | Oracle DB | Hourly aggregation (`GROUP BY TRUNC(STARTED_AT, 'HH')`) of execution records over the past 24 hours |
+
+### 12.5.4 Security
+
+The monitoring endpoint is secured at two levels:
+
+1. **URL-level security** (`SecurityConfig`): `requestMatchers("/api/monitoring/**")` restricted to authorized roles.
+2. **Method-level security** (`MonitoringController`): `@PreAuthorize("hasAnyRole('OPERATIONS_MANAGER', 'ADMIN', 'JOB_VIEWER', 'JOB_EXECUTOR')")` on the controller method.
+
+This ensures that only users with operational or administrative responsibilities can access system health and performance data.
+
+### 12.5.5 Frontend Integration
+
+The React frontend implements the monitoring dashboard with the following characteristics:
+
+- **Polling interval**: 15-second `setInterval` cycle calling the REST endpoint
+- **Material-UI components**: Cards, tables, and charts for data visualization
+- **Graceful degradation**: Displays last-known-good data if a poll fails, with a visual staleness indicator
+- **No WebSocket dependency**: Entirely REST-based, simplifying deployment and proxy configuration
 
 ---
 

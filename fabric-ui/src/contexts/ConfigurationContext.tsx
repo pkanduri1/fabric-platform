@@ -1,5 +1,5 @@
 // src/contexts/ConfigurationContext.tsx
-import React, { createContext, useContext,useEffect, ReactNode, useState, useCallback } from 'react';
+import React, { createContext, useContext, useEffect, ReactNode, useState, useCallback, useMemo } from 'react';
 import { 
   Configuration, 
   FieldMapping, 
@@ -121,9 +121,8 @@ const selectSourceSystem = useCallback(async (systemId: string) => {
   }
 }, [sourceSystems, loadSourceFields]);
 
-// Add useEffect to restore selection on page load
+// Restore selection on page load when source systems become available
 useEffect(() => {
-    console.log('Source systems updated:', sourceSystems);
   const savedSystemId = localStorage.getItem('selectedSourceSystem');
   if (savedSystemId && sourceSystems.length > 0 && !selectedSourceSystem) {
     const system = sourceSystems.find(s => s.id === savedSystemId);
@@ -183,10 +182,13 @@ useEffect(() => {
   const setCurrentTransactionTypeWrapped = useCallback((transactionType: TransactionType) => {
     setCurrentTransactionType(transactionType);
     configHook.setTransactionType(transactionType);
-  }, [configHook]);
+  }, [configHook.setTransactionType]);
   
-  // Get available transaction types
-  const availableTransactionTypes = getTransactionTypes().map(t => t.code);
+  // Get available transaction types (memoized to avoid new array each render)
+  const availableTransactionTypes = useMemo(() =>
+    getTransactionTypes().map(t => t.code),
+    [getTransactionTypes]
+  );
   
   // Combine loading states
   const isLoading = configHook.isLoading || systemsLoading;
@@ -194,30 +196,30 @@ useEffect(() => {
   // Combine errors
   const error = configHook.error || systemsError;
   
-  // Context value
-  const contextValue: ConfigurationContextState = {
+  // Memoize context value to prevent unnecessary re-renders of consumers
+  const contextValue: ConfigurationContextState = useMemo(() => ({
     // Configuration state
     configuration: configHook.configuration,
     fieldMappings: configHook.fieldMappings,
     isDirty: configHook.isDirty,
     isLoading,
     error,
-    
+
     // Source systems
     loadJobsForSystem,
     sourceSystems,
     selectedSourceSystem,
     selectedJob,
     sourceFields,
-    
+
     // Validation
     validationResult,
     isValidating,
-    
+
     // UI state
     currentTransactionType,
     availableTransactionTypes,
-    
+
     // Configuration actions
     loadConfiguration: configHook.loadConfiguration,
     saveConfiguration: configHook.saveConfiguration,
@@ -226,23 +228,35 @@ useEffect(() => {
     addFieldMapping: configHook.addFieldMapping,
     reorderFieldMappings: configHook.reorderFieldMappings,
     resetConfiguration: configHook.resetConfiguration,
-    
+
     // Source system actions
     selectSourceSystem,
     selectJob,
     refreshSourceSystems,
-    
+
     // Validation actions
     validateConfiguration,
-    
+
     // Transaction type actions
     setCurrentTransactionType: setCurrentTransactionTypeWrapped,
     addTransactionType: configHook.addTransactionType,
-    
+
     // Utility
     hasUnsavedChanges: configHook.hasUnsavedChanges,
     getCurrentTransactionMappings: configHook.getCurrentTransactionMappings
-  };
+  }), [
+    configHook.configuration, configHook.fieldMappings, configHook.isDirty,
+    configHook.loadConfiguration, configHook.saveConfiguration,
+    configHook.updateFieldMapping, configHook.deleteFieldMapping,
+    configHook.addFieldMapping, configHook.reorderFieldMappings,
+    configHook.resetConfiguration, configHook.addTransactionType,
+    configHook.hasUnsavedChanges, configHook.getCurrentTransactionMappings,
+    isLoading, error, loadJobsForSystem, sourceSystems, selectedSourceSystem,
+    selectedJob, sourceFields, validationResult, isValidating,
+    currentTransactionType, availableTransactionTypes, selectSourceSystem,
+    selectJob, refreshSourceSystems, validateConfiguration,
+    setCurrentTransactionTypeWrapped
+  ]);
   
   return (
     <ConfigurationContext.Provider value={contextValue}>

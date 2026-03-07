@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <changeSet id="phase2-000-create-field-templates-table" author="claude">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="FIELD_TEMPLATES"/>
+            </not>
+        </preConditions>
+        <comment>Create FIELD_TEMPLATES base table required by phase2-001 and us051 changesets</comment>
+        <createTable tableName="FIELD_TEMPLATES">
+            <column name="FILE_TYPE" type="VARCHAR2(100)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="TRANSACTION_TYPE" type="VARCHAR2(100)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="FIELD_NAME" type="VARCHAR2(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="TARGET_POSITION" type="NUMBER(10)"/>
+            <column name="LENGTH" type="NUMBER(10)"/>
+            <column name="DATA_TYPE" type="VARCHAR2(50)"/>
+            <column name="FORMAT" type="VARCHAR2(255)"/>
+            <column name="REQUIRED" type="CHAR(1)" defaultValue="N"/>
+            <column name="DESCRIPTION" type="VARCHAR2(500)"/>
+            <column name="ENABLED" type="CHAR(1)" defaultValue="Y"/>
+            <column name="CREATED_BY" type="VARCHAR2(100)"/>
+            <column name="CREATED_DATE" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP"/>
+            <column name="MODIFIED_BY" type="VARCHAR2(100)"/>
+            <column name="VERSION" type="NUMBER(10)" defaultValueNumeric="1"/>
+        </createTable>
+        <addPrimaryKey tableName="FIELD_TEMPLATES"
+                       columnNames="FILE_TYPE, TRANSACTION_TYPE, FIELD_NAME"
+                       constraintName="PK_FIELD_TEMPLATES"/>
+        <rollback>
+            <dropTable tableName="FIELD_TEMPLATES"/>
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>

@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <changeSet id="phase2-007-create-file-type-templates" author="claude">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="FILE_TYPE_TEMPLATES"/>
+            </not>
+        </preConditions>
+        <comment>Create FILE_TYPE_TEMPLATES table for Template Admin page</comment>
+        <createTable tableName="FILE_TYPE_TEMPLATES">
+            <column name="FILE_TYPE" type="VARCHAR2(100)">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="PK_FILE_TYPE_TEMPLATES"/>
+            </column>
+            <column name="DESCRIPTION" type="VARCHAR2(500)"/>
+            <column name="TOTAL_FIELDS" type="NUMBER(10)" defaultValueNumeric="0"/>
+            <column name="RECORD_LENGTH" type="NUMBER(10)" defaultValueNumeric="0"/>
+            <column name="ENABLED" type="CHAR(1)" defaultValue="Y">
+                <constraints nullable="false"/>
+            </column>
+            <column name="VERSION" type="NUMBER(10)" defaultValueNumeric="1"/>
+            <column name="CREATED_DATE" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP"/>
+            <column name="CREATED_BY" type="VARCHAR2(100)"/>
+            <column name="MODIFIED_DATE" type="TIMESTAMP"/>
+            <column name="MODIFIED_BY" type="VARCHAR2(100)"/>
+        </createTable>
+        <rollback>
+            <dropTable tableName="FILE_TYPE_TEMPLATES"/>
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>
