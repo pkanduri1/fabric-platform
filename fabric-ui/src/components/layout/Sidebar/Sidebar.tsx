@@ -168,6 +168,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ open, onClose, drawerWidth }) 
           <React.Fragment key={system.id}>
             <ListItem disablePadding>
               <ListItemButton
+                data-testid={`sidebar-system-${system.id}`}
                 selected={selectedSourceSystem?.id === system.id}
                 onClick={() => handleSystemSelect(system.id)}
               >
@@ -191,6 +192,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ open, onClose, drawerWidth }) 
                 />
                 {system.jobs && system.jobs.length > 0 && (
                   <IconButton
+                    data-testid={`sidebar-system-toggle-${system.id}`}
                     size="small"
                     onClick={(e) => {
                       e.stopPropagation();
@@ -211,6 +213,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ open, onClose, drawerWidth }) 
                     <React.Fragment key={job.name || job.jobName}>
                       {/* Manual Configuration Option */}
                       <ListItemButton
+                        data-testid={`sidebar-job-manual-${system.id}-${job.name || job.jobName}`}
                         sx={{ pl: 6 }}
                         selected={selectedJob?.name === (job.name || job.jobName) && location.pathname.includes('/configuration/')}
                         onClick={() => handleJobSelect(system.id, job.name || job.jobName)}
@@ -230,6 +233,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ open, onClose, drawerWidth }) 
 
                       {/* Template Configuration Option */}
                       <ListItemButton
+                        data-testid={`sidebar-job-template-${system.id}-${job.name || job.jobName}`}
                         sx={{ pl: 6 }}
                         selected={selectedJob?.name === (job.name || job.jobName) && location.pathname.includes('/template-configuration/')}
                         onClick={() => handleTemplateJobSelect(system.id, job.name || job.jobName)}
