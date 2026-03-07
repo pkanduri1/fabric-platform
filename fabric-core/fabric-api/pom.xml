@@ -192,7 +192,7 @@
 		<dependency>
 			<groupId>org.liquibase</groupId>
 			<artifactId>liquibase-maven-plugin</artifactId>
-			<version>4.20.0</version>
+			<version>5.0.2</version>
 		</dependency>
 
 		<!-- Database Drivers -->
@@ -400,7 +400,7 @@
 			<plugin>
 				<groupId>org.liquibase</groupId>
 				<artifactId>liquibase-maven-plugin</artifactId>
-				<version>4.20.0</version>
+				<version>5.0.2</version>
 				<configuration>
 					<propertyFile>src/main/resources/liquibase.properties</propertyFile>
 					<changeLogFile>src/main/resources/db/changelog/db.changelog-master.xml</changeLogFile>
