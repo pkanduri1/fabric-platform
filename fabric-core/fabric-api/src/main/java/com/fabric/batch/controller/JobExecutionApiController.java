@@ -98,7 +98,7 @@ public class JobExecutionApiController {
     public ResponseEntity<RunAllJobsResponse> runAll(
             @RequestParam String sourceSystem,
             Authentication auth) {
-        if (sourceSystem == null || sourceSystem.isBlank()) {
+        if (sourceSystem.isBlank()) {
             throw JobExecutionApiException.badRequest("MISSING_PARAM", "sourceSystem is required");
         }
         String actor = auth != null ? auth.getName() : "unknown";

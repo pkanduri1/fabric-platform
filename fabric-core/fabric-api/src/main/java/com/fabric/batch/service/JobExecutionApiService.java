@@ -169,7 +169,9 @@ public class JobExecutionApiService {
     }
 
     // ── Run All For Source ────────────────────────────────────────────────────
-
+    // NOTE: @Transactional here means all submitJob() calls share one transaction.
+    // If any single submission fails, the entire batch is rolled back.
+    // This is intentional: callers get an all-or-nothing guarantee.
     @Transactional
     public RunAllJobsResponse runAllForSource(String sourceSystem, String actor) {
         List<ManualJobConfigEntity> activeConfigs =
@@ -179,8 +181,8 @@ public class JobExecutionApiService {
         for (ManualJobConfigEntity config : activeConfigs) {
             JobExecutionRequest req = JobExecutionRequest.builder()
                     .jobConfigId(config.getConfigId())
-                    .sourceSystem(sourceSystem)
-                    .transformationRules(List.of("DEFAULT"))
+                    .sourceSystem(config.getSourceSystem())
+                    .transformationRules(List.of(config.getConfigId()))
                     .build();
             JobExecutionResponse resp = submitJob(req, actor);
             executionIds.add(resp.getExecutionId());

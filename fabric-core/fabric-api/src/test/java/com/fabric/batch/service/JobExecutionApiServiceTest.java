@@ -195,6 +195,7 @@ class JobExecutionApiServiceTest {
         assertThat(resp.getSubmittedCount()).isEqualTo(2);
         assertThat(resp.getExecutionIds()).hasSize(2);
         assertThat(resp.getSourceSystem()).isEqualTo("COLLECTIONS");
+        assertThat(resp.getExecutionIds()).doesNotHaveDuplicates();
     }
 
     @Test
