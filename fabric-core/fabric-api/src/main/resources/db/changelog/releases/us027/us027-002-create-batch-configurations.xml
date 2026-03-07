@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <!-- Issue #27: Create BATCH_CONFIGURATIONS table for configuration persistence.
+         BatchConfigurationDaoImpl.save() inserts here when template field mappings are saved. -->
+    <changeSet id="us027-002-create-batch-configurations" author="claude">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="BATCH_CONFIGURATIONS" schemaName="CM3INT"/>
+            </not>
+        </preConditions>
+        <createTable tableName="BATCH_CONFIGURATIONS" schemaName="CM3INT">
+            <column name="ID" type="VARCHAR2(50)">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="PK_BATCH_CONFIGURATIONS"/>
+            </column>
+            <column name="SOURCE_SYSTEM" type="VARCHAR2(100)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="JOB_NAME" type="VARCHAR2(100)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="TRANSACTION_TYPE" type="VARCHAR2(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="CONFIGURATION_JSON" type="CLOB"/>
+            <column name="ENABLED" type="CHAR(1)" defaultValue="Y">
+                <constraints nullable="false"/>
+            </column>
+            <column name="CREATED_BY" type="VARCHAR2(100)"/>
+            <column name="CREATED_DATE" type="TIMESTAMP"/>
+            <column name="MODIFIED_BY" type="VARCHAR2(100)"/>
+            <column name="MODIFIED_DATE" type="TIMESTAMP"/>
+            <column name="VERSION" type="NUMBER(10)" defaultValueNumeric="1"/>
+            <column name="DESCRIPTION" type="VARCHAR2(500)"/>
+        </createTable>
+        <rollback>
+            <dropTable tableName="BATCH_CONFIGURATIONS" schemaName="CM3INT"/>
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>
