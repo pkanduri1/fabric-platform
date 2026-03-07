@@ -1,6 +1,7 @@
 package com.fabric.batch.service;
 
 import com.fabric.batch.dto.jobexecution.*;
+import com.fabric.batch.dto.jobexecution.JobAuditResponse;
 import com.fabric.batch.entity.ManualJobConfigEntity;
 import com.fabric.batch.entity.ManualJobExecutionEntity;
 import com.fabric.batch.exception.JobExecutionApiException;
@@ -193,6 +194,42 @@ public class JobExecutionApiService {
                 .submittedCount(executionIds.size())
                 .executionIds(executionIds)
                 .message(executionIds.size() + " job(s) submitted for source system: " + sourceSystem)
+                .build();
+    }
+
+    // ── Audit Trail ───────────────────────────────────────────────────────────
+
+    public JobAuditResponse getAuditTrail(String executionId) {
+        ManualJobExecutionEntity e = findOrThrow(executionId);
+
+        List<JobAuditResponse.AuditEntry> entries = new ArrayList<>();
+
+        // Entry 1: submission event
+        entries.add(JobAuditResponse.AuditEntry.builder()
+                .timestamp(e.getStartTime() != null
+                        ? e.getStartTime().toInstant(java.time.ZoneOffset.UTC) : Instant.now())
+                .action("SUBMITTED")
+                .actor(e.getExecutedBy() != null ? e.getExecutedBy() : "SYSTEM")
+                .correlationId(e.getCorrelationId())
+                .details("Job submitted from source: " + e.getTriggerSource())
+                .build());
+
+        // Entry 2: terminal status event (if finished)
+        if (e.getEndTime() != null) {
+            entries.add(JobAuditResponse.AuditEntry.builder()
+                    .timestamp(e.getEndTime().toInstant(java.time.ZoneOffset.UTC))
+                    .action(e.getStatus())
+                    .actor("SYSTEM")
+                    .correlationId(e.getCorrelationId())
+                    .details(e.getErrorMessage() != null
+                            ? e.getErrorMessage()
+                            : "Job reached terminal state: " + e.getStatus())
+                    .build());
+        }
+
+        return JobAuditResponse.builder()
+                .executionId(executionId)
+                .auditEntries(entries)
                 .build();
     }
 

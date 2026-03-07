@@ -4,6 +4,7 @@ import com.fabric.batch.dto.jobexecution.*;
 import com.fabric.batch.entity.ManualJobConfigEntity;
 import com.fabric.batch.entity.ManualJobExecutionEntity;
 import com.fabric.batch.exception.JobExecutionApiException;
+import com.fabric.batch.dto.jobexecution.JobAuditResponse;
 import com.fabric.batch.repository.ManualJobConfigRepository;
 import com.fabric.batch.repository.ManualJobExecutionRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -207,5 +208,35 @@ class JobExecutionApiServiceTest {
 
         assertThat(resp.getSubmittedCount()).isZero();
         assertThat(resp.getExecutionIds()).isEmpty();
+    }
+
+    // --- getAuditTrail ---
+
+    @Test
+    void getAuditTrail_existingExecution_returnsAuditEntries() {
+        ManualJobExecutionEntity entity = ManualJobExecutionEntity.builder()
+                .executionId("EXEC-8821")
+                .configId("JC-1042")
+                .status("COMPLETED")
+                .executedBy("scheduler")
+                .triggerSource("COLLECTIONS")
+                .correlationId("corr-001")
+                .build();
+        when(executionRepository.findById("EXEC-8821")).thenReturn(Optional.of(entity));
+
+        JobAuditResponse resp = service.getAuditTrail("EXEC-8821");
+
+        assertThat(resp.getExecutionId()).isEqualTo("EXEC-8821");
+        assertThat(resp.getAuditEntries()).isNotEmpty();
+        assertThat(resp.getAuditEntries().get(0).getActor()).isEqualTo("scheduler");
+    }
+
+    @Test
+    void getAuditTrail_unknownId_throwsExecutionNotFound() {
+        when(executionRepository.findById("EXEC-0000")).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> service.getAuditTrail("EXEC-0000"))
+                .isInstanceOf(JobExecutionApiException.class)
+                .hasMessageContaining("EXECUTION_NOT_FOUND");
     }
 }

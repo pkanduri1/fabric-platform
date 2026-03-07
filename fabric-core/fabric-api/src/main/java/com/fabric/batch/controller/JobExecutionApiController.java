@@ -82,10 +82,7 @@ public class JobExecutionApiController {
     @GetMapping("/{executionId}/audit")
     @PreAuthorize("hasRole('API_EXECUTOR')")
     public ResponseEntity<JobAuditResponse> audit(@PathVariable String executionId) {
-        return ResponseEntity.ok(JobAuditResponse.builder()
-                .executionId(executionId)
-                .auditEntries(java.util.List.of())
-                .build());
+        return ResponseEntity.ok(service.getAuditTrail(executionId));
     }
 
     @Operation(summary = "Run all active jobs for a source system")

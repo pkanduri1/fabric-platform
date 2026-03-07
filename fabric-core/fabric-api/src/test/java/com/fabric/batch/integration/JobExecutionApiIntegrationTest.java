@@ -25,6 +25,7 @@ import javax.sql.DataSource;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.greaterThan;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -230,9 +231,35 @@ class JobExecutionApiIntegrationTest {
 
     @Test
     @WithMockUser(roles = "API_EXECUTOR")
-    void audit_anyId_returns200WithEmptyAuditEntries() throws Exception {
-        mockMvc.perform(get("/api/v1/jobs/EXEC-ANY/audit"))
+    void audit_afterSubmit_returnsNonEmptyAuditEntries() throws Exception {
+        JobExecutionRequest req = JobExecutionRequest.builder()
+                .jobConfigId(KNOWN_CONFIG_ID)
+                .sourceSystem("TEST_SYS")
+                .transformationRules(List.of("RULE_A"))
+                .build();
+
+        MvcResult submitResult = mockMvc.perform(post("/api/v1/jobs/execute")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(req)))
+                .andExpect(status().isAccepted())
+                .andReturn();
+
+        String executionId = objectMapper.readTree(
+                submitResult.getResponse().getContentAsString())
+                .get("executionId").asText();
+
+        mockMvc.perform(get("/api/v1/jobs/" + executionId + "/audit"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.auditEntries").isArray());
+                .andExpect(jsonPath("$.executionId").value(executionId))
+                .andExpect(jsonPath("$.auditEntries").isArray())
+                .andExpect(jsonPath("$.auditEntries.length()").value(greaterThan(0)));
+    }
+
+    @Test
+    @WithMockUser(roles = "API_EXECUTOR")
+    void audit_unknownId_returns404() throws Exception {
+        mockMvc.perform(get("/api/v1/jobs/EXEC-AUDIT-GONE/audit"))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.errorCode").value("EXECUTION_NOT_FOUND"));
     }
 }
