@@ -48,7 +48,7 @@ jobs:
         run: mvn package -pl fabric-api -DskipTests -q
 
       - name: Set up Node 18
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: '18'
           cache: npm
