@@ -1,0 +1,156 @@
+name: Veracode Policy Scan (Full SAST)
+
+# Full SAST policy scan — authoritative scan that:
+#   • Runs after every merge to main
+#   • Runs on a weekly schedule to catch newly disclosed issues
+#   • Uses Veracode sandboxes for non-main branch investigation
+#   • Results appear in the Veracode Application Security Platform
+#
+# The pipeline scan (veracode-pipeline-scan.yml) is the fast CI gate.
+# This policy scan is the security team's authoritative compliance record.
+#
+# Required GitHub Secrets (Settings → Secrets → Actions):
+#   VERACODE_API_ID    – Veracode API credentials ID
+#   VERACODE_API_KEY   – Veracode API credentials key
+#
+# Required GitHub Variables (Settings → Variables → Actions):
+#   VERACODE_APP_NAME  – Application name in Veracode platform (e.g. "fabric-platform")
+#
+# Optional GitHub Variables:
+#   VERACODE_TEAMS          – comma-separated team names for scan notification
+#   VERACODE_PROXY_HOST     – corporate proxy hostname
+#   VERACODE_PROXY_PORT     – corporate proxy port
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: '0 2 * * 0'   # Weekly: Sunday 02:00 UTC (off-peak)
+  workflow_dispatch:        # Allow manual trigger from GitHub UI
+
+jobs:
+  build-artifact:
+    name: Build Veracode Upload Artifact
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: temurin
+          cache: maven
+
+      - name: Package backend artifact
+        working-directory: fabric-core
+        run: mvn package -pl fabric-api -DskipTests -q
+
+      - name: Set up Node 18
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: npm
+          cache-dependency-path: fabric-ui/package-lock.json
+
+      - name: Build frontend bundle
+        working-directory: fabric-ui
+        run: |
+          npm ci
+          npm run build
+
+      - name: Assemble Veracode upload artifact
+        run: |
+          mkdir -p veracode-upload
+          cp fabric-core/fabric-api/target/fabric-api-*.jar veracode-upload/
+          zip -r veracode-upload/frontend-bundle.zip fabric-ui/build/static/js/
+          echo "Artifact contents:"
+          ls -lh veracode-upload/
+
+      - name: Upload artifact for policy scan job
+        uses: actions/upload-artifact@v4
+        with:
+          name: veracode-upload-artifact
+          path: veracode-upload/
+          retention-days: 1   # Temp — only needed for this pipeline run
+
+  veracode-policy-scan:
+    name: Veracode Policy Scan
+    needs: build-artifact
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      security-events: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download upload artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: veracode-upload-artifact
+          path: veracode-upload/
+
+      # ── Full policy scan via Veracode Static Analysis ─────────────────────
+      # This submits to Veracode's SaaS platform and waits for results.
+      # Policy scans can take 30–90 minutes. The action polls until complete.
+      - name: Submit Veracode policy scan
+        uses: veracode/veracode-uploadandscan-action@0.2.6
+        with:
+          appname: ${{ vars.VERACODE_APP_NAME }}
+          createprofile: true       # Auto-create app profile if it doesn't exist
+          filepath: veracode-upload/
+          version: ${{ github.run_id }}   # Unique scan label (safe: run_id is numeric)
+          vid: ${{ secrets.VERACODE_API_ID }}
+          vkey: ${{ secrets.VERACODE_API_KEY }}
+          # Sandbox: use for investigation; leave blank for policy scans
+          # sandboxname: "CI-Sandbox"
+          # Teams to notify on completion (optional)
+          # teams: ${{ vars.VERACODE_TEAMS }}
+          # Enterprise proxy (uncomment if required)
+          # proxy: ${{ vars.VERACODE_PROXY_HOST }}:${{ vars.VERACODE_PROXY_PORT }}
+          deleteincompletescan: 2   # Replace in-progress scans (0=fail, 1=ignore, 2=replace)
+          include: "*.jar,*.zip"
+          # Maximum wait time in minutes (policy scans can be long)
+          scantimeout: 90
+
+      # ── Import policy findings as GitHub Code Scanning alerts ────────────────
+      - name: Import Veracode findings to GitHub Security tab
+        if: always()
+        uses: veracode/veracode-flaws-to-github-issues@v2.1.22
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          source_base_path_1: "com/fabric/:fabric-core/fabric-api/src/main/java/com/fabric/"
+          source_base_path_2: "WEB-INF/:"
+          wait_for_issues: false
+        continue-on-error: true
+
+  notify-on-failure:
+    name: Notify on Policy Violations
+    needs: veracode-policy-scan
+    runs-on: ubuntu-latest
+    if: failure()
+
+    steps:
+      - name: Open GitHub issue on policy violation
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const runUrl = `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID}`;
+            const today = new Date().toISOString().slice(0, 10);
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `[SECURITY] Veracode policy scan violation — ${today}`,
+              body: [
+                'The Veracode policy scan found findings that violate the application security policy.',
+                '',
+                `Workflow run: ${runUrl}`,
+                '',
+                'Action required: review findings in the Veracode Application Security Platform',
+                'and remediate or mitigate before the next release.'
+              ].join('\n'),
+              labels: ['security']
+            });
