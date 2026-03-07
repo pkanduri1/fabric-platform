@@ -61,16 +61,14 @@
 			<artifactId>spring-batch-integration</artifactId>
 		</dependency>
 
-		<!-- Apache POI for Excel processing -->
+		<!-- Apache POI for Excel processing (version managed by parent) -->
 		<dependency>
 			<groupId>org.apache.poi</groupId>
 			<artifactId>poi</artifactId>
-			<version>5.2.3</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.poi</groupId>
 			<artifactId>poi-ooxml</artifactId>
-			<version>5.2.3</version>
 		</dependency>
 
 		<!-- Spring Web -->
