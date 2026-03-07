@@ -257,7 +257,8 @@ public class JobExecutionApiService {
     }
 
     private String generateExecutionId() {
-        return "EXEC-" + String.format("%06d", System.currentTimeMillis() % 1_000_000);
+        // Use UUID-derived suffix to guarantee uniqueness across rapid successive calls
+        return "EXEC-" + java.util.UUID.randomUUID().toString().replace("-", "").substring(0, 6).toUpperCase();
     }
 
     private String serializeHeaders(java.util.Map<String, String> headers) {

@@ -4,7 +4,9 @@ import com.fabric.batch.entity.FieldTemplateEntity;
 import com.fabric.batch.repository.TransformationConfigRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -21,7 +23,8 @@ public class TransformationConfigService {
 
     public FieldTemplateEntity findById(String id) {
         return repository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Transformation config not found: " + id));
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND, "Transformation config not found: " + id));
     }
 
     public List<FieldTemplateEntity> findBySourceSystem(String fileType) {
@@ -34,14 +37,16 @@ public class TransformationConfigService {
 
     public FieldTemplateEntity update(String id, FieldTemplateEntity entity) {
         repository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Transformation config not found: " + id));
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND, "Transformation config not found: " + id));
         entity.setId(id);
         return repository.update(entity);
     }
 
     public void softDelete(String id) {
         repository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Transformation config not found: " + id));
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND, "Transformation config not found: " + id));
         repository.softDelete(id);
     }
 }

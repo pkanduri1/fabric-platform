@@ -139,6 +139,9 @@
     <!-- Drop invalid audit trigger that causes ORA-04098 on MANUAL_JOB_CONFIG DML -->
     <include file="releases/us046/us046-003-drop-invalid-audit-trigger.xml" relativeToChangelogFile="true"/>
 
+    <!-- US051: TransformationConfig CRUD — add standalone ID column to FIELD_TEMPLATES -->
+    <include file="releases/us051/us051-001-add-id-to-field-templates.xml" relativeToChangelogFile="true"/>
+
     <!-- Database Tagging for Release Management - Phase 2 Implementation -->
     <changeSet id="tag-us001-phase2-release-2.0" author="Senior Full Stack Developer Agent" context="development,test,staging,production">
         <comment>Release tag for US001 Phase 2 Manual Job Configuration Interface v2.0 - Complete enterprise schema with execution tracking, parameter templates, and SOX-compliant audit framework</comment>

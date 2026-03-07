@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.x.xsd">
+
+    <changeSet id="us051-001-add-id-to-field-templates" author="claude">
+        <addColumn tableName="FIELD_TEMPLATES">
+            <column name="ID" type="VARCHAR2(100)" defaultValueComputed="SYS_GUID()"/>
+        </addColumn>
+        <rollback>
+            <dropColumn tableName="FIELD_TEMPLATES" columnName="ID"/>
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>

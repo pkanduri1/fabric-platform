@@ -20,6 +20,8 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import javax.sql.DataSource;
 
+import org.springframework.http.MediaType;
+
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -34,19 +36,16 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * cleanup ({@code DELETE WHERE FILE_TYPE LIKE 'TEST_%'}) is safe and
  * never affects production rows.
  *
- * <p>Table structure of FIELD_TEMPLATES (live schema, composite PK):
+ * <p>Table structure of FIELD_TEMPLATES (live schema, composite PK + surrogate ID):
  * <ul>
- *   <li>FILE_TYPE         VARCHAR2 NOT NULL  (part of PK)</li>
- *   <li>TRANSACTION_TYPE  VARCHAR2 NOT NULL  (part of PK)</li>
- *   <li>FIELD_NAME        VARCHAR2 NOT NULL  (part of PK)</li>
+ *   <li>ID               VARCHAR2 NOT NULL  (surrogate key, added by us051-001)</li>
+ *   <li>FILE_TYPE         VARCHAR2 NOT NULL  (part of composite PK)</li>
+ *   <li>TRANSACTION_TYPE  VARCHAR2 NOT NULL  (part of composite PK)</li>
+ *   <li>FIELD_NAME        VARCHAR2 NOT NULL  (part of composite PK)</li>
  *   <li>TARGET_POSITION   NUMBER   NOT NULL</li>
  *   <li>CREATED_BY        VARCHAR2 NOT NULL</li>
  *   <li>All other columns are nullable</li>
  * </ul>
- *
- * <p>There is no standalone {@code ID} column in the live schema. Consequently
- * {@code findById} always degrades gracefully to {@code Optional.empty()},
- * and the getById / delete endpoints return 5xx for any configId value.
  */
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -120,24 +119,26 @@ class TransformationConfigIntegrationTest {
     @Autowired ObjectMapper objectMapper;
     @Autowired @Qualifier("jdbcTemplate") JdbcTemplate jdbcTemplate;
 
+    // Seed row ID — fixed so tests can reference it without querying first
+    private static final String TEST_ROW_ID = "TEST-ID-INTEGRATION-001";
+
     /**
      * Wipes any leftover TEST_ rows and seeds a single known test row.
      *
-     * <p>Minimal columns: only the five that are NOT NULL in the live schema
-     * (FILE_TYPE, TRANSACTION_TYPE, FIELD_NAME, TARGET_POSITION, CREATED_BY).
-     * ENABLED defaults to 'Y' (required so findAll() includes the row).
+     * <p>Includes all NOT NULL columns plus the surrogate ID added by us051-001.
+     * ENABLED is set to 'Y' so findAll() includes the row.
      */
     @BeforeEach
     void seed() {
         // Remove any leftover data from a previous run
         jdbcTemplate.update("DELETE FROM FIELD_TEMPLATES WHERE FILE_TYPE LIKE 'TEST_%'");
 
-        // Insert a minimal valid row satisfying all NOT NULL constraints
+        // Insert a minimal valid row satisfying all NOT NULL constraints, including the ID column
         jdbcTemplate.update(
                 "INSERT INTO FIELD_TEMPLATES " +
-                "(FILE_TYPE, TRANSACTION_TYPE, FIELD_NAME, TARGET_POSITION, CREATED_BY, ENABLED) " +
-                "VALUES (?, ?, ?, 1, 'test-it', 'Y')",
-                TEST_FILE_TYPE, TEST_TRANS_TYPE, TEST_FIELD_NAME);
+                "(ID, FILE_TYPE, TRANSACTION_TYPE, FIELD_NAME, TARGET_POSITION, CREATED_BY, ENABLED) " +
+                "VALUES (?, ?, ?, ?, 1, 'test-it', 'Y')",
+                TEST_ROW_ID, TEST_FILE_TYPE, TEST_TRANS_TYPE, TEST_FIELD_NAME);
     }
 
     @AfterEach
@@ -188,9 +189,6 @@ class TransformationConfigIntegrationTest {
     }
 
     // ── GET /v1/transformation/configs/{configId} ─────────────────────────────
-    // The live FIELD_TEMPLATES table has no ID column (composite PK only).
-    // Security is verified via the unauthenticated and wrong-role paths, which
-    // are evaluated before the service layer is reached.
 
     @Test
     void getById_unauthenticated_returns401() throws Exception {
@@ -198,9 +196,42 @@ class TransformationConfigIntegrationTest {
                 .andExpect(status().isUnauthorized());
     }
 
+    @Test
+    @WithMockUser(roles = "USER")
+    void getById_seededId_returns200() throws Exception {
+        mockMvc.perform(get("/v1/transformation/configs/" + TEST_ROW_ID))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.fileType").value(TEST_FILE_TYPE));
+    }
+
+    @Test
+    @WithMockUser(roles = "USER")
+    void getById_unknownId_returns404() throws Exception {
+        mockMvc.perform(get("/v1/transformation/configs/DEFINITELY-DOES-NOT-EXIST"))
+                .andExpect(status().isNotFound());
+    }
+
+    // ── POST /v1/transformation/configs ───────────────────────────────────────
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void create_validEntity_returns201() throws Exception {
+        String body = """
+                {
+                    "fileType": "TEST_FT2",
+                    "transactionType": "TEST_TX2",
+                    "fieldName": "TEST_FLD2",
+                    "targetPosition": 2,
+                    "createdBy": "test-create"
+                }
+                """;
+        mockMvc.perform(post("/v1/transformation/configs")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(body))
+                .andExpect(status().isCreated());
+    }
+
     // ── DELETE /v1/transformation/configs/{configId} ──────────────────────────
-    // Security checks (401 / 403) happen before the service layer, so they
-    // produce proper HTTP responses even though the live schema has no ID column.
 
     @Test
     void delete_unauthenticated_returns401() throws Exception {
@@ -213,5 +244,19 @@ class TransformationConfigIntegrationTest {
     void delete_wrongRole_returns403() throws Exception {
         mockMvc.perform(delete("/v1/transformation/configs/ANY-ID"))
                 .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void delete_seededId_returns204() throws Exception {
+        mockMvc.perform(delete("/v1/transformation/configs/" + TEST_ROW_ID))
+                .andExpect(status().isNoContent());
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void delete_unknownId_returns404() throws Exception {
+        mockMvc.perform(delete("/v1/transformation/configs/DEFINITELY-DOES-NOT-EXIST"))
+                .andExpect(status().isNotFound());
     }
 }
