@@ -185,7 +185,7 @@
 		<dependency>
 			<groupId>org.liquibase.ext</groupId>
 			<artifactId>liquibase-oracle</artifactId>
-			<version>4.20.0</version>
+			<version>5.0.2</version>
 		</dependency>
 		
 		<!-- Liquibase Maven Plugin for CLI operations -->
