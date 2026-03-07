@@ -20,7 +20,7 @@
 	
 	<properties>
 		<java.version>17</java.version>
-		<resilience4j.version>2.2.0</resilience4j.version>
+		<resilience4j.version>2.3.0</resilience4j.version>
 		<wiremock.version>3.0.1</wiremock.version>
 		<!-- Default empty value so @{argLine} resolves cleanly when JaCoCo is not active -->
 		<argLine></argLine>
