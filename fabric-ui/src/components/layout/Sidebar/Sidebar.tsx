@@ -49,7 +49,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ open, onClose, drawerWidth }) 
     sourceSystems,
     selectedSourceSystem,
     selectedJob,
-    selectSourceSystem,
     selectJob
   } = useConfigurationContext();
 
@@ -64,22 +63,22 @@ export const Sidebar: React.FC<SidebarProps> = ({ open, onClose, drawerWidth }) 
   };
 
   const handleSystemSelect = async (systemId: string) => {
-    try {
-      console.log('Selecting system:', systemId);
-      await selectSourceSystem(systemId);
+    // Navigate to dashboard if not already there (without selecting system in context —
+    // that triggers loadSourceFields and a transient isLoading flash that blanks the page)
+    if (!location.pathname.startsWith('/dashboard')) {
+      navigate('/dashboard');
+    }
 
-      // Navigate to dashboard to show selected system if not already there
-      if (!location.pathname.startsWith('/dashboard')) {
-        navigate('/dashboard');
+    // Expand the system to show its jobs in the sidebar
+    if (!expandedSystems.includes(systemId)) {
+      toggleSystemExpanded(systemId);
+      try {
+        await loadJobsForSystem(systemId);
+      } catch (error) {
+        console.error('Failed to load jobs for system:', error);
       }
-
-      // Load jobs from API when expanding
-      if (!expandedSystems.includes(systemId)) {
-        toggleSystemExpanded(systemId);
-        await loadJobsForSystem(systemId); // Use API call
-      }
-    } catch (error) {
-      console.error('Failed to select system:', error);
+    } else {
+      toggleSystemExpanded(systemId);
     }
   };
 
