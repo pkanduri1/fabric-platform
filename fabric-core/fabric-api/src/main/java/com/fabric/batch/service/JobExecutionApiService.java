@@ -1,8 +1,10 @@
 package com.fabric.batch.service;
 
 import com.fabric.batch.dto.jobexecution.*;
+import com.fabric.batch.entity.ManualJobConfigEntity;
 import com.fabric.batch.entity.ManualJobExecutionEntity;
 import com.fabric.batch.exception.JobExecutionApiException;
+import com.fabric.batch.repository.ManualJobConfigRepository;
 import com.fabric.batch.repository.ManualJobExecutionRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -11,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -22,6 +25,7 @@ public class JobExecutionApiService {
 
     private final JdbcTemplate jdbcTemplate;
     private final ManualJobExecutionRepository executionRepository;
+    private final ManualJobConfigRepository configRepository;
 
     // States that allow CANCELLED transition
     private static final Set<String> CANCELLABLE = Set.of("STARTED", "RUNNING");
@@ -162,6 +166,32 @@ public class JobExecutionApiService {
                         .build())
                 .collect(Collectors.toList());
         return JobListResponse.builder().total(summaries.size()).executions(summaries).build();
+    }
+
+    // ── Run All For Source ────────────────────────────────────────────────────
+
+    @Transactional
+    public RunAllJobsResponse runAllForSource(String sourceSystem, String actor) {
+        List<ManualJobConfigEntity> activeConfigs =
+                configRepository.findBySourceSystemAndStatus(sourceSystem, "ACTIVE");
+
+        List<String> executionIds = new ArrayList<>();
+        for (ManualJobConfigEntity config : activeConfigs) {
+            JobExecutionRequest req = JobExecutionRequest.builder()
+                    .jobConfigId(config.getConfigId())
+                    .sourceSystem(sourceSystem)
+                    .transformationRules(List.of("DEFAULT"))
+                    .build();
+            JobExecutionResponse resp = submitJob(req, actor);
+            executionIds.add(resp.getExecutionId());
+        }
+
+        return RunAllJobsResponse.builder()
+                .sourceSystem(sourceSystem)
+                .submittedCount(executionIds.size())
+                .executionIds(executionIds)
+                .message(executionIds.size() + " job(s) submitted for source system: " + sourceSystem)
+                .build();
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────

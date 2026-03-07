@@ -1,6 +1,7 @@
 package com.fabric.batch.controller;
 
 import com.fabric.batch.dto.jobexecution.*;
+import com.fabric.batch.exception.JobExecutionApiException;
 import com.fabric.batch.service.JobExecutionApiService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -85,5 +86,23 @@ public class JobExecutionApiController {
                 .executionId(executionId)
                 .auditEntries(java.util.List.of())
                 .build());
+    }
+
+    @Operation(summary = "Run all active jobs for a source system")
+    @ApiResponses({
+        @ApiResponse(responseCode = "202", description = "Jobs submitted"),
+        @ApiResponse(responseCode = "400", description = "sourceSystem is required")
+    })
+    @PostMapping("/run-all")
+    @PreAuthorize("hasRole('API_EXECUTOR')")
+    public ResponseEntity<RunAllJobsResponse> runAll(
+            @RequestParam String sourceSystem,
+            Authentication auth) {
+        if (sourceSystem == null || sourceSystem.isBlank()) {
+            throw JobExecutionApiException.badRequest("MISSING_PARAM", "sourceSystem is required");
+        }
+        String actor = auth != null ? auth.getName() : "unknown";
+        log.info("Run-all request from actor={} sourceSystem={}", actor, sourceSystem);
+        return ResponseEntity.accepted().body(service.runAllForSource(sourceSystem, actor));
     }
 }

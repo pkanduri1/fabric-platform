@@ -1,8 +1,10 @@
 package com.fabric.batch.service;
 
 import com.fabric.batch.dto.jobexecution.*;
+import com.fabric.batch.entity.ManualJobConfigEntity;
 import com.fabric.batch.entity.ManualJobExecutionEntity;
 import com.fabric.batch.exception.JobExecutionApiException;
+import com.fabric.batch.repository.ManualJobConfigRepository;
 import com.fabric.batch.repository.ManualJobExecutionRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -25,6 +27,7 @@ class JobExecutionApiServiceTest {
 
     @Mock JdbcTemplate jdbcTemplate;
     @Mock ManualJobExecutionRepository executionRepository;
+    @Mock ManualJobConfigRepository configRepository;
 
     @InjectMocks JobExecutionApiService service;
 
@@ -169,5 +172,39 @@ class JobExecutionApiServiceTest {
         service.listRecent(null, null, null, null, 999);
 
         verify(executionRepository).findRecentApiExecutions(any(), any(), any(), any(), eq(100));
+    }
+
+    // --- runAllForSource ---
+
+    @Test
+    void runAllForSource_twoActiveConfigs_submitsBoth() {
+        ManualJobConfigEntity c1 = new ManualJobConfigEntity();
+        c1.setConfigId("JC-001"); c1.setSourceSystem("COLLECTIONS");
+
+        ManualJobConfigEntity c2 = new ManualJobConfigEntity();
+        c2.setConfigId("JC-002"); c2.setSourceSystem("COLLECTIONS");
+
+        when(configRepository.findBySourceSystemAndStatus("COLLECTIONS", "ACTIVE"))
+                .thenReturn(List.of(c1, c2));
+        when(jdbcTemplate.queryForObject(anyString(), eq(Integer.class), anyString()))
+                .thenReturn(1);
+        when(executionRepository.save(any())).thenReturn(null);
+
+        RunAllJobsResponse resp = service.runAllForSource("COLLECTIONS", "scheduler");
+
+        assertThat(resp.getSubmittedCount()).isEqualTo(2);
+        assertThat(resp.getExecutionIds()).hasSize(2);
+        assertThat(resp.getSourceSystem()).isEqualTo("COLLECTIONS");
+    }
+
+    @Test
+    void runAllForSource_noActiveConfigs_returnsZeroCount() {
+        when(configRepository.findBySourceSystemAndStatus("EMPTY", "ACTIVE"))
+                .thenReturn(List.of());
+
+        RunAllJobsResponse resp = service.runAllForSource("EMPTY", "scheduler");
+
+        assertThat(resp.getSubmittedCount()).isZero();
+        assertThat(resp.getExecutionIds()).isEmpty();
     }
 }
