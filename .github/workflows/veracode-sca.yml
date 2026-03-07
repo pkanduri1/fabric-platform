@@ -21,6 +21,10 @@ name: Veracode SCA (Dependency Scan)
 # Optional GitHub Variables (Settings → Variables → Actions):
 #   VERACODE_PROXY_HOST – corporate proxy hostname
 #   VERACODE_PROXY_PORT – corporate proxy port
+#
+# Connectivity guard: each scan step is preceded by a 2-attempt reachability
+# check against api.veracode.com. If both attempts fail the scan step is
+# skipped (not failed), so a platform outage never blocks a code push.
 
 on:
   push:
@@ -69,7 +73,25 @@ jobs:
       # The agent reads pom.xml and the resolved dependency tree.
       # quick_scan=true scans direct + transitive deps without full resolve;
       # set to false for a deeper (slower) scan on the weekly schedule.
+
+      # Check reachability before submitting. Retries once (2 total attempts)
+      # then skips — a platform outage never blocks a code push.
+      - name: Check Veracode SCA connectivity (retry 2×, skip scan if unreachable)
+        id: veracode_conn
+        run: |
+          for attempt in 1 2; do
+            if curl --silent --max-time 20 --output /dev/null https://api.veracode.com/ 2>/dev/null; then
+              echo "reachable=true" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+            echo "::warning::Veracode SCA API unreachable (attempt ${attempt}/2)"
+            [ $attempt -lt 2 ] && sleep 30
+          done
+          echo "reachable=false" >> "$GITHUB_OUTPUT"
+          echo "::warning::Veracode SCA API unreachable after 2 attempts — Maven SCA scan will be skipped"
+
       - name: Veracode SCA — Maven
+        if: steps.veracode_conn.outputs.reachable == 'true'
         uses: veracode/veracode-sca@v2.1.9
         env:
           SRCCLR_API_TOKEN: ${{ secrets.SRCCLR_API_TOKEN }}
@@ -115,7 +137,25 @@ jobs:
 
       # Veracode SCA Agent scan of the npm project.
       # Reads package.json + package-lock.json.
+
+      # Check reachability before submitting. Retries once (2 total attempts)
+      # then skips — a platform outage never blocks a code push.
+      - name: Check Veracode SCA connectivity (retry 2×, skip scan if unreachable)
+        id: veracode_conn
+        run: |
+          for attempt in 1 2; do
+            if curl --silent --max-time 20 --output /dev/null https://api.veracode.com/ 2>/dev/null; then
+              echo "reachable=true" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+            echo "::warning::Veracode SCA API unreachable (attempt ${attempt}/2)"
+            [ $attempt -lt 2 ] && sleep 30
+          done
+          echo "reachable=false" >> "$GITHUB_OUTPUT"
+          echo "::warning::Veracode SCA API unreachable after 2 attempts — npm SCA scan will be skipped"
+
       - name: Veracode SCA — npm
+        if: steps.veracode_conn.outputs.reachable == 'true'
         uses: veracode/veracode-sca@v2.1.9
         env:
           SRCCLR_API_TOKEN: ${{ secrets.SRCCLR_API_TOKEN }}
@@ -129,6 +169,8 @@ jobs:
   # ─────────────────────────────────────────────────────────────────
   # NOTIFY — open GitHub issue if weekly scan finds new CVEs
   # (weekly schedule only — PR/push failures surface directly in the check)
+  # Skipped scans (connectivity failure) do not trigger this job because
+  # a skipped step does not set the job status to 'failure'.
   # ─────────────────────────────────────────────────────────────────
   notify-on-failure:
     name: Notify on SCA Findings

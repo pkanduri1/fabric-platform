@@ -80,7 +80,25 @@ jobs:
 
       # ── Veracode Pipeline Scanner ───────────────────────────────────────────
       # Credentials come exclusively from GitHub Secrets, never hardcoded.
+
+      # Check reachability before submitting the scan. Retries once (2 total
+      # attempts) then skips — a platform outage never blocks a code push.
+      - name: Check Veracode API connectivity (retry 2×, skip scan if unreachable)
+        id: veracode_conn
+        run: |
+          for attempt in 1 2; do
+            if curl --silent --max-time 20 --output /dev/null https://api.veracode.com/ 2>/dev/null; then
+              echo "reachable=true" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+            echo "::warning::Veracode API unreachable (attempt ${attempt}/2)"
+            [ $attempt -lt 2 ] && sleep 30
+          done
+          echo "reachable=false" >> "$GITHUB_OUTPUT"
+          echo "::warning::Veracode API unreachable after 2 attempts — pipeline scan will be skipped"
+
       - name: Run Veracode Pipeline Scanner
+        if: steps.veracode_conn.outputs.reachable == 'true'
         uses: veracode/Veracode-pipeline-scan-github-action@v1.0.16
         with:
           vid: ${{ secrets.VERACODE_API_ID }}
@@ -94,14 +112,14 @@ jobs:
 
       # ── SARIF upload ────────────────────────────────────────────────────────
       - name: Convert results to SARIF
-        if: always()
+        if: always() && steps.veracode_conn.outputs.reachable == 'true'
         uses: veracode/pipeline-scan-action-to-sarif@v1.0.0
         with:
           pipeline-results-json: results.json
         continue-on-error: true
 
       - name: Upload SARIF to GitHub Security tab
-        if: always()
+        if: always() && steps.veracode_conn.outputs.reachable == 'true'
         uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: veracode-pipeline.sarif
@@ -110,7 +128,7 @@ jobs:
 
       # ── PR comment with findings summary ────────────────────────────────────
       - name: Post findings to PR
-        if: always() && github.event_name == 'pull_request'
+        if: always() && github.event_name == 'pull_request' && steps.veracode_conn.outputs.reachable == 'true'
         uses: veracode/github-actions-integration-helper@v0.1.3
         with:
           action: "addComment"

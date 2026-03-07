@@ -96,7 +96,26 @@ jobs:
       # ── Full policy scan via Veracode Static Analysis ─────────────────────
       # This submits to Veracode's SaaS platform and waits for results.
       # Policy scans can take 30–90 minutes. The action polls until complete.
+
+      # Check reachability before submitting. Retries once (2 total attempts)
+      # then skips — an outage during scheduled scans does not cascade into
+      # spurious build failures or duplicate GitHub issues.
+      - name: Check Veracode API connectivity (retry 2×, skip scan if unreachable)
+        id: veracode_conn
+        run: |
+          for attempt in 1 2; do
+            if curl --silent --max-time 20 --output /dev/null https://api.veracode.com/ 2>/dev/null; then
+              echo "reachable=true" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+            echo "::warning::Veracode API unreachable (attempt ${attempt}/2)"
+            [ $attempt -lt 2 ] && sleep 30
+          done
+          echo "reachable=false" >> "$GITHUB_OUTPUT"
+          echo "::warning::Veracode API unreachable after 2 attempts — policy scan will be skipped"
+
       - name: Submit Veracode policy scan
+        if: steps.veracode_conn.outputs.reachable == 'true'
         uses: veracode/veracode-uploadandscan-action@0.2.6
         with:
           appname: ${{ vars.VERACODE_APP_NAME }}
@@ -118,7 +137,7 @@ jobs:
 
       # ── Import policy findings as GitHub Code Scanning alerts ────────────────
       - name: Import Veracode findings to GitHub Security tab
-        if: always()
+        if: always() && steps.veracode_conn.outputs.reachable == 'true'
         uses: veracode/veracode-flaws-to-github-issues@v2.1.22
         with:
           token: ${{ secrets.GITHUB_TOKEN }}

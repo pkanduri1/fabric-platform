@@ -64,6 +64,23 @@ jobs:
           restore-keys: |
             owasp-nvd-${{ runner.os }}-
 
+      # Check NVD reachability before running the OWASP gate.
+      # Retries once (2 total attempts) then skips the SCA gate — not the build —
+      # so a platform outage never blocks a code push.
+      - name: Check NVD connectivity (retry 2×, skip OWASP gate if unreachable)
+        id: nvd_conn
+        run: |
+          for attempt in 1 2; do
+            if curl --silent --max-time 20 --output /dev/null https://nvd.nist.gov/ 2>/dev/null; then
+              echo "reachable=true" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+            echo "::warning::NVD unreachable (attempt ${attempt}/2)"
+            [ $attempt -lt 2 ] && sleep 30
+          done
+          echo "reachable=false" >> "$GITHUB_OUTPUT"
+          echo "::warning::NVD unreachable after 2 attempts — OWASP SCA gate will be skipped"
+
       - name: Build, test, coverage gate, and SCA gate
         working-directory: fabric-core
         env:
@@ -71,7 +88,13 @@ jobs:
           DB_USERNAME: cm3int
           DB_PASSWORD: MySecurePass123
           NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
-        run: mvn verify -pl fabric-api
+        run: |
+          SKIP_SCA=""
+          if [ "${{ steps.nvd_conn.outputs.reachable }}" != "true" ]; then
+            SKIP_SCA="-Ddependency-check.skip=true"
+            echo "::warning::Skipping OWASP SCA gate — NVD unreachable after 2 connection attempts"
+          fi
+          mvn verify -pl fabric-api $SKIP_SCA
 
       - name: Upload OWASP SCA report
         if: always()
@@ -111,13 +134,43 @@ jobs:
         working-directory: fabric-ui
         run: npm ci
 
+      # Check npm registry reachability before running audit.
+      # Retries once (2 total attempts) then skips the audit — not the build.
+      - name: Check npm registry connectivity (retry 2×, skip audit if unreachable)
+        id: npm_conn
+        run: |
+          for attempt in 1 2; do
+            if curl --silent --max-time 20 --output /dev/null https://registry.npmjs.org/ 2>/dev/null; then
+              echo "reachable=true" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+            echo "::warning::npm registry unreachable (attempt ${attempt}/2)"
+            [ $attempt -lt 2 ] && sleep 15
+          done
+          echo "reachable=false" >> "$GITHUB_OUTPUT"
+          echo "::warning::npm registry unreachable after 2 attempts — audit will be skipped"
+
       - name: SCA audit (high+ severity gate)
         working-directory: fabric-ui
-        run: npm audit --audit-level=high
+        run: |
+          if [ "${{ steps.npm_conn.outputs.reachable }}" = "true" ]; then
+            npm audit --audit-level=high
+          else
+            echo "::warning::npm audit skipped — npm registry unreachable after 2 connection attempts"
+          fi
 
+      # When the registry is reachable, npm run build also runs the prebuild audit
+      # hook. When unreachable, call react-scripts directly to skip the hook and
+      # still verify the bundle compiles.
       - name: Build (prebuild hook also runs npm audit)
         working-directory: fabric-ui
-        run: npm run build
+        run: |
+          if [ "${{ steps.npm_conn.outputs.reachable }}" = "true" ]; then
+            npm run build
+          else
+            echo "::warning::Prebuild npm audit skipped (registry unreachable) — building directly"
+            npx react-scripts build
+          fi
 
   # ─────────────────────────────────────────────────────────────────
   # WEEKLY SCHEDULED SCA SCAN — catches newly disclosed CVEs
@@ -146,11 +199,30 @@ jobs:
             owasp-nvd-${{ runner.os }}-weekly-
             owasp-nvd-${{ runner.os }}-
 
+      - name: Check NVD connectivity (retry 2×, skip OWASP if unreachable)
+        id: nvd_conn
+        run: |
+          for attempt in 1 2; do
+            if curl --silent --max-time 20 --output /dev/null https://nvd.nist.gov/ 2>/dev/null; then
+              echo "reachable=true" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+            echo "::warning::NVD unreachable (attempt ${attempt}/2)"
+            [ $attempt -lt 2 ] && sleep 30
+          done
+          echo "reachable=false" >> "$GITHUB_OUTPUT"
+          echo "::warning::NVD unreachable after 2 attempts — OWASP check will be skipped"
+
       - name: OWASP check only (skip tests for speed)
         working-directory: fabric-core
         env:
           NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
-        run: mvn dependency-check:check -pl fabric-api -Dmaven.test.skip=true
+        run: |
+          if [ "${{ steps.nvd_conn.outputs.reachable }}" = "true" ]; then
+            mvn dependency-check:check -pl fabric-api -Dmaven.test.skip=true
+          else
+            echo "::warning::OWASP SCA check skipped — NVD unreachable after 2 connection attempts"
+          fi
 
       - uses: actions/setup-node@v4
         with:
@@ -158,9 +230,29 @@ jobs:
           cache: npm
           cache-dependency-path: fabric-ui/package-lock.json
 
+      - name: Check npm registry connectivity (retry 2×, skip audit if unreachable)
+        id: npm_conn
+        run: |
+          for attempt in 1 2; do
+            if curl --silent --max-time 20 --output /dev/null https://registry.npmjs.org/ 2>/dev/null; then
+              echo "reachable=true" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+            echo "::warning::npm registry unreachable (attempt ${attempt}/2)"
+            [ $attempt -lt 2 ] && sleep 15
+          done
+          echo "reachable=false" >> "$GITHUB_OUTPUT"
+          echo "::warning::npm registry unreachable after 2 attempts — audit will be skipped"
+
       - name: npm audit (frontend)
         working-directory: fabric-ui
-        run: npm ci && npm audit --audit-level=high
+        run: |
+          npm ci
+          if [ "${{ steps.npm_conn.outputs.reachable }}" = "true" ]; then
+            npm audit --audit-level=high
+          else
+            echo "::warning::npm audit skipped — npm registry unreachable after 2 connection attempts"
+          fi
 
       - name: Open issue if vulnerabilities found
         if: failure()
