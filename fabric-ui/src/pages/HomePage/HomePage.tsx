@@ -12,7 +12,15 @@ import {
   Fab,
   Tooltip,
   Alert,
-  CircularProgress
+  CircularProgress,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  MenuItem,
+  Select,
+  FormControl,
+  InputLabel
 } from '@mui/material';
 import { Add, Settings, PlayArrow, Description } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
@@ -34,6 +42,9 @@ export const HomePage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
 
   const [showAddDialog, setShowAddDialog] = useState(false);
+  const [showRunAllDialog, setShowRunAllDialog] = useState(false);
+  const [selectedSourceForRunAll, setSelectedSourceForRunAll] = useState<string | null>(null);
+  const [runAllLoading, setRunAllLoading] = useState(false);
   const hasLoadedRef = useRef(false);
 
   // Load source systems on mount — run once only to avoid infinite re-trigger
@@ -89,6 +100,25 @@ export const HomePage: React.FC = () => {
 
   const handleConfigureSystem = (systemId: string, jobName: string) => {
     navigate(`/configuration/${systemId}/${jobName}`);
+  };
+
+  const handleRunAll = async () => {
+    if (!selectedSourceForRunAll) return;
+    setRunAllLoading(true);
+    try {
+      const response = await fetch(
+        `/api/v1/jobs/run-all?sourceSystem=${encodeURIComponent(selectedSourceForRunAll)}`,
+        { method: 'POST', headers: { 'Content-Type': 'application/json' } }
+      );
+      const data = await response.json();
+      setShowRunAllDialog(false);
+      setSelectedSourceForRunAll(null);
+      alert(`${data.submittedCount} job(s) submitted for ${selectedSourceForRunAll}`);
+    } catch (err) {
+      alert('Failed to run jobs. Please try again.');
+    } finally {
+      setRunAllLoading(false);
+    }
   };
 
   if (isLoading) {
@@ -328,6 +358,7 @@ export const HomePage: React.FC = () => {
               variant="outlined"
               fullWidth
               startIcon={<Settings />}
+              onClick={() => navigate('/configuration')}
             >
               System Settings
             </Button>
@@ -337,6 +368,7 @@ export const HomePage: React.FC = () => {
               variant="outlined"
               fullWidth
               startIcon={<PlayArrow />}
+              onClick={() => setShowRunAllDialog(true)}
             >
               Run All Jobs
             </Button>
@@ -346,6 +378,7 @@ export const HomePage: React.FC = () => {
               variant="outlined"
               fullWidth
               startIcon={<Description />}
+              onClick={() => navigate('/configuration')}
             >
               Export Configuration
             </Button>
@@ -370,6 +403,35 @@ export const HomePage: React.FC = () => {
         onClose={() => setShowAddDialog(false)}
         onAdd={handleAddSourceSystem}
       />
+
+      {/* Run All Jobs Dialog */}
+      <Dialog open={showRunAllDialog} onClose={() => setShowRunAllDialog(false)} maxWidth="sm" fullWidth>
+        <DialogTitle>Run All Jobs</DialogTitle>
+        <DialogContent>
+          <FormControl fullWidth sx={{ mt: 1 }}>
+            <InputLabel>Source System</InputLabel>
+            <Select
+              value={selectedSourceForRunAll ?? ''}
+              label="Source System"
+              onChange={(e) => setSelectedSourceForRunAll(e.target.value)}
+            >
+              {sourceSystems.map((ss) => (
+                <MenuItem key={ss.id} value={ss.id}>{ss.name || ss.id}</MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setShowRunAllDialog(false)}>Cancel</Button>
+          <Button
+            variant="contained"
+            disabled={!selectedSourceForRunAll || runAllLoading}
+            onClick={handleRunAll}
+          >
+            {runAllLoading ? 'Running...' : 'Run All Jobs'}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };
